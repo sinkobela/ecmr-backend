@@ -1,0 +1,104 @@
+
+variables:
+  PROJECT_PREFIX: "/ecmr"
+  # Specify to Docker where to create the certificates, Docker will
+  # create them automatically on boot, and will create
+  # `/certs/client` that will be shared between the service and job
+  # container, thanks to volume mount from config.toml
+  DOCKER_TLS_CERTDIR: ""
+  # Set Docker Host to GitLab Registry
+  # DOCKER_HOST: "tcp://0.0.0.0:2375"
+  # See Code Quality Image
+  # DOCKER_DRIVER: overlay2
+  # DOCKER_TLS_VERIFY: 1
+  # DOCKER_SOCKET_PATH: /var/run/docker.sock
+  # DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  # DOCKER_BUILDKIT: "1"
+  
+
+# Extend the default stages with the archive stage intended to push artifacts to the nexus
+# Bear in mind that the K8s cluster may pick up docker images from the registry by itself if
+# a particular imagestream is configured as such
+stages:
+  - build
+  - test
+  - archive
+  - deploy
+
+maven-build-java-backend:
+  trigger:
+    include:
+      - local: java-backend/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+      - java-backend/**/*
+
+node-build-angular-frontend:
+  trigger:
+    include:
+      - local: angular-frontend/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - changes:
+      - angular-frontend/**/*
+
+# PROD DEPLOYMENT
+docker-build-java-backend:
+  tags:
+    - ecmr
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE
+  stage: archive
+  cache: {}
+  image: docker:24.0.5
+  services:
+    - name: 'docker:24.0.5-dind'
+      command: ['--host=0.0.0.0:2375']
+  before_script:
+  - echo "CI_REGISTRY=$CI_REGISTRY"
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker info
+#  - rm -rf ~/.docker/manifests || true
+  script:
+  - echo "DOCKER_HOST=$DOCKER_HOST"
+  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+  - echo "$IMAGE_TAG={$IMAGE_TAG}"
+  - cd java-backend/
+  - docker pull $IMAGE_TAG:latest || true
+  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest .
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker push $IMAGE_TAG:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+      - java-backend/**/*
+
+docker-build-angular-frontend:
+  tags:
+    - ecmr
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE
+  stage: archive
+  cache: {}
+  image: docker:24.0.5
+  services:
+  - name: docker:24.0.5-dind
+    command: ['--host=0.0.0.0:2375']
+  before_script:
+  - docker info
+#  - rm -rf ~/.docker/manifests || true
+  script:
+  - echo "CI_REGISTRY=$CI_REGISTRY"
+  - echo "DOCKER_HOST=$DOCKER_HOST"
+  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+  - echo "$IMAGE_TAG={$IMAGE_TAG}"
+  - cd angular-frontend/
+  - docker pull $IMAGE_TAG:latest || true
+  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest .
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker push $IMAGE_TAG:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+      - angular-frontend/**/*

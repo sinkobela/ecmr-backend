@@ -1,0 +1,206 @@
+# This template file defines jobs related to Maven projects using Java.
+
+variables:
+  # IMPORTANT: Variables that are defined using variable expansion cannot be use in `rules:if` and
+  # `rules:changes` clauses. Therefore, variables defined in this template file and used in
+  # `rules:if` or `rules:changes` clauses, among others, explicitly don't make use of variable
+  # expansion. These variables are marked with [RULES]. Care must be taken when overriding these
+  # variables. Otherwise, some predefined rules may not work as intended.
+
+  ##################################################################################################
+  # Definition of variables for general configuration of the pipeline jobs and the tools used
+  # with them.
+  # These variables are not intended to be overridden by jobs extending the job templates.
+  ##################################################################################################
+  # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the
+  # same config is used when running from the command line.
+  # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding
+  # plugins.
+  MAVEN_CLI_OPTS: "-U --batch-mode --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true"
+  # The key for identifying the cache for downloaded dependencies.
+  MAVEN_CACHE_KEY: maven-cache-key
+  # Path for caching downloaded dependencies relative to the directory the project is cloned to
+  # (i.e. relative to ${CI_PROJECT_DIR})
+  MAVEN_CACHE_PATH: .m2/repository
+  # This will suppress any download for dependencies and plugins or upload messages which would
+  # clutter the console log.
+  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to
+  # make this work.
+  # Note: This variable is used directly by Maven and does not otherwise appear in this template.
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=${CI_PROJECT_DIR}/${MAVEN_CACHE_PATH} -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_JAVA_DOCKER_IMAGE: maven:3.8-jdk-11
+
+  ##################################################################################################
+  # Definition of variables for project-specific configuration of the pipeline jobs.
+  # These variables can be overridden as needed by jobs extending the job templates.
+  ##################################################################################################
+  # Path to the project directory (relative to ${CI_PROJECT_DIR}).
+  # Can either be empty or has to end with a `/`.
+  PROJECT_DIR: ""
+  # [RULES] Path to the project's `pom.xml` file (relative to ${CI_PROJECT_DIR}).
+  POM_PATH: "pom.xml"
+  # Path to the project's `ci_settings.xml` file (relative to ${CI_PROJECT_DIR}).
+  CI_SETTINGS_PATH: "${PROJECT_DIR}ci_settings.xml"
+  # The name to use for the project in SonarQube.
+  SONAR_PROJECT_NAME: ""
+  # Whether to enforce successful quality jobs (e.g. sonar analysis) on the default branch. A value
+  # of `true` effectively doesn't allow quality jobs to fail on the default branch.
+  ENFORCE_QA_ON_DEFAULT_BRANCH: "false"
+  # Path to the reference file containing all third-party licenses.
+  REFERENCE_LICENSES_FILE: "${PROJECT_DIR}third-party-licenses/third-party-licenses.txt"
+  # Path to the generated file containing all third-party licenses (i.e. the output of the
+  # license plugin used).
+  GENERATED_LICENSES_FILE: "${PROJECT_DIR}target/generated-sources/license/THIRD-PARTY.txt"
+  # Whether the project is a Maven multi-module project. This is relevant for the execution of some
+  # Maven goals.
+  MULTI_MODULE_PROJECT: "false"
+
+# Job template for compiling the source code and packaging it in its distributable format.
+.maven-java-build:
+  image: ${MAVEN_JAVA_DOCKER_IMAGE}
+  cache:
+    key: ${MAVEN_CACHE_KEY}
+    paths:
+      - "${MAVEN_CACHE_PATH}"
+  script:
+    # Output environment variables used in this job. (Can be useful for debugging.)
+    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
+    - echo "POM_PATH=${POM_PATH}"
+    - echo "PROJECT_DIR=${PROJECT_DIR}"
+    - mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" clean package spring-boot:repackage -DskipTests
+  artifacts:
+    # Save the files produced by this job as job artifacts and allow jobs in subsequent stages to
+    # download them.
+    paths:
+      # Target path for 'single-module' Maven project.
+      - "${PROJECT_DIR}target/"
+      # Target path for multi-module Maven project.
+      - "${PROJECT_DIR}**/target/"
+    expire_in: 1 week
+  rules:
+    # The build is never allowed to fail.
+    - when: on_success
+      allow_failure: false
+
+# Job template for running unit and integration tests.
+.maven-java-test:
+  image: ${MAVEN_JAVA_DOCKER_IMAGE}
+  cache:
+    key: ${MAVEN_CACHE_KEY}
+    paths:
+      - "${MAVEN_CACHE_PATH}"
+  script:
+    # Output environment variables used in this job. (Can be useful for debugging.)
+    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
+    - echo "POM_PATH=${POM_PATH}"
+    - echo "PROJECT_DIR=${PROJECT_DIR}"
+    - mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" verify
+  artifacts:
+    # Save the files produced by this job as job artifacts and allow jobs in subsequent stages to
+    # download them.
+    paths:
+      # Target path for 'single-module' Maven project.
+      - "${PROJECT_DIR}target/"
+      # Target path for multi-module Maven project.
+      - "${PROJECT_DIR}**/target/"
+    expire_in: 1 week
+  rules:
+    # Tests are never allowed to fail.
+    - when: on_success
+      allow_failure: false
+
+# Job template for performing static code analysis via SonarQube.
+.maven-java-sonarqube-check:
+  variables:
+    # This tells git to fetch all branches of the project, which is required for the analysis task.
+    GIT_DEPTH: "0"
+  image: ${MAVEN_JAVA_DOCKER_IMAGE}
+  cache:
+    key: ${MAVEN_CACHE_KEY}
+    paths:
+      - "${MAVEN_CACHE_PATH}"
+  before_script:
+    # Workaround for `GIT_DEPTH: "0"` not being enough in some situations: SonarQube requires an
+    # unshallow clone, otherwise some files will miss SCM information. This would e.g. affect
+    # features like auto-assignment of issues.
+    - git fetch --unshallow || true
+  script:
+    # Output environment variables used in this job. (Can be useful for debugging.)
+    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
+    - echo "POM_PATH=${POM_PATH}"
+    - echo "SONAR_PROJECT_NAME=${SONAR_PROJECT_NAME}"
+    - mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" sonar:sonar -Dsonar.qualitygate.wait=true -Dsonar.projectName=${SONAR_PROJECT_NAME}
+  rules:
+    # Sonar analysis must succeed (i.e. the quality gate must be passed) in MRs. However, on the
+    # default branch, sonar analysis is allowed to fail by default. This allows merges into the
+    # default branch and thus the deployment of new versions even if the sonar analysis fails.
+    - if: (($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && ($ENFORCE_QA_ON_DEFAULT_BRANCH == "true")) || $CI_MERGE_REQUEST_IID
+      allow_failure: false
+    # In all other cases, failure is permitted.
+    - when: on_success
+      allow_failure: true
+
+# Job template for checking for changed licenses of third-party dependencies.
+# Note: This job requires the `org.codehaus.mojo:license-maven-plugin` plugin to be included in the
+# Maven project.
+.maven-java-third-party-license-check:
+  image: ${MAVEN_JAVA_DOCKER_IMAGE}
+  cache:
+    key: ${MAVEN_CACHE_KEY}
+    paths:
+      - "${MAVEN_CACHE_PATH}"
+  script:
+    # Output environment variables used in this job. (Can be useful for debugging.)
+    - echo "GENERATED_LICENSES_FILE=${GENERATED_LICENSES_FILE}"
+    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
+    - echo "MULTI_MODULE_PROJECT=${MULTI_MODULE_PROJECT}"
+    - echo "POM_PATH=${POM_PATH}"
+    - echo "REFERENCE_LICENSES_FILE=${REFERENCE_LICENSES_FILE}"
+    - 'if [ ${MULTI_MODULE_PROJECT} == "false" ]; then
+        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" license:add-third-party -Dlicense.encoding=UTF-8;
+      else
+        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" license:aggregate-add-third-party -Dlicense.encoding=UTF-8;
+      fi'
+    - cmp --silent "${REFERENCE_LICENSES_FILE}" "${GENERATED_LICENSES_FILE}" || export LICENSES_CHANGED=true
+    - 'if [ ! -z ${LICENSES_CHANGED} ]; then
+        echo "Some licenses used by the third-party dependencies have changed.";
+        echo "Please refer to the README and generate/update them accordingly.";
+        git diff --no-index --unified=0 "${REFERENCE_LICENSES_FILE}" "${GENERATED_LICENSES_FILE}";
+      fi'
+  rules:
+    # License check must succeed in default branches and MRs.
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_IID
+      allow_failure: false
+    # In all other cases, failure is permitted.
+    - when: on_success
+      allow_failure: true
+
+# Job template for deploying project artifacts to a package registry.
+# To deploy packages from CI, create a ci_settings.xml file.
+# For deploying packages to GitLab's Package Registry, see
+# https://docs.gitlab.com/ee/user/packages/maven_repository/#create-maven-packages-with-gitlab-cicd.
+.maven-java-archive:
+  image: ${MAVEN_JAVA_DOCKER_IMAGE}
+  cache:
+    key: ${MAVEN_CACHE_KEY}
+    paths:
+      - "${MAVEN_CACHE_PATH}"
+  script:
+    # Output environment variables used in this job. (Can be useful for debugging.)
+    - echo "CI_SETTINGS_PATH=${CI_SETTINGS_PATH}"
+    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
+    - echo "POM_PATH=${POM_PATH}"
+    - |-
+      if [ ! -f "${CI_SETTINGS_PATH}" ]; then
+        echo "CI settings missing\! If deploying to GitLab Maven Repository, please see https://docs.gitlab.com/ee/user/packages/maven_repository/#create-maven-packages-with-gitlab-cicd for instructions.";
+        exit 1
+      fi
+    - mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" deploy -s "${CI_SETTINGS_PATH}" -DskipTests
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      # Only archive if the project's `pom.xml` file has changed. Usually this should be the case,
+      # among other things, when there is a new version.
+      changes:
+        - "${POM_PATH}"
+      # This is allowed to fail so that default branch pipelines can be repeated
+      allow_failure: true

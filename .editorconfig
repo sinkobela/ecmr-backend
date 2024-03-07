@@ -1,0 +1,38 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# Default settings
+# Each of the following settings can be overwritten for any file type / path.
+[*]
+charset = utf-8
+# Use spaces instead of tabs
+indent_style = space
+# 2 space indentation
+# This setting should be good for js, yml, yaml, package.json, .Dockerfile, etc.
+indent_size = 2
+# Use Unix-style newlines
+end_of_line = lf
+# New line at the end of each file
+insert_final_newline = true
+# Trim trailing whitespaces
+trim_trailing_whitespace = true
+
+[*.bat]
+end_of_line = crlf
+
+[*.java]
+indent_size = 4
+
+[*.py]
+indent_size = 4
+
+[*.go]
+indent_style = tab
+
+[*.xml]
+indent_size = 4
+
+[*.{cs,csx,vb,vbx}]
+indent_size = 4
