@@ -1,3 +1,10 @@
+/*
+ * Copyright Open Logistics Foundation
+ *
+ * Licensed under the Open Logistics Foundation License 1.3.
+ * For details on the licensing terms, see the LICENSE file.
+ * SPDX-License-Identifier: OLFL-1.3
+ */
 package org.openlogisticsfoundation.ecmr.config;
 
 import java.util.ArrayList;
@@ -20,9 +27,9 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 
 @Configuration
 public class SwaggerConfig {
-    @Value("${swagger.auth-url}")
+    @Value("${swagger.auth-url:#{null}}")
     private String authUrl;
-    @Value("${swagger.token-url}")
+    @Value("${swagger.token-url:#{null}}")
     private String tokenUrl;
 
     public SwaggerConfig(MappingJackson2HttpMessageConverter converter) {
