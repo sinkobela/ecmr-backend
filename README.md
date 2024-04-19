@@ -1,14 +1,16 @@
-# eCMR Frontend
+# eCMR backend
 
-Exchange the content of this file with the most important information about your project.
-The following sections / bullet points should help you better structure it.
+This is the backend application of the eCMR service. The Backend is designed to create, manage, archive sign and send an
+eCMR ( digital convention relative au contrat de transport international de marchandises par route) with your partners
+in road transports, including cross-border cases.
+Core technology of the frontend is Java and the Sprint Boot Framework.
 
-## Project Overview
-  * General information about the project
-  * Current state (evtl. link to already deployed production / development versions)
-  * Future goals / features
-  * Version information
-  * etc.
+## Versions
+
+The versions of the runtime environment and the most relevant frameworks used are listed below:
+
+* Java: 21
+* Sprint Boot: 3.2.4
 
 ## Setting up the project
   * Required components / Dependencies
@@ -30,7 +32,36 @@ For details on the licensing terms, see the LICENSE file.
 
 ## Licenses of third-party dependencies
 
-For information about licenses of third-party dependencies, please refer to the `README.md` files of the corresponding components.
+The licenses used by this project's third-party dependencies are documented in the `third-party-licenses` directory.
+This is done to encourage developers to check the licenses used by the third-party dependencies to ensure they do not conflict with the license of
+this project itself.
+The directory contains the following files:
+
+* `third-party-licenses.txt` - Contains the licenses used by this project's third-party dependencies.
+  The content of this file is/can be generated.
+* `third-party-licenses-complementary.txt` - Contains entries for third-party dependencies for which the licenses cannot be determined automatically.
+  The content of this file is maintained manually.
+
+## Generating third-party license reports
+
+This project uses the [license-maven-plugin](https://github.com/mojohaus/license-maven-plugin) to generate a file containing the licenses used by the
+third-party dependencies.
+The content of the `mvn license:add-third-party` Maven goal's output (`target/generated-sources/license/THIRD-PARTY.txt`) can be copied
+into `third-party-licenses/third-party-licenses.txt`.
+
+Third-party dependencies for which the licenses cannot be determined automatically by the license-maven-plugin have to be documented manually
+in `third-party-licenses/third-party-licenses-complementary.txt`.
+In the `third-party-licenses/third-party-licenses.txt` file these third-party dependencies have an "Unknown license" license.
+
+## Generate License Header
+
+Add license header to all files:
+
+    mvn license:format
+
+Check all files, if a license header is given
+
+    mvn license:check
 
 ## Contact information
   * Working Group Information

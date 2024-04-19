@@ -1,3 +1,12 @@
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - visualize
+  - archive
+  - deploy
 
 variables:
   PROJECT_PREFIX: "/ecmr-backend"
@@ -14,27 +23,117 @@ variables:
   # DOCKER_SOCKET_PATH: /var/run/docker.sock
   # DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   # DOCKER_BUILDKIT: "1"
-  
 
-# Extend the default stages with the archive stage intended to push artifacts to the nexus
-# Bear in mind that the K8s cluster may pick up docker images from the registry by itself if
-# a particular imagestream is configured as such
-stages:
-  - build
-  - test
-  - archive
-  - deploy
+  MAVEN_OPTS: >-
+    -Dhttps.protocols=TLSv1.2
+    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    -Dorg.slf4j.simpleLogger.showDateTime=true
+    -Djava.awt.headless=true
 
-# maven-build-java-backend:
-#  trigger:
-#    include:
-#      - local: java-backend/.gitlab-ci.yml
-#    strategy: depend
-#  rules:
-#    - changes:
-#      - java-backend/**/*
+  MAVEN_CLI_OPTS: >-
+    --batch-mode
+    --errors
+    --fail-at-end
+    --show-version
+    --no-transfer-progress
+    -DinstallAtEnd=true
+    -DdeployAtEnd=true
 
-# docker-build-java-backend:
+# Use the same image that is used to build from docker
+image: maven:3.9.6-eclipse-temurin-21
+
+# Cache downloaded dependencies and plugins between builds.
+# To keep cache across branches add 'key: "$CI_JOB_NAME"'
+cache:
+  paths:
+    - .m2/repository
+
+# Run unit tests and generate reports
+test:
+  stage: test
+  tags:
+    - ecmr
+  script:
+    # -  mvn $MAVEN_CLI_OPTS verify
+    -  mvn $MAVEN_CLI_OPTS clean org.jacoco:jacoco-maven-plugin:prepare-agent verify jacoco:report
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
+      #  - $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
+      #  - $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
+    paths:
+      - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
+      #- $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
+      #- $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
+
+coverage:
+  # Must be in a stage later than test stage.
+  # The `visualize` stage does not exist by default.
+  stage: visualize
+  tags:
+    - ecmr
+  image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.9
+  script:
+    # convert report from jacoco to cobertura, using relative project path
+    - python /opt/cover2cover.py $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml $CI_PROJECT_DIR/src/main/java/ > $CI_PROJECT_DIR/cobertura.xml
+  needs:
+    - job: test
+      artifacts: true
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: $CI_PROJECT_DIR/cobertura.xml
+
+code_quality:
+  stage: test
+  tags:
+    - ecmr
+  variables:
+    CODECLIMATE_REGISTRY_USERNAME: $CI_REGISTRY_USER
+    CODECLIMATE_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+
+third-party-license-check:
+  stage: test
+  tags:
+    - ecmr
+  variables:
+    REFERENCE_LICENSES_FILE: $CI_PROJECT_DIR/third-party-licenses/third-party-licenses.txt
+    GENERATED_LICENSES_FILE: $CI_PROJECT_DIR/target/generated-sources/license/THIRD-PARTY.txt
+  script:
+    - 'mvn $MAVEN_CLI_OPTS -f pom.xml license:add-third-party'
+    - 'cmp --silent $REFERENCE_LICENSES_FILE $GENERATED_LICENSES_FILE || export LICENSES_CHANGED=true'
+    - 'if [ ! -z ${LICENSES_CHANGED} ]; then
+        echo Some licenses used by the third-party dependencies have changed.;
+        echo Please refer to the README and generate/update them accordingly.;
+        git diff --no-index --unified=0 $REFERENCE_LICENSES_FILE $GENERATED_LICENSES_FILE;
+      fi'
+  rules:
+    # License check must succeed in main and MRs
+    - if: ($CI_COMMIT_BRANCH == "main") || $CI_MERGE_REQUEST_IID
+      allow_failure: true
+    # "Default clause" meaning: in all other cases
+    - when: on_success
+      allow_failure: true
+
+# To deploy packages from CI, create a `ci_settings.xml` file
+# For deploying packages to GitLab's Maven Repository: See https://docs.gitlab.com/ee/user/packages/maven_repository/index.html#create-maven-packages-with-gitlab-cicd for more details.
+# Please note: The GitLab Maven Repository is currently only available in GitLab Premium / Ultimate.
+# For `master` or `main` branch run `mvn deploy` automatically.
+deploy:
+  stage: archive
+  tags:
+    - ecmr
+  script:
+    - 'cd ecmr-backend'
+    - 'mvn deploy -s ci_settings.xml'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+
+# docker-build-ecmr-backend:
 #  tags:
 #    - ecmr
 #  variables:
@@ -54,7 +153,7 @@ stages:
 #  - echo "DOCKER_HOST=$DOCKER_HOST"
 #  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
 #  - echo "$IMAGE_TAG={$IMAGE_TAG}"
-#  - cd java-backend/
+#  - cd ecmr-backend/
 #  - docker pull $IMAGE_TAG:latest || true
 #  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest .
 #  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -62,4 +161,4 @@ stages:
 #  rules:
 #    - if: $CI_COMMIT_BRANCH == "main"
 #      changes:
-#      - java-backend/**/*
+#      - ecmr-backend/**/*
