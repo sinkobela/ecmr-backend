@@ -157,9 +157,9 @@ variables:
     - echo "POM_PATH=${POM_PATH}"
     - echo "REFERENCE_LICENSES_FILE=${REFERENCE_LICENSES_FILE}"
     - 'if [ ${MULTI_MODULE_PROJECT} == "false" ]; then
-        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" license:add-third-party -Dlicense.encoding=UTF-8;
+        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" org.codehaus.mojo:license-maven-plugin:add-third-party -Dlicense.encoding=UTF-8;
       else
-        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" license:aggregate-add-third-party -Dlicense.encoding=UTF-8;
+        mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" org.codehaus.mojo:license-maven-plugin:aggregate-add-third-party -Dlicense.encoding=UTF-8;
       fi'
     - cmp --silent "${REFERENCE_LICENSES_FILE}" "${GENERATED_LICENSES_FILE}" || export LICENSES_CHANGED=true
     - 'if [ ! -z ${LICENSES_CHANGED} ]; then

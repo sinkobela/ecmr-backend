@@ -103,7 +103,7 @@ third-party-license-check:
     REFERENCE_LICENSES_FILE: $CI_PROJECT_DIR/third-party-licenses/third-party-licenses.txt
     GENERATED_LICENSES_FILE: $CI_PROJECT_DIR/target/generated-sources/license/THIRD-PARTY.txt
   script:
-    - 'mvn $MAVEN_CLI_OPTS -f pom.xml license:add-third-party'
+    - 'mvn $MAVEN_CLI_OPTS -f pom.xml org.codehaus.mojo:license-maven-plugin:add-third-party'
     - 'cmp --silent $REFERENCE_LICENSES_FILE $GENERATED_LICENSES_FILE || export LICENSES_CHANGED=true'
     - 'if [ ! -z ${LICENSES_CHANGED} ]; then
         echo Some licenses used by the third-party dependencies have changed.;
