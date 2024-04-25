@@ -17,6 +17,10 @@
 		<java.version>21</java.version>
         <!-- Project configuration -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <CI_API_V4_URL>https://git.openlogisticsfoundation.org/api/v4</CI_API_V4_URL>
+        <!-- define variable CI PROJECT ID, the value is defined by -->
+        <!-- the open logistics foundation gitlab project id -->
+        <CI_PROJECT_ID>130</CI_PROJECT_ID>
     </properties>
 
     <licenses>
@@ -30,6 +34,11 @@
         <repository>
             <id>gitlab-maven</id>
             <url>${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven</url>
+        </repository>
+        <repository>
+            <!-- This is the repository of the ecmr-datamodel -->
+            <id>ecmr-datamodel-maven</id>
+            <url>${CI_API_V4_URL}/projects/125/packages/maven</url>
         </repository>
     </repositories>
 
@@ -125,6 +134,13 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <!-- ecmr-datamodel dependency -->
+        <dependency>
+            <groupId>org.openlogisticsfoundation.ecmr.data-model</groupId>
+            <artifactId>data-model</artifactId>
+            <version>0.1.0-Snapshot</version>
+        </dependency>
 	</dependencies>
 
 	<build>
