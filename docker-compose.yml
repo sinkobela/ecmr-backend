@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  # Frontend
+  ecmr-frontend:
+    build: ../ecmr-frontend/
+    ports:
+      - "8081:8080"
+
+  # Backend
+  ecmr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile-for-compose
+    ports:
+      - "8080:8080"
+    env_file:
+      - config/backend-params.env
+    depends_on:
+      - postgres
+
+  # Postgres-Database
+  postgres:
+    image: postgres
+    env_file:
+      - config/postgres-params.env

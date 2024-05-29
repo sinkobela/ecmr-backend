@@ -12,15 +12,25 @@ The versions of the runtime environment and the most relevant frameworks used ar
 * Java: 21
 * Sprint Boot: 3.2.4
 
-## Setting up the project
-  * Required components / Dependencies
-  * Conventions
-  * etc.
 
-## Running the project
-  * Starting the project (eg. Docker, etc.)
-  * Known problems
-  * etc.
+
+## Run with docker compose
+
+### Preparation
+To start the project with docker compose, the ecmr-frontend and the ecmr-backend have to be in the same directory.
+
+Prepare your ecmr-backend for using via docker compose. Add the next line to
+application.properties:
+
+    spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/issuer
+
+### Build
+
+    docker compose build
+
+### Run
+
+    docker compose up
 
 ## Documentation
 
