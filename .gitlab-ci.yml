@@ -110,6 +110,12 @@ third-party-license-check:
         echo Please refer to the README and generate/update them accordingly.;
         git diff --no-index --unified=0 $REFERENCE_LICENSES_FILE $GENERATED_LICENSES_FILE;
       fi'
+  artifacts:
+    paths:
+      - "${CI_PROJECT_DIR}/target/generated-sources/license/"
+      - "${CI_PROJECT_DIR}/third-party-licenses/"
+    expire_in: 1 week
+    when: on_failure
   rules:
     # License check must succeed in main and MRs
     - if: ($CI_COMMIT_BRANCH == "main") || $CI_MERGE_REQUEST_IID
