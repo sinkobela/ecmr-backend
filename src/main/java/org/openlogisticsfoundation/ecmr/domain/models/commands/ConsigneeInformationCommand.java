@@ -5,13 +5,12 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
-package org.openlogisticsfoundation.ecmr.web.models;
+package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder
 @Getter
-@AllArgsConstructor
-public class EcmrModel {
-    private long id;
+public class ConsigneeInformationCommand extends EcmrMemberCommand {
 }

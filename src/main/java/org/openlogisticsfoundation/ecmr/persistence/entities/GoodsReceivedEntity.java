@@ -7,6 +7,8 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
+import java.time.Instant;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -15,11 +17,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "CARRIER")
+@Table(name = "GOODS_RECEIVED")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CarrierEntity extends EcmrMemberEntity {
-    private String licensePlate;
+public class GoodsReceivedEntity extends BaseEntity {
+    private String confirmedLogisticsLocationName;
+    private String consigneeReservationsObservations;
+    private Instant consigneeTimeOfArrival;
+    private Instant consigneeTimeOfDeparture;
 }

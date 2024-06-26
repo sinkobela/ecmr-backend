@@ -5,36 +5,33 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
-package org.openlogisticsfoundation.ecmr.persistence.entities;
+package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Entity
-@Table(name = "ITEM", indexes = {
-        @Index(columnList = "ecmr_id")
-})
+@Builder
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ItemEntity extends BaseEntity {
-    //Marks and Nos
+public class ItemCommand {
+    @Size(min = 2, max = 512)
     private String logisticsShippingMarksMarking;
+    @Size(min = 2, max = 35)
     private String logisticsShippingMarksCustomBarcode;
-    //Number of Packages
+    @Min(0)
+    @Max(9999)
     private Integer logisticsPackageItemQuantity;
-    //Method of Packing
+    @Size(min = 2, max = 35)
     private String logisticsPackageType;
-    //Nature of the Goods
+    @Size(min = 2, max = 512)
     private String transportCargoIdentification;
-    //Gross Weight in KG
+    @Min(1)
+    @Max(99_999)
     private Integer supplyChainConsignmentItemGrossWeight;
-    //Volume In m³
+    @Min(1)
+    @Max(9_999)
     private float supplyChainConsignmentItemGrossVolume;
+
 }

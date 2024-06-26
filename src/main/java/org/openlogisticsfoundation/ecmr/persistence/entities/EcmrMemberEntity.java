@@ -9,22 +9,26 @@ package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.OneToOne;
 import jakarta.validation.Valid;
+import lombok.Getter;
+import lombok.Setter;
 
 @MappedSuperclass
-public class EcmrMemberEntity extends BaseEntity {
-    private String companyName;
-    private String personName;
+@Getter
+@Setter
+public abstract class EcmrMemberEntity extends BaseEntity {
+    private String nameCompany;
+    private String namePerson;
     private String street;
-    private String postCode;
+    private String postcode;
     private String city;
-    //TODO: Add countrycode based on decision, enum or entity
+    private String countryCode;
     private String email;
     private String phone;
     @Valid
     @JoinColumn(name = "signature_id")
-    @OneToOne(cascade = CascadeType.ALL)
-    private SignatureEntity signatureEntity;
+    @ManyToOne(cascade = CascadeType.ALL) //ManyToOne annotation is necessary because OneToOne can't be optional
+    private SignatureEntity signature;
 }

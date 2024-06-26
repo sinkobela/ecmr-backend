@@ -8,16 +8,18 @@
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "SENDER")
+@Table(name = "SUCCESSIVE_CARRIER_INFORMATION", indexes = {
+        @Index(columnList = "signature_id"),
+})
 @Getter
 @Setter
 @NoArgsConstructor
-public class SenderEntity extends EcmrMemberEntity {
+public class SuccessiveCarrierInformationEntity extends EcmrMemberEntity {
 }

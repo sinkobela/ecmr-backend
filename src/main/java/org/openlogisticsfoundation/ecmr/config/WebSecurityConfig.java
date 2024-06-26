@@ -8,12 +8,8 @@
 package org.openlogisticsfoundation.ecmr.config;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

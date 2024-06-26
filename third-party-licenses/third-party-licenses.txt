@@ -1,5 +1,5 @@
 
-Lists of 140 third-party dependencies.
+Lists of 141 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.4.14 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.4.14 - http://logback.qos.ch/logback-core)
      (Apache License, Version 2.0) ClassMate (com.fasterxml:classmate:1.6.0 - https://github.com/FasterXML/java-classmate)
@@ -79,6 +79,7 @@ Lists of 140 third-party dependencies.
      (Eclipse Public License v2.0) JUnit Platform Engine API (org.junit.platform:junit-platform-engine:1.10.2 - https://junit.org/junit5/)
      (Public Domain, per Creative Commons CC0) LatencyUtils (org.latencyutils:LatencyUtils:2.0.3 - http://latencyutils.github.io/LatencyUtils/)
      (Apache License, Version 2.0) Liquibase (org.liquibase:liquibase-core:4.24.0 - http://www.liquibase.com)
+     (The Apache Software License, Version 2.0) MapStruct Core (org.mapstruct:mapstruct:1.5.5.Final - https://mapstruct.org/mapstruct/)
      (MIT) mockito-core (org.mockito:mockito-core:5.7.0 - https://github.com/mockito/mockito)
      (MIT) mockito-junit-jupiter (org.mockito:mockito-junit-jupiter:5.7.0 - https://github.com/mockito/mockito)
      (Apache License, Version 2.0) Objenesis (org.objenesis:objenesis:3.3 - http://objenesis.org/objenesis)

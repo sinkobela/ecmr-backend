@@ -7,7 +7,7 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
-import java.time.Instant;
+import org.openlogisticsfoundation.ecmr.api.model.areas.seventeen.PayerType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -17,14 +17,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "CONSIGNEE")
+@Table(name = "CUSTOM_CHARGE")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConsigneeEntity extends EcmrMemberEntity {
-    private String confirmedLogisticsLocationName;
-    private String consigneeReservationsObservations;
-    private Instant consigneeTimeOfArrival;
-    private Instant consigneeTimeOfDeparture;
+public class CustomChargeEntity extends BaseEntity {
+    private Float value;
+    private String currency;
+    private PayerType payer;
 }
