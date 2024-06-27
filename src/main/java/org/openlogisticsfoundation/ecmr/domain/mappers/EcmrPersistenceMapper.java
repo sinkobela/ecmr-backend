@@ -123,9 +123,9 @@ public interface EcmrPersistenceMapper {
     CarrierInformation map(CarrierInformationEntity value);
 
     //TODO street, personName, companyName umbennenen in entity
-    @Mapping(source = "street", target = "successiveCarrierStreetName")
-    @Mapping(source = "namePerson", target = "successiveCarrierPersonName")
-    @Mapping(source = "nameCompany", target = "successiveCarrierName")
+    @Mapping(source = "street", target = "successiveCarrierStreet")
+    @Mapping(source = "namePerson", target = "successiveCarrierNamePerson")
+    @Mapping(source = "nameCompany", target = "successiveCarrierNameCompany")
     @Mapping(source = "postcode", target = "successiveCarrierPostcode")
     @Mapping(source = "countryCode", target = "successiveCarrierCountryCode.value")
     @Mapping(source = "city", target = "successiveCarrierCity")

@@ -83,10 +83,10 @@ public interface EcmrWebMapper {
     @Mapping(source = "successiveCarrierContactInformation.email", target = "email")
     @Mapping(source = "successiveCarrierContactInformation.phone", target = "phone")
     @Mapping(source = "successiveCarrierCity", target = "city")
-    @Mapping(source = "successiveCarrierName", target = "nameCompany")
-    @Mapping(source = "successiveCarrierPersonName", target = "namePerson")
+    @Mapping(source = "successiveCarrierNameCompany", target = "nameCompany")
+    @Mapping(source = "successiveCarrierNamePerson", target = "namePerson")
     @Mapping(source = "successiveCarrierPostcode", target = "postcode")
-    @Mapping(source = "successiveCarrierStreetName", target = "street")
+    @Mapping(source = "successiveCarrierStreet", target = "street")
     SuccessiveCarrierInformationCommand map(SuccessiveCarrierInformation value);
 
     GoodsReceivedCommand map(GoodsReceived value);

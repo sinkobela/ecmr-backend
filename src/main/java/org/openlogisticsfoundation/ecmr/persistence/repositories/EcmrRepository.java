@@ -1,3 +1,11 @@
+/*
+ * Copyright Open Logistics Foundation
+ *
+ * Licensed under the Open Logistics Foundation License 1.3.
+ * For details on the licensing terms, see the LICENSE file.
+ * SPDX-License-Identifier: OLFL-1.3
+ */
+
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
 import java.util.List;
@@ -18,4 +26,3 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
     @EntityGraph(value = "Ecmr.all", type = EntityGraph.EntityGraphType.FETCH)
     List<EcmrEntity> findAllByType(EcmrType type);
 }
-
