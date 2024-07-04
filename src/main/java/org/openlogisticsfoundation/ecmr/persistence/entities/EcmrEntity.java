@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -130,4 +131,5 @@ public class EcmrEntity extends BaseEntity {
     //Senders Instructions
     private String transportInstructionsDescription;
     private EcmrType type;
+    private EcmrStatus ecmrStatus;
 }

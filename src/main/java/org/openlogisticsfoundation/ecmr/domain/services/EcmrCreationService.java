@@ -8,6 +8,7 @@
 package org.openlogisticsfoundation.ecmr.domain.services;
 
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
@@ -31,7 +32,7 @@ public class EcmrCreationService {
     }
 
     private void createEcmr(EcmrCommand ecmrCommand, EcmrType type) {
-        EcmrEntity ecmrEntity = this.persistenceMapper.toEntity(ecmrCommand, type);
+        EcmrEntity ecmrEntity = this.persistenceMapper.toEntity(ecmrCommand, type, EcmrStatus.NEW);
         ecmrEntity = this.ecmrRepository.save(ecmrEntity);
     }
 }

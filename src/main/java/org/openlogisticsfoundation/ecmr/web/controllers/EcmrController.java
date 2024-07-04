@@ -16,16 +16,11 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class EcmrController {
 
     private final EcmrService ecmrService;
+    private final EcmrUpdateService ecmrUpdateService;
     private final EcmrCreationService ecmrCreationService;
     private final EcmrWebMapper ecmrWebMapper;
 
@@ -60,5 +56,16 @@ public class EcmrController {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         this.ecmrCreationService.createEcmr(ecmrCommand);
         return ResponseEntity.ok(new EcmrModel());
+    }
+
+    @PatchMapping(path = { "{ecmrId}" })
+    public ResponseEntity<EcmrModel> changeEcmrType(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam EcmrType type) {
+        try {
+            EcmrModel result = this.ecmrUpdateService.changeType(ecmrId, type);
+            return ResponseEntity.ok(result);
+        }
+        catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 }

@@ -17,6 +17,7 @@ import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.ConsigneeInformation;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CustomChargeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
@@ -33,6 +34,7 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.SuccessiveCarrierIn
 public interface EcmrPersistenceMapper {
 
     @Mapping(source = "type", target = "type")
+    @Mapping(source = "ecmrStatus", target = "ecmrStatus")
     @Mapping(target = "senderInformation.id", ignore = true)
     @Mapping(target = "carrierInformation.id", ignore = true)
     @Mapping(target = "consigneeInformation.id", ignore = true)
@@ -48,7 +50,7 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "carrierInformation.signature", ignore = true)
     @Mapping(target = "consigneeInformation.signature", ignore = true)
     @Mapping(target = "successiveCarrierInformation.signature", ignore = true)
-    EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type);
+    EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type, EcmrStatus ecmrStatus);
 
     @Named("mapItem")
     @Mapping(target = "id", ignore = true)
@@ -58,6 +60,7 @@ public interface EcmrPersistenceMapper {
     CustomChargeEntity map(CustomChargeCommand value);
 
     @Mapping(target = "ecmrId", source = "ecmrId")
+    @Mapping(target = "ecmrStatus", source = "ecmrStatus")
     @Mapping(target = "ecmrConsignment.senderInformation", source = "senderInformation")
     @Mapping(target = "ecmrConsignment.consigneeInformation", source = "consigneeInformation")
     @Mapping(target = "ecmrConsignment.deliveryOfTheGoods", source = "deliveryOfTheGoods")
