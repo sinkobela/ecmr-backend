@@ -67,6 +67,13 @@ test:
       - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
       #- $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
       #- $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
+  rules:
+    # Make this job available in branch pipelines (variable CI_COMMIT_BRANCH exists) and merge request pipelines (variable CI_MERGE_REQUEST_IID exists)
+    # Job is not allowed to fail in MRs
+    - if: $CI_COMMIT_BRANCH
+      allow_failure: true
+    - if: $CI_MERGE_REQUEST_IID
+      allow_failure: false
 
 coverage:
   # Must be in a stage later than test stage.
