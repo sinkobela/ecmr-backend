@@ -15,6 +15,8 @@ import java.util.UUID;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -29,4 +31,7 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
 
     @EntityGraph(value = "Ecmr.all", type = EntityGraph.EntityGraphType.FETCH)
     List<EcmrEntity> findAllByEcmrStatusAndType(EcmrStatus ecmrStatus, EcmrType type);
+
+    @EntityGraph(value = "Ecmr.all", type = EntityGraph.EntityGraphType.FETCH)
+    Page<EcmrEntity> findAllByType(EcmrType type, Pageable pageable);
 }

@@ -35,10 +35,30 @@ public class EcmrController {
     private final EcmrCreationService ecmrCreationService;
     private final EcmrWebMapper ecmrWebMapper;
 
+    /**
+     * Retrieves a paginated and sorted list of {@link EcmrModel}.
+     *
+     * @param type         The type of eCMRs.
+     * @param page         The page number, that should be used to select the eCMRs.
+     * @param size         The size of the paginated list, that determines how many objects should be returned.
+     * @param sortBy       The column name used for sorting the result.
+     * @param sortingOrder The sorting order used for sorting the result.
+     * @return A paginated and sorted list of {@link EcmrModel}.
+     */
     @GetMapping()
-    public ResponseEntity<List<EcmrModel>> getAllEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type ) {
-        List<EcmrModel> ecmrs = this.ecmrService.getAllEcmrs(type);
+    public ResponseEntity<List<EcmrModel>> getAllEcmrs(
+        @RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
+        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+        @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy,
+        @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder) {
+        List<EcmrModel> ecmrs = this.ecmrService.getAllEcmrs(type, page, size, sortBy, sortingOrder);
         return ResponseEntity.ok(ecmrs);
+    }
+
+    @GetMapping("/size/{type}")
+    public Integer getNumberOfEcmrsByType(@PathVariable(value = "type") EcmrType type) {
+        return ecmrService.getNumberOfEcmrsByType(type);
     }
 
     @GetMapping(path = { "{ecmrId}" })

@@ -17,6 +17,10 @@ import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -34,5 +38,19 @@ public class EcmrService {
 
     public List<EcmrModel> getAllEcmrs(EcmrType type) {
         return ecmrRepository.findAllByType(type).stream().map(ecmrPersistenceMapper::toModel).toList();
+    }
+
+    public List<EcmrModel> getAllEcmrs(EcmrType ecmrType, int page, int size, String sortBy, String sortingOrder) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder);
+        final Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy);
+
+        final Page<EcmrEntity> ecmrPage = ecmrRepository.findAllByType(ecmrType, pageable);
+        return ecmrPage.get()
+            .map(ecmrPersistenceMapper::toModel)
+            .toList();
+    }
+
+    public Integer getNumberOfEcmrsByType(final EcmrType type) {
+        return getAllEcmrs(type).size();
     }
 }
