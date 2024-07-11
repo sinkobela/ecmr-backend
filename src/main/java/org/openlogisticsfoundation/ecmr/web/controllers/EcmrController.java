@@ -75,7 +75,14 @@ public class EcmrController {
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         this.ecmrCreationService.createEcmr(ecmrCommand);
-        return ResponseEntity.ok(new EcmrModel());
+        return ResponseEntity.ok(ecmrModel);
+    }
+
+    @DeleteMapping("/{ecmrId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId)
+        throws EcmrNotFoundException {
+        ecmrService.deleteEcmr(ecmrId);
     }
 
     @PatchMapping(path = { "{ecmrId}" })

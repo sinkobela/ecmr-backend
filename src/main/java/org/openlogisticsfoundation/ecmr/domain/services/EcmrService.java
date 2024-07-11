@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
@@ -52,5 +53,13 @@ public class EcmrService {
 
     public Integer getNumberOfEcmrsByType(final EcmrType type) {
         return getAllEcmrs(type).size();
+    }
+
+    public void deleteEcmr(UUID ecmrId) throws EcmrNotFoundException {
+        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+
+        if (ecmrEntity != null && ecmrEntity.getCarrierInformation().getSignature() == null && ecmrEntity.getSenderInformation().getSignature() == null && ecmrEntity.getConsigneeInformation().getSignature() == null && ecmrEntity.getSuccessiveCarrierInformation().getSignature() == null && ecmrEntity.getEcmrStatus() == EcmrStatus.NEW) {
+            ecmrRepository.delete(ecmrEntity);
+        }
     }
 }
