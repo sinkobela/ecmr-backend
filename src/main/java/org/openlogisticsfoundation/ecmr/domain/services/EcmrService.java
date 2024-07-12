@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;

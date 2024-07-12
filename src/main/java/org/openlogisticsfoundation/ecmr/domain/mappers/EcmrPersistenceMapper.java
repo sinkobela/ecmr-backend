@@ -11,13 +11,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.areas.one.SenderInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.seven.SuccessiveCarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.ConsigneeInformation;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CustomChargeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
@@ -50,6 +50,11 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "carrierInformation.signature", ignore = true)
     @Mapping(target = "consigneeInformation.signature", ignore = true)
     @Mapping(target = "successiveCarrierInformation.signature", ignore = true)
+    @Mapping(target = "template", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "editedBy", ignore = true)
+    @Mapping(target = "editedAt", ignore = true)
     EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type, EcmrStatus ecmrStatus);
 
     @Named("mapItem")

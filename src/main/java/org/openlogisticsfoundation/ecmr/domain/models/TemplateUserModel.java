@@ -8,9 +8,14 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models;
 
-public enum EcmrStatus {
-    NEW,
-    LOADING,
-    IN_TRANSPORT,
-    ARRIVED_AT_DESTINATION
+import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+
+import lombok.Data;
+
+@Data
+public class TemplateUserModel {
+    private Long id;
+    private Integer templateUserNumber;
+    private String name;
+    private EcmrModel ecmr;
 }

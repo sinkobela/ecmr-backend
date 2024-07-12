@@ -11,8 +11,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrStatus;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -132,4 +134,12 @@ public class EcmrEntity extends BaseEntity {
     private String transportInstructionsDescription;
     private EcmrType type;
     private EcmrStatus ecmrStatus;
+    private Instant createdAt;
+    private String createdBy;
+    private Instant editedAt;
+    private String editedBy;
+
+    @OneToOne(mappedBy = "ecmr")
+    @JsonManagedReference
+    private TemplateUserEntity template;
 }
