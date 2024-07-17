@@ -12,14 +12,18 @@ import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
+import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,6 +38,7 @@ public class EcmrController {
     private final EcmrUpdateService ecmrUpdateService;
     private final EcmrCreationService ecmrCreationService;
     private final EcmrWebMapper ecmrWebMapper;
+    private final AuthenticationService authenticationService;
 
     /**
      * Retrieves a paginated and sorted list of {@link EcmrModel}.
@@ -46,22 +51,26 @@ public class EcmrController {
      * @return A paginated and sorted list of {@link EcmrModel}.
      */
     @GetMapping()
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<EcmrModel>> getAllEcmrs(
         @RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
         @RequestParam(name = "page", defaultValue = "0", required = false) int page,
         @RequestParam(name = "size", defaultValue = "10", required = false) int size,
         @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy,
-        @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder) {
-        List<EcmrModel> ecmrs = this.ecmrService.getAllEcmrs(type, page, size, sortBy, sortingOrder);
+        @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder) throws AuthenticationException {
+        AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+        List<EcmrModel> ecmrs = this.ecmrService.getAllEcmrs(authenticatedUser, type, page, size, sortBy, sortingOrder);
         return ResponseEntity.ok(ecmrs);
     }
 
     @GetMapping("/size/{type}")
+    @PreAuthorize("isAuthenticated()")
     public Integer getNumberOfEcmrsByType(@PathVariable(value = "type") EcmrType type) {
         return ecmrService.getNumberOfEcmrsByType(type);
     }
 
     @GetMapping(path = { "{ecmrId}" })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> getEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
             EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId);
@@ -72,6 +81,7 @@ public class EcmrController {
     }
 
     @PostMapping()
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         this.ecmrCreationService.createEcmr(ecmrCommand);
@@ -80,12 +90,14 @@ public class EcmrController {
 
     @DeleteMapping("/{ecmrId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated()")
     public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId)
         throws EcmrNotFoundException {
         ecmrService.deleteEcmr(ecmrId);
     }
 
     @PatchMapping(path = { "{ecmrId}" })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> changeEcmrType(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam EcmrType type) {
         try {
             EcmrModel result = this.ecmrUpdateService.changeType(ecmrId, type);

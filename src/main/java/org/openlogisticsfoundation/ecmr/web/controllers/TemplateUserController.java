@@ -20,6 +20,7 @@ import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.mappers.TemplateUserWebMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -43,12 +44,14 @@ public class TemplateUserController {
     private final TemplateUserService templateUserService;
 
     @GetMapping()
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TemplateUserModel>> getAllTemplatesForUser() {
         List<TemplateUserModel> templates = this.templateUserService.getTemplatesForCurrentUser();
         return ResponseEntity.ok(templates);
     }
 
     @GetMapping(path = { "{id}" })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUserModel> getTemplate(@PathVariable(value = "id") Long id) {
         try {
             return ResponseEntity.ok(templateUserService.getTemplateForCurrentUser(id));
@@ -58,12 +61,14 @@ public class TemplateUserController {
     }
 
     @PostMapping()
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUserModel> createTemplate(@RequestBody EcmrModel ecmrModel, @RequestParam String name) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         return ResponseEntity.ok(this.templateUserService.createTemplate(ecmrCommand, name));
     }
 
     @PatchMapping()
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUserModel> updateTemplate(@RequestBody TemplateUserModel templateUserModel) {
         try {
             TemplateUserCommand templateUserCommand = templateUserWebMapper.toCommand(templateUserModel);
@@ -74,6 +79,7 @@ public class TemplateUserController {
     }
 
     @PostMapping(path = { "/share/{id}" })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUserModel> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
             throws TemplateUserNotFoundException {
         this.templateUserService.shareTemplate(id, userIDs);
@@ -81,6 +87,7 @@ public class TemplateUserController {
     }
 
     @DeleteMapping(path = { "/{id}" })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteTemplate(@PathVariable(value = "id") Long id) {
         try {
             templateUserService.deleteTemplate(id);

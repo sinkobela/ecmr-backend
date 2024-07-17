@@ -65,8 +65,8 @@ public class SwaggerConfig {
 
     private OAuthFlows createOAuthFlows() {
         OAuthFlow authorizationCodeFlow = new OAuthFlow()
-                .tokenUrl(this.authUrl)
-                .authorizationUrl(this.tokenUrl);
+                .tokenUrl(this.tokenUrl)
+                .authorizationUrl(this.authUrl);
         return new OAuthFlows().authorizationCode(authorizationCodeFlow);
     }
 }
