@@ -40,7 +40,7 @@
             <id>ecmr-datamodel-maven</id>
             <url>${CI_API_V4_URL}/projects/125/packages/maven</url>
         </repository>
-    </repositories>
+	</repositories>
 
     <distributionManagement>
         <repository>
@@ -137,6 +137,16 @@
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
 			<version>1.5.5.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+			<version>6.21.3</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports-fonts</artifactId>
+			<version>6.21.3</version>
 		</dependency>
 
         <!-- ecmr-datamodel dependency -->

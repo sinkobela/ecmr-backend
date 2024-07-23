@@ -7,6 +7,8 @@
  */
 package org.openlogisticsfoundation.ecmr.web.controllers;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,16 +18,20 @@ import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +43,7 @@ public class EcmrController {
     private final EcmrService ecmrService;
     private final EcmrUpdateService ecmrUpdateService;
     private final EcmrCreationService ecmrCreationService;
+    private final EcmrPdfService ecmrPdfService;
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
 
@@ -105,6 +112,28 @@ public class EcmrController {
         }
         catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/pdf/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("id") UUID id) {
+        try {
+            byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id);
+            StreamingResponseBody streamingResponseBody = outputStream -> {
+                try (InputStream inputStream = new ByteArrayInputStream(ecmrReportData)) {
+                    inputStream.transferTo(outputStream);
+                } catch (Exception e) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+                }
+            };
+            return ResponseEntity.ok()
+                    .contentLength(ecmrReportData.length)
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
+                    .body(streamingResponseBody);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
 }
