@@ -9,6 +9,7 @@ package org.openlogisticsfoundation.ecmr.domain.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
@@ -34,7 +35,7 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.SuccessiveCarrierIn
 public interface EcmrPersistenceMapper {
 
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "ecmrStatus", target = "ecmrStatus")
+    @Mapping(source = "status", target = "ecmrStatus")
     @Mapping(target = "senderInformation.id", ignore = true)
     @Mapping(target = "carrierInformation.id", ignore = true)
     @Mapping(target = "consigneeInformation.id", ignore = true)
@@ -55,7 +56,7 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "editedBy", ignore = true)
     @Mapping(target = "editedAt", ignore = true)
-    EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type, EcmrStatus ecmrStatus);
+    EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type, EcmrStatus status);
 
     @Named("mapItem")
     @Mapping(target = "id", ignore = true)
@@ -151,4 +152,6 @@ public interface EcmrPersistenceMapper {
     @Mapping(source = "supplyChainConsignmentItemGrossWeight", target = "grossWeightInKg.supplyChainConsignmentItemGrossWeight")
     @Mapping(source = "transportCargoIdentification", target = "natureOfTheGoods.transportCargoIdentification")
     Item map(ItemEntity value);
+
+    EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
 }

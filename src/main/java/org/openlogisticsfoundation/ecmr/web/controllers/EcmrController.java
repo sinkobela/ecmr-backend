@@ -109,8 +109,7 @@ public class EcmrController {
         try {
             EcmrModel result = this.ecmrUpdateService.changeType(ecmrId, type);
             return ResponseEntity.ok(result);
-        }
-        catch (EcmrNotFoundException e) {
+        } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
@@ -134,6 +133,25 @@ public class EcmrController {
                     .body(streamingResponseBody);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        }
+    }
+
+    @PutMapping()
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<EcmrModel> updateEcmr(@RequestBody EcmrModel ecmrModel) {
+        if(!this.ecmrUpdateService.checkIfUpdatesAreValid(ecmrModel)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            UUID ecmrId = UUID.fromString(ecmrModel.getEcmrId());
+            EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
+            EcmrModel result = this.ecmrUpdateService.updateEcmr(ecmrCommand, ecmrId, authenticatedUser);
+            return ResponseEntity.ok(result);
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
     }
 }
