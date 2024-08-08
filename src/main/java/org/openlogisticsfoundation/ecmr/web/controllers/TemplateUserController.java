@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.TemplateUserNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.models.TemplateUserModel;
+import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TemplateUserCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.TemplateUserService;
@@ -45,14 +45,14 @@ public class TemplateUserController {
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<TemplateUserModel>> getAllTemplatesForUser() {
-        List<TemplateUserModel> templates = this.templateUserService.getTemplatesForCurrentUser();
+    public ResponseEntity<List<TemplateUser>> getAllTemplatesForUser() {
+        List<TemplateUser> templates = this.templateUserService.getTemplatesForCurrentUser();
         return ResponseEntity.ok(templates);
     }
 
     @GetMapping(path = { "{id}" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<TemplateUserModel> getTemplate(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<TemplateUser> getTemplate(@PathVariable(value = "id") Long id) {
         try {
             return ResponseEntity.ok(templateUserService.getTemplateForCurrentUser(id));
         } catch (TemplateUserNotFoundException ex) {
@@ -62,16 +62,16 @@ public class TemplateUserController {
 
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<TemplateUserModel> createTemplate(@RequestBody EcmrModel ecmrModel, @RequestParam String name) {
+    public ResponseEntity<TemplateUser> createTemplate(@RequestBody EcmrModel ecmrModel, @RequestParam String name) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         return ResponseEntity.ok(this.templateUserService.createTemplate(ecmrCommand, name));
     }
 
     @PatchMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<TemplateUserModel> updateTemplate(@RequestBody TemplateUserModel templateUserModel) {
+    public ResponseEntity<TemplateUser> updateTemplate(@RequestBody TemplateUser templateUser) {
         try {
-            TemplateUserCommand templateUserCommand = templateUserWebMapper.toCommand(templateUserModel);
+            TemplateUserCommand templateUserCommand = templateUserWebMapper.toCommand(templateUser);
             return ResponseEntity.ok(this.templateUserService.updateTemplate(templateUserCommand));
         } catch (TemplateUserNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -80,10 +80,10 @@ public class TemplateUserController {
 
     @PostMapping(path = { "/share/{id}" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<TemplateUserModel> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
+    public ResponseEntity<TemplateUser> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
             throws TemplateUserNotFoundException {
         this.templateUserService.shareTemplate(id, userIDs);
-        return ResponseEntity.ok(new TemplateUserModel());
+        return ResponseEntity.ok(new TemplateUser());
     }
 
     @DeleteMapping(path = { "/{id}" })

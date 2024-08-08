@@ -9,10 +9,10 @@
 package org.openlogisticsfoundation.ecmr.web.mappers;
 
 import org.mapstruct.Mapper;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCommand;
-import org.openlogisticsfoundation.ecmr.web.models.GroupCreationAndUpdateModel;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.UserCommand;
+import org.openlogisticsfoundation.ecmr.web.models.UserCreationAndUpdateModel;
 
 @Mapper(componentModel = "spring")
-public interface GroupWebMapper {
-    GroupCommand toCommand(GroupCreationAndUpdateModel model);
+public interface UserWebMapper {
+    UserCommand toCommand(UserCreationAndUpdateModel model);
 }

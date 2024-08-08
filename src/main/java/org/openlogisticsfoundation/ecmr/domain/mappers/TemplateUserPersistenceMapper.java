@@ -13,7 +13,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
-import org.openlogisticsfoundation.ecmr.domain.models.TemplateUserModel;
+import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TemplateUserCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
@@ -31,7 +31,7 @@ public interface TemplateUserPersistenceMapper {
         return this.ecmrPersistenceMapper.toEntity(value, EcmrType.TEMPLATE, EcmrStatus.NEW);
     }
 
-    TemplateUserModel toModel(TemplateUserEntity templateUserEntity);
+    TemplateUser toTemplateUser(TemplateUserEntity templateUserEntity);
 }
 
 

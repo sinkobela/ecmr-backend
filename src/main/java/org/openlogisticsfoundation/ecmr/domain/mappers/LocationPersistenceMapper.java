@@ -9,13 +9,16 @@
 package org.openlogisticsfoundation.ecmr.domain.mappers;
 
 import org.mapstruct.Mapper;
-import org.openlogisticsfoundation.ecmr.domain.models.LocationModel;
+import org.mapstruct.Mapping;
+import org.openlogisticsfoundation.ecmr.domain.models.Location;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.LocationCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.LocationEntity;
 
 @Mapper(componentModel = "spring")
 public interface LocationPersistenceMapper {
-    LocationEntity toEntity(LocationCommand locationCommand);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "groups", ignore = true)
+    LocationEntity toLocationEntity(LocationCommand locationCommand);
 
-    LocationModel toModel(LocationEntity locationEntity);
+    Location toLocation(LocationEntity locationEntity);
 }

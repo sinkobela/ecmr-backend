@@ -9,10 +9,10 @@
 package org.openlogisticsfoundation.ecmr.web.mappers;
 
 import org.mapstruct.Mapper;
-import org.openlogisticsfoundation.ecmr.domain.models.TemplateUserModel;
+import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TemplateUserCommand;
 
 @Mapper(componentModel = "spring", uses = EcmrWebMapper.class)
 public interface TemplateUserWebMapper {
-    TemplateUserCommand toCommand(TemplateUserModel templateUserModel);
+    TemplateUserCommand toCommand(TemplateUser templateUser);
 }

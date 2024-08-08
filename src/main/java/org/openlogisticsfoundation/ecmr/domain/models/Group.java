@@ -8,14 +8,11 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models;
 
-import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
-
 import lombok.Data;
 
 @Data
-public class TemplateUserModel {
+public class Group {
     private Long id;
-    private Integer templateUserNumber;
     private String name;
-    private EcmrModel ecmr;
+    private Location location;
 }

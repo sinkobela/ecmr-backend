@@ -10,7 +10,11 @@ package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -31,7 +35,8 @@ public class LocationEntity extends BaseEntity {
     private String street;
     private String postcode;
     private String city;
-    private String countryCode;
+    @Enumerated(EnumType.STRING)
+    private CountryCode countryCode;
     @NotNull
     private String officeNumber;
     @OneToMany(mappedBy = "location")

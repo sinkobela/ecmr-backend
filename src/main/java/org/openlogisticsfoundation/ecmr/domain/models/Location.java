@@ -6,18 +6,13 @@
  * SPDX-License-Identifier: OLFL-1.3
  */
 
-package org.openlogisticsfoundation.ecmr.domain.models.commands;
+package org.openlogisticsfoundation.ecmr.domain.models;
 
-import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
+import lombok.Data;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
-public class LocationCommand {
-    @NotNull
+@Data
+public class Location {
+    private Long id;
     private String name;
     private String street;
     private String postcode;

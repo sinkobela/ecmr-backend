@@ -8,11 +8,14 @@
 
 package org.openlogisticsfoundation.ecmr.web.mappers;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
-import org.openlogisticsfoundation.ecmr.domain.models.LocationModel;
+import org.mapstruct.MappingTarget;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.LocationCommand;
+import org.openlogisticsfoundation.ecmr.web.models.LocationCreationAndUpdateModel;
+import org.springframework.validation.Validator;
 
 @Mapper(componentModel = "spring")
 public interface LocationWebMapper {
-    LocationCommand toCommand(LocationModel locationModel);
+    LocationCommand toCommand(LocationCreationAndUpdateModel locationCreationAndUpdateModel);
 }

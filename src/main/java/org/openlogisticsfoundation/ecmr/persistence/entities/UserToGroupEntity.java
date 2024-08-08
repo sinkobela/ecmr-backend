@@ -9,25 +9,22 @@
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "ECMR_GROUP")
+@Table(name = "USER_TO_GROUP")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupEntity extends BaseEntity {
-    @NotNull
-    private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    private LocationEntity location;
+public class UserToGroupEntity extends BaseEntity {
+    @OneToOne
+    private UserEntity user;
+    @OneToOne
+    private GroupEntity group;
 }
