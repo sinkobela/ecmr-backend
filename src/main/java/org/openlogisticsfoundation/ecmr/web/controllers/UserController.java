@@ -10,6 +10,9 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.Location;
@@ -56,8 +59,22 @@ public class UserController {
             UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
             User user = userService.createUser(command);
             return ResponseEntity.ok(user);
-        } catch (ValidationException e) {
+        } catch (ValidationException | LocationNotFoundException | GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) {
+        try {
+            UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
+            User user = userService.updateUser(id, command);
+            return ResponseEntity.ok(user);
+        } catch (ValidationException | LocationNotFoundException | GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 

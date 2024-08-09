@@ -10,6 +10,8 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.Location;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
@@ -20,6 +22,7 @@ import org.openlogisticsfoundation.ecmr.domain.services.UserService;
 import org.openlogisticsfoundation.ecmr.web.mappers.LocationWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.LocationCreationAndUpdateModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +52,16 @@ public class LocationController {
         return ResponseEntity.ok(locationService.getAllLocations());
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Location> getLocation(@PathVariable long id) {
+        try {
+            return ResponseEntity.ok(locationService.getLocation(id));
+        } catch (LocationNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
     @GetMapping("/{id}/groups")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Group>> getGroupsForLocation(@PathVariable long id) {
@@ -60,6 +74,18 @@ public class LocationController {
         LocationCommand command = locationWebMapper.toCommand(locationCreationAndUpdateModel);
         Location location = locationService.createLocation(command);
         return ResponseEntity.ok(location);
+    }
+
+    @PostMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Location> updateLocation(@PathVariable long id, @RequestBody @Valid LocationCreationAndUpdateModel locationCreationAndUpdateModel) {
+        try {
+            LocationCommand command = locationWebMapper.toCommand(locationCreationAndUpdateModel);
+            Location location = locationService.updateLocation(id, command);
+            return ResponseEntity.ok(location);
+        } catch (LocationNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/users")

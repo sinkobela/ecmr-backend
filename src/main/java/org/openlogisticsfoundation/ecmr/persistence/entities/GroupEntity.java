@@ -25,6 +25,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class GroupEntity extends BaseEntity {
     @NotNull
+    @Setter
     private String name;
 
     @ManyToOne

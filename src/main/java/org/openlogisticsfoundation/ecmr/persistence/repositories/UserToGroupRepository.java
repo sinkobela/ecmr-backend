@@ -25,4 +25,6 @@ public interface UserToGroupRepository extends JpaRepository<UserToGroupEntity, 
 
     @Query("SELECT u.group FROM UserToGroupEntity u WHERE u.user.id = :userId")
     List<GroupEntity> findGroupsByUserId(@Param("userId") long userId);
+
+    void deleteByUserIdAndGroupId(long userId, long groupId);
 }

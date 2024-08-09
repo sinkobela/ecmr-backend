@@ -25,4 +25,6 @@ public interface UserToLocationRepository extends JpaRepository<UserToLocationEn
 
     @Query("SELECT u.location FROM UserToLocationEntity u WHERE u.user.id = :userId")
     List<LocationEntity> findLocationsByUserId(@Param("userId") long userId);
+
+    void deleteByUserIdAndLocationId(long userId, long locationId);
 }

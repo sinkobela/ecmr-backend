@@ -10,7 +10,9 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCommand;
@@ -50,6 +52,16 @@ public class GroupController {
         return ResponseEntity.ok(groups);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Group> getGroup(@PathVariable long id) {
+        try {
+            return ResponseEntity.ok(groupService.getGroup(id));
+        } catch (GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Group> createGroup(@RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
@@ -59,6 +71,20 @@ public class GroupController {
             return ResponseEntity.ok(group);
         } catch (LocationNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found");
+        }
+    }
+
+    @PostMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Group> updateLocation(@PathVariable long id, @RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
+        try {
+            GroupCommand command = groupWebMapper.toCommand(groupCreationAndUpdateModel);
+            Group group = groupService.updateGroup(id, command);
+            return ResponseEntity.ok(group);
+        } catch (GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
