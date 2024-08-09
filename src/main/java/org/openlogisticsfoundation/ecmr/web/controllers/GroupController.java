@@ -76,7 +76,7 @@ public class GroupController {
 
     @PostMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Group> updateLocation(@PathVariable long id, @RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
+    public ResponseEntity<Group> updateGroup(@PathVariable long id, @RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
         try {
             GroupCommand command = groupWebMapper.toCommand(groupCreationAndUpdateModel);
             Group group = groupService.updateGroup(id, command);
