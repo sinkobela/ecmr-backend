@@ -14,15 +14,18 @@ import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.UserCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.mappers.UserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -91,7 +94,14 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
-        this.ecmrCreationService.createEcmr(ecmrCommand);
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
         return ResponseEntity.ok(ecmrModel);
     }
 

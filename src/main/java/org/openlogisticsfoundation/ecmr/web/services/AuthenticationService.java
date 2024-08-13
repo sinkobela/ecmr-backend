@@ -10,6 +10,10 @@ package org.openlogisticsfoundation.ecmr.web.services;
 import java.util.Optional;
 
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
+import org.openlogisticsfoundation.ecmr.domain.models.User;
+import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
+import org.openlogisticsfoundation.ecmr.domain.services.UserService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,6 +23,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenticationService {
+
+    private final UserService userService;
+
+    public AuthenticationService(UserService userService) {
+        this.userService = userService;
+    }
 
     public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException {
         Authentication authentication = this.getAuthentication();
@@ -34,8 +44,9 @@ public class AuthenticationService {
             throw new AuthenticationException("Authentication has no claim of type email or upn");
         }
 
+        User user = this.userService.getUsersByEmail(email);
 
-        return new AuthenticatedUser(email);
+        return new AuthenticatedUser(user);
     }
 
     private Authentication getAuthentication() throws AuthenticationException {

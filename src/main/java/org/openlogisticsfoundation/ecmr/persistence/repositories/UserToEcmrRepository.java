@@ -5,16 +5,12 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
-
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
-import java.util.Optional;
-
-import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserToEcmrEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByEmail(String email);
+public interface UserToEcmrRepository extends JpaRepository<UserToEcmrEntity, Long> {
 }

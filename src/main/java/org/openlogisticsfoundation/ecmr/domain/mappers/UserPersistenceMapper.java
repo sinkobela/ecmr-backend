@@ -23,5 +23,8 @@ public interface UserPersistenceMapper {
     @Mapping(target = "id", ignore = true)
     UserEntity toUserEntity(@MappingTarget UserEntity entity, UserCommand userCommand);
 
+    @Mapping(target = "id", ignore = true)
+    UserEntity toUserEntity(User user);
+
     User toUser(UserEntity entity);
 }

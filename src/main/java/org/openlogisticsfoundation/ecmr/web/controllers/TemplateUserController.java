@@ -12,12 +12,16 @@ import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.TemplateUserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TemplateUserCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.TemplateUserService;
+import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.mappers.TemplateUserWebMapper;
+import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,6 +46,7 @@ public class TemplateUserController {
     private final EcmrWebMapper ecmrWebMapper;
     private final TemplateUserWebMapper templateUserWebMapper;
     private final TemplateUserService templateUserService;
+    private final AuthenticationService authenticationService;
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
@@ -64,7 +69,14 @@ public class TemplateUserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUser> createTemplate(@RequestBody EcmrModel ecmrModel, @RequestParam String name) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
-        return ResponseEntity.ok(this.templateUserService.createTemplate(ecmrCommand, name));
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.templateUserService.createTemplate(ecmrCommand, name, authenticatedUser));
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
     }
 
     @PatchMapping()
@@ -82,7 +94,14 @@ public class TemplateUserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TemplateUser> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
             throws TemplateUserNotFoundException {
-        this.templateUserService.shareTemplate(id, userIDs);
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            this.templateUserService.shareTemplate(id, userIDs, authenticatedUser);
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (AuthenticationException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
         return ResponseEntity.ok(new TemplateUser());
     }
 

@@ -8,12 +8,15 @@
 
 package org.openlogisticsfoundation.ecmr.domain.services;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.TemplateUserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.TemplateUserPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
@@ -22,7 +25,9 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.TemplateUserEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.TemplateUserRepository;
+import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -49,11 +54,15 @@ public class TemplateUserService {
         return templateUserPersistenceMapper.toTemplateUser(templateUserEntity);
     }
 
-    public TemplateUser createTemplate(EcmrCommand ecmrCommand, String name) {
-        EcmrEntity ecmr = removeFields(ecmrCreationService.createTemplate(ecmrCommand));
+    public TemplateUser createTemplate(EcmrCommand ecmrCommand, String name, AuthenticatedUser authenticatedUser)
+            throws UserNotFoundException {
+        EcmrEntity ecmr = removeFields(ecmrCreationService.createTemplate(ecmrCommand, authenticatedUser));
         TemplateUserEntity templateUser = new TemplateUserEntity();
-        //TODO: set createdBy to authenticated user, not Test User ->
-        ecmr.setCreatedBy("Test User");
+
+        String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
+        ecmr.setCreatedBy(fullName);
+        ecmr.setCreatedAt(Instant.now());
+
         templateUser.setEcmr(ecmr);
         templateUser.setName(name);
         //TODO: Check for authenticated user, not Test User ->
@@ -85,13 +94,14 @@ public class TemplateUserService {
         return templateUserPersistenceMapper.toTemplateUser(templateUserRepository.save(templateUserEntity));
     }
 
-    public void shareTemplate(Long id, List<Long> userIdsToShareWith) throws TemplateUserNotFoundException {
+    public void shareTemplate(Long id, List<Long> userIdsToShareWith, AuthenticatedUser authenticatedUser)
+            throws TemplateUserNotFoundException, UserNotFoundException {
         TemplateUserEntity templateUserEntity = templateUserRepository.findById(id).orElseThrow(() -> new TemplateUserNotFoundException(id));
         //TODO: Check if authenticated user is creator of Template ->
         for (Long userIdToShareWith : userIdsToShareWith) {
             templateUserEntity.getEcmr().setCreatedBy(userIdToShareWith.toString());
             EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrPersistenceMapper.toModel(templateUserEntity.getEcmr()));
-            createTemplate(ecmrCommand, templateUserEntity.getName());
+            createTemplate(ecmrCommand, templateUserEntity.getName(), authenticatedUser);
         }
     }
 

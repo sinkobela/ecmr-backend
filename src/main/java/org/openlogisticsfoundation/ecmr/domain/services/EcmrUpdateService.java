@@ -60,8 +60,9 @@ public class EcmrUpdateService {
 
         ecmrEntity = persistenceMapper.toEntity(ecmrEntity, ecmrCommand, EcmrType.ECMR);
         ecmrEntity.setEditedAt(Instant.now());
-        // TODO set editedBy property
-        //ecmrEntity.setEditedBy();
+
+        String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
+        ecmrEntity.setEditedBy(fullName);
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
         return persistenceMapper.toModel(ecmrEntity);

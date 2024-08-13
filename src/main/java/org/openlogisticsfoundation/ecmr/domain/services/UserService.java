@@ -11,6 +11,7 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
@@ -23,6 +24,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.Location;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.UserCommand;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.LocationEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
@@ -33,6 +35,7 @@ import org.openlogisticsfoundation.ecmr.persistence.repositories.LocationReposit
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToGroupRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToLocationRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -163,6 +166,11 @@ public class UserService {
 
     public List<User> getUsersByLocationId(long locationId) {
         return userToGroupRepository.findUsersByGroupId(locationId).stream().map(userPersistenceMapper::toUser).toList();
+    }
+
+    public User getUsersByEmail(String email) {
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
+        return userPersistenceMapper.toUser(userEntity);
     }
 
 }
