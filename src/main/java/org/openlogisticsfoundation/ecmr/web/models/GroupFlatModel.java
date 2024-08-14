@@ -6,18 +6,15 @@
  * SPDX-License-Identifier: OLFL-1.3
  */
 
-package org.openlogisticsfoundation.ecmr.domain.models.commands;
+package org.openlogisticsfoundation.ecmr.web.models;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class GroupCommand {
-    @NotNull
+public class GroupFlatModel {
+    private long id;
     private String name;
-    @NotNull
-    private Long locationId;
+    private String description;
 }

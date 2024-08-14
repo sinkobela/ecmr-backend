@@ -10,9 +10,10 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
@@ -28,8 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -45,10 +45,10 @@ public class EcmrUpdateService {
         return persistenceMapper.toModel(result);
     }
 
-    public void archiveEcmrs(){
+    public void archiveEcmrs() {
         List<EcmrEntity> entities = ecmrRepository.findAllByEcmrStatusAndType(EcmrStatus.ARRIVED_AT_DESTINATION, EcmrType.ECMR);
         logger.info("Archiving {} ECMRs", entities.size());
-        for(EcmrEntity entity : entities) {
+        for (EcmrEntity entity : entities) {
             entity.setType(EcmrType.ARCHIVED);
             this.ecmrRepository.save(entity);
         }
@@ -56,7 +56,7 @@ public class EcmrUpdateService {
 
     public EcmrModel updateEcmr(EcmrCommand ecmrCommand, UUID ecmrId, AuthenticatedUser authenticatedUser) throws EcmrNotFoundException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId)
-            .orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+                .orElseThrow(() -> new EcmrNotFoundException(ecmrId));
 
         ecmrEntity = persistenceMapper.toEntity(ecmrEntity, ecmrCommand, EcmrType.ECMR);
         ecmrEntity.setEditedAt(Instant.now());
@@ -68,34 +68,34 @@ public class EcmrUpdateService {
         return persistenceMapper.toModel(ecmrEntity);
     }
 
-    public boolean checkIfUpdatesAreValid(EcmrModel model){
+    public boolean checkIfUpdatesAreValid(EcmrModel model) {
         EcmrConsignment consignment = model.getEcmrConsignment();
         boolean senderSigned = consignment.getSignatureOrStampOfTheSender().getSenderSignature() != null;
         boolean carrierSigned = consignment.getSignatureOrStampOfTheCarrier().getCarrierSignature() != null;
         // signature or stamp of the carrier: only when sender has signed
-        if(carrierSigned && !senderSigned){
+        if (carrierSigned && !senderSigned) {
             return false;
         }
         // carriers reservations and observations on taking over the goods : only when sender signed and carrier didn't
-        else if(consignment.getCarriersReservationsAndObservationsOnTakingOverTheGoods().getCarrierReservationsObservations() != null
-            && !(senderSigned && !carrierSigned)){
+        else if (consignment.getCarriersReservationsAndObservationsOnTakingOverTheGoods().getCarrierReservationsObservations() != null
+                && !(senderSigned && !carrierSigned)) {
             return false;
         }
         // goods received: only when both sender and carrier signed
-        else if(goodsReceivedIsSet(consignment.getGoodsReceived()) && !(senderSigned && carrierSigned)){
+        else if (goodsReceivedIsSet(consignment.getGoodsReceived()) && !(senderSigned && carrierSigned)) {
             return false;
         } else {
             return true;
         }
     }
 
-    private boolean goodsReceivedIsSet(GoodsReceived goodsReceived){
+    private boolean goodsReceivedIsSet(GoodsReceived goodsReceived) {
         return Stream.of(
-                goodsReceived.getConfirmedLogisticsLocationName(),
-                goodsReceived.getConsigneeReservationsObservations(),
-                goodsReceived.getConsigneeTimeOfArrival(),
-                goodsReceived.getConsigneeTimeOfDeparture())
-            .anyMatch(Objects::nonNull);
+                        goodsReceived.getConfirmedLogisticsLocationName(),
+                        goodsReceived.getConsigneeReservationsObservations(),
+                        goodsReceived.getConsigneeTimeOfArrival(),
+                        goodsReceived.getConsigneeTimeOfDeparture())
+                .anyMatch(Objects::nonNull);
     }
 
 }

@@ -6,16 +6,16 @@
  * SPDX-License-Identifier: OLFL-1.3
  */
 
-package org.openlogisticsfoundation.ecmr.domain.models;
+package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import lombok.Data;
-
-@Data
-public class GroupModel {
-    private Long id;
+@AllArgsConstructor
+@Getter
+public class GroupUpdateCommand {
+    @NotNull
     private String name;
     private String description;
-    private List<GroupModel> children;
 }

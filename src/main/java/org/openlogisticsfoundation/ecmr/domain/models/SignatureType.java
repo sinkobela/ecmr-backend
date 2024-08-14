@@ -8,7 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models;
 
-public enum UserRole {
-    Admin,
-    User
+public enum SignatureType {
+    SignOnGlass,
+    ESeal
 }

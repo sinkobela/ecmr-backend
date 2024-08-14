@@ -8,21 +8,24 @@
 package org.openlogisticsfoundation.ecmr.domain.services;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.UserPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.UserToEcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToEcmrRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -32,12 +35,24 @@ import lombok.RequiredArgsConstructor;
 public class EcmrCreationService {
     private final EcmrPersistenceMapper persistenceMapper;
     private final EcmrRepository ecmrRepository;
-    private final UserToEcmrRepository userToEcmrRepository;
+    private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final UserPersistenceMapper userPersistenceMapper;
     private final UserRepository userRepository;
+    private final GroupService groupService;
 
-    public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
-        this.createEcmr(ecmrCommand, EcmrType.ECMR, authenticatedUser);
+    public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds) throws UserNotFoundException, NoPermissionException {
+        if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, groupIds)) {
+            throw new NoPermissionException("No permission for at least one group id");
+        }
+        List<GroupEntity> groupEntities = groupService.getGroupEntities(groupIds);
+        EcmrEntity ecmrEntity = this.createEcmr(ecmrCommand, EcmrType.ECMR, authenticatedUser);
+        for (GroupEntity groupEntity : groupEntities) {
+            EcmrAssignmentEntity ecmrAssignmentEntity = new EcmrAssignmentEntity();
+            ecmrAssignmentEntity.setEcmr(ecmrEntity);
+            ecmrAssignmentEntity.setGroup(groupEntity);
+            ecmrAssignmentEntity.setRole(EcmrRole.Sender);
+            ecmrAssignmentRepository.save(ecmrAssignmentEntity);
+        }
     }
 
     public EcmrEntity createTemplate(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
@@ -55,15 +70,7 @@ public class EcmrCreationService {
 
         String email = authenticatedUser.getUser().getEmail();
         UserEntity userEntity = this.userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
-        this.assignUserToEcmr(ecmrEntity, userEntity);
 
         return ecmrEntity;
-    }
-
-    private void assignUserToEcmr(EcmrEntity ecmr, UserEntity user){
-        UserToEcmrEntity userToEcmrEntity = new UserToEcmrEntity();
-        userToEcmrEntity.setUser(user);
-        userToEcmrEntity.setEcmr(ecmr);
-        this.userToEcmrRepository.save(userToEcmrEntity);
     }
 }

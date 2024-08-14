@@ -14,9 +14,8 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class GroupCreationAndUpdateModel {
+public class GroupUpdateModel {
     @NotNull
     private String name;
-    @NotNull
-    private Long locationId;
+    private String description;
 }

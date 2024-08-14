@@ -8,9 +8,12 @@
 
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,14 +24,18 @@ import lombok.Setter;
 @Entity
 @Table(name = "ECMR_GROUP")
 @Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class GroupEntity extends BaseEntity {
     @NotNull
-    @Setter
     private String name;
 
+    private String description;
+
     @ManyToOne
-    @JoinColumn(name = "location_id")
-    private LocationEntity location;
+    @JoinColumn(name = "parent_id")
+    private GroupEntity parent;
+
+    @OneToMany(mappedBy = "parent")
+    private List<GroupEntity> children;
 }

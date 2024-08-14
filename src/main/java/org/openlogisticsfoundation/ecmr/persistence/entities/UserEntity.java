@@ -13,6 +13,8 @@ import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,11 +34,13 @@ public class UserEntity extends BaseEntity {
     @NotNull
     private String lastName;
     @NotNull
+    @Enumerated(EnumType.STRING)
     private CountryCode country;
     @NotNull
     @Column(unique = true)
     private String email;
     private String phone;
     @NotNull
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 }

@@ -11,15 +11,21 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCreationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupUpdateCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.GroupService;
 import org.openlogisticsfoundation.ecmr.domain.services.UserService;
+import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.GroupWebMapper;
-import org.openlogisticsfoundation.ecmr.web.models.GroupCreationAndUpdateModel;
+import org.openlogisticsfoundation.ecmr.web.models.GroupCreationModel;
+import org.openlogisticsfoundation.ecmr.web.models.GroupFlatModel;
+import org.openlogisticsfoundation.ecmr.web.models.GroupParentUpdateModel;
+import org.openlogisticsfoundation.ecmr.web.models.GroupUpdateModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +35,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,9 +54,29 @@ public class GroupController {
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Group>> getAllGroups() {
-        List<Group> groups = this.groupService.getAllGroups();
+    public ResponseEntity<List<Group>> getAllGroups(@RequestParam(defaultValue = "false") boolean currentUserGroupsOnly) throws AuthenticationException {
+        List<Group> groups;
+        if (currentUserGroupsOnly) {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            groups = this.groupService.getGroupsForUser(authenticatedUser);
+        } else {
+            groups = this.groupService.getAllGroups();
+        }
         return ResponseEntity.ok(groups);
+    }
+
+    @GetMapping("/flat-list")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<GroupFlatModel>> getAllGroupsAsFlatList(@RequestParam(defaultValue = "false") boolean currentUserGroupsOnly) throws AuthenticationException {
+        List<Group> groups;
+        if (currentUserGroupsOnly) {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            groups = this.groupService.getGroupsForUser(authenticatedUser);
+        } else {
+            groups = this.groupService.getAllGroups();
+        }
+        groups = groupService.flatMapGroupTrees(groups);
+        return ResponseEntity.ok(groups.stream().map(groupWebMapper::toFlatModel).toList());
     }
 
     @GetMapping("/{id}")
@@ -64,27 +91,44 @@ public class GroupController {
 
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Group> createGroup(@RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
-        GroupCommand groupCommand = groupWebMapper.toCommand(groupCreationAndUpdateModel);
+    public ResponseEntity<Group> createGroup(@RequestBody @Valid GroupCreationModel groupCreationModel) throws AuthenticationException {
+        GroupCreationCommand groupCreationCommand = groupWebMapper.toCommand(groupCreationModel);
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
         try {
-            Group group = this.groupService.createGroup(groupCommand);
+            Group group = this.groupService.createGroup(authenticatedUser, groupCreationCommand);
             return ResponseEntity.ok(group);
-        } catch (LocationNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found");
+        } catch (GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
     @PostMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Group> updateGroup(@PathVariable long id, @RequestBody @Valid GroupCreationAndUpdateModel groupCreationAndUpdateModel) {
+    public ResponseEntity<Group> updateGroup(@PathVariable long id, @RequestBody @Valid GroupUpdateModel groupUpdateModel) {
         try {
-            GroupCommand command = groupWebMapper.toCommand(groupCreationAndUpdateModel);
+            GroupUpdateCommand command = groupWebMapper.toCommand(groupUpdateModel);
             Group group = groupService.updateGroup(id, command);
             return ResponseEntity.ok(group);
         } catch (GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/update-parent")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Group> updateGroupParent(@PathVariable long id, @RequestBody @Valid GroupParentUpdateModel groupParentUpdateModel) throws AuthenticationException {
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+        try {
+            Group group = groupService.updateGroupParent(id, groupParentUpdateModel.getParentId());
+            return ResponseEntity.ok(group);
+        } catch (GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ValidationException e) {
+            throw new RuntimeException(e);
         }
     }
 

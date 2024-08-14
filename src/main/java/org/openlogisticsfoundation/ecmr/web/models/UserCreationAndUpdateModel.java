@@ -34,7 +34,5 @@ public class UserCreationAndUpdateModel {
     private String email;
     private String phone;
     @NotNull
-    private List<Long> locationIds;
-    @NotNull
     private List<Long> groupIds;
 }

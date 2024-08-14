@@ -7,10 +7,10 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
-import org.openlogisticsfoundation.ecmr.persistence.entities.UserToEcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserToEcmrRepository extends JpaRepository<UserToEcmrEntity, Long> {
+public interface EcmrAssignmentRepository extends JpaRepository<EcmrAssignmentEntity, Long> {
 }

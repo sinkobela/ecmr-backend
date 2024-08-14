@@ -8,15 +8,9 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models;
 
-import lombok.Data;
-
-@Data
-public class Location {
-    private Long id;
-    private String name;
-    private String street;
-    private String postcode;
-    private String city;
-    private CountryCode countryCode;
-    private String officeNumber;
+public enum EcmrRole {
+    Reader,
+    Sender,
+    Carrier,
+    Consignee
 }

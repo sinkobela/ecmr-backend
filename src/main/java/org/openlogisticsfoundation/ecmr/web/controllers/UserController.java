@@ -11,14 +11,15 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
-import org.openlogisticsfoundation.ecmr.domain.models.Location;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.UserCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.UserService;
+import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.UserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.UserCreationAndUpdateModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
@@ -54,27 +55,33 @@ public class UserController {
 
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<User> createUser(@RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) {
+    public ResponseEntity<User> createUser(@RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) throws AuthenticationException {
         try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
-            User user = userService.createUser(command);
+            User user = userService.createUser(authenticatedUser, command);
             return ResponseEntity.ok(user);
-        } catch (ValidationException | LocationNotFoundException | GroupNotFoundException e) {
+        } catch (ValidationException | GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
     @PostMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) {
+    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) throws AuthenticationException {
         try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
-            User user = userService.updateUser(id, command);
+            User user = userService.updateUser(authenticatedUser, id, command);
             return ResponseEntity.ok(user);
-        } catch (ValidationException | LocationNotFoundException | GroupNotFoundException e) {
+        } catch (ValidationException | GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (UserNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
@@ -82,11 +89,5 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Group>> getGroupsForUser(@PathVariable long id) {
         return ResponseEntity.ok(userService.getGroupsByUserId(id));
-    }
-
-    @GetMapping("/{id}/locations")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Location>> getLocationsForUser(@PathVariable long id) {
-        return ResponseEntity.ok(userService.getLocationsByUserId(id));
     }
 }

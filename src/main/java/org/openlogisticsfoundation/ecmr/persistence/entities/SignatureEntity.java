@@ -9,8 +9,13 @@ package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import java.time.Instant;
 
+import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +28,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignatureEntity extends BaseEntity {
-    private String type;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private SignatureType type;
     private String userName;
     private String userCompany;
     private String userStreet;
@@ -31,5 +38,6 @@ public class SignatureEntity extends BaseEntity {
     private String userCity;
     private String userCountry;
     private Instant timestamp;
+    // Base64 Encoded image (Sign on Glass) or digital signature (E-Seal)
     private String data;
 }

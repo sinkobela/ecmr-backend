@@ -14,28 +14,39 @@ import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.UserCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
-import org.openlogisticsfoundation.ecmr.web.mappers.UserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -62,21 +73,13 @@ public class EcmrController {
      */
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<EcmrModel>> getAllEcmrs(
-        @RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
-        @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-        @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-        @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy,
-        @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder) throws AuthenticationException {
+    public ResponseEntity<List<EcmrModel>> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page, @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy, @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder)
+            throws AuthenticationException {
         AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-        List<EcmrModel> ecmrs = this.ecmrService.getAllEcmrs(authenticatedUser, type, page, size, sortBy, sortingOrder);
+        List<EcmrModel> ecmrs = this.ecmrService.getEcmrsForUser(authenticatedUser, type, page, size, sortBy, sortingOrder);
         return ResponseEntity.ok(ecmrs);
-    }
-
-    @GetMapping("/size/{type}")
-    @PreAuthorize("isAuthenticated()")
-    public Integer getNumberOfEcmrsByType(@PathVariable(value = "type") EcmrType type) {
-        return ecmrService.getNumberOfEcmrsByType(type);
     }
 
     @GetMapping(path = { "{ecmrId}" })
@@ -90,17 +93,30 @@ public class EcmrController {
         }
     }
 
+    @GetMapping(path = { "{ecmrId}/external" })
+    public ResponseEntity<EcmrModel> getEcmrWithTan(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan", required = true)  @Valid @NotNull String tan) {
+
+        try {
+            EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId);
+            return ResponseEntity.ok(ecmrModel);
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel) {
+    public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser);
+            this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser, groupIds);
         } catch (UserNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
         return ResponseEntity.ok(ecmrModel);
     }
@@ -108,8 +124,7 @@ public class EcmrController {
     @DeleteMapping("/{ecmrId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
-    public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId)
-        throws EcmrNotFoundException {
+    public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws EcmrNotFoundException {
         ecmrService.deleteEcmr(ecmrId);
     }
 
@@ -136,10 +151,7 @@ public class EcmrController {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
                 }
             };
-            return ResponseEntity.ok()
-                    .contentLength(ecmrReportData.length)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
+            return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
                     .body(streamingResponseBody);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
@@ -149,7 +161,7 @@ public class EcmrController {
     @PutMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> updateEcmr(@RequestBody EcmrModel ecmrModel) {
-        if(!this.ecmrUpdateService.checkIfUpdatesAreValid(ecmrModel)){
+        if (!this.ecmrUpdateService.checkIfUpdatesAreValid(ecmrModel)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {

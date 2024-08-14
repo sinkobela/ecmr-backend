@@ -19,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -33,5 +35,6 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
     List<EcmrEntity> findAllByEcmrStatusAndType(EcmrStatus ecmrStatus, EcmrType type);
 
     @EntityGraph(value = "Ecmr.all", type = EntityGraph.EntityGraphType.FETCH)
-    Page<EcmrEntity> findAllByType(EcmrType type, Pageable pageable);
+    @Query("SELECT ea.ecmr FROM EcmrAssignmentEntity ea WHERE ea.group.id in :groupIds AND ea.ecmr.type = :type")
+    Page<EcmrEntity> findAllByTypeAndAssignedGroupIds(@Param("type") EcmrType type, @Param("groupIds") List<Long> groupIds, Pageable pageable);
 }

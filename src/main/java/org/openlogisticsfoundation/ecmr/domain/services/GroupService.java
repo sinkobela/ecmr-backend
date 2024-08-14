@@ -8,20 +8,23 @@
 
 package org.openlogisticsfoundation.ecmr.domain.services;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.LocationNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapperImpl;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCreationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupUpdateCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.LocationEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.GroupRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.LocationRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToGroupRepository;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.Valid;
@@ -32,34 +35,96 @@ import lombok.RequiredArgsConstructor;
 public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupPersistenceMapper groupPersistenceMapper;
-    private final LocationRepository locationRepository;
-    private final GroupPersistenceMapperImpl groupPersistenceMapperImpl;
+    private final UserToGroupRepository userToGroupRepository;
 
     public List<Group> getAllGroups() {
-        return groupRepository.findAll().stream().map(groupPersistenceMapper::toGroup).toList();
+        List<GroupEntity> groupEntities = groupRepository.findByParentId(null);
+        return groupEntities.stream().map(groupPersistenceMapper::toGroup).toList();
+    }
+
+    public List<Group> getGroupsForUser(AuthenticatedUser authenticatedUser) {
+        List<GroupEntity> usersGroupEntities = userToGroupRepository.findGroupsByUserId(authenticatedUser.getUser().getId());
+        List<Group> usersGroups = usersGroupEntities.stream().map(groupPersistenceMapper::toGroup).toList();
+        usersGroups = removeGroupsThatAreDescendantsOfOtherGroups(usersGroups);
+        return usersGroups;
+    }
+
+    public boolean areAllGroupIdsPartOfUsersGroup(AuthenticatedUser authenticatedUser, List<Long> groupIds) {
+        List<Group> usersGroups = getGroupsForUser(authenticatedUser);
+        List<Long> usersGroupIds = flatMapGroupTrees(usersGroups).stream().map(group -> group.getId()).toList();
+        return groupIds.stream().allMatch(usersGroupIds::contains);
+    }
+
+    private List<Group> removeGroupsThatAreDescendantsOfOtherGroups(List<Group> groups) {
+        List<Group> groupWithoutDuplicateDescendants = new ArrayList<>();
+
+        // Assignment from group to a list that contains this group and all of its descendants
+        Map<Group, List<Group>> groupToFlattenedGroup = new HashMap<>();
+        for (Group group : groups) {
+            groupToFlattenedGroup.put(group, flatMapGroupTree(group).toList());
+        }
+
+        for (Group group : groups) {
+            if (groupToFlattenedGroup.entrySet().stream().noneMatch(kv -> kv.getKey() != group && kv.getValue().contains(group))) {
+                groupWithoutDuplicateDescendants.add(group);
+            }
+        }
+
+        return groupWithoutDuplicateDescendants;
     }
 
     public Group getGroup(long id) throws GroupNotFoundException {
         return groupRepository.findById(id).map(groupPersistenceMapper::toGroup).orElseThrow(() -> new GroupNotFoundException(id));
     }
 
-    public Group createGroup(@Valid GroupCommand command) throws LocationNotFoundException {
-        LocationEntity location = locationRepository.findById(command.getLocationId())
-                .orElseThrow(() -> new LocationNotFoundException(command.getLocationId()));
-        GroupEntity group = new GroupEntity(command.getName().trim(), location);
-        return groupPersistenceMapper.toGroup(groupRepository.save(group));
-    }
-
-    public Group updateGroup(long id, @Valid GroupCommand command) throws GroupNotFoundException, ValidationException {
-        GroupEntity groupEntity = groupRepository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
-        if (!Objects.equals(groupEntity.getLocation().getId(), command.getLocationId())) {
-            throw new ValidationException("Location of a group can not be changed");
+    public Group createGroup(AuthenticatedUser authenticatedUser, @Valid GroupCreationCommand command) throws GroupNotFoundException, NoPermissionException {
+        GroupEntity parentGroup = groupRepository.findById(command.getParentId())
+                .orElseThrow(() -> new GroupNotFoundException(command.getParentId()));
+        if (!areAllGroupIdsPartOfUsersGroup(authenticatedUser, List.of(command.getParentId()))) {
+            throw new NoPermissionException("No permission for parent group id " + command.getParentId());
         }
-        groupEntity.setName(command.getName());
-        return groupPersistenceMapper.toGroup(groupRepository.save(groupEntity));
+
+        GroupEntity group = new GroupEntity();
+        group.setName(command.getName().trim());
+        group.setDescription(command.getDescription());
+        group.setParent(parentGroup);
+        group.setChildren(new ArrayList<>());
+        group = groupRepository.save(group);
+        return getGroup(group.getId());
     }
 
-    public List<Group> getGroupsByLocationId(long locationId) {
-        return groupRepository.findByLocation_Id(locationId).stream().map(groupPersistenceMapper::toGroup).toList();
+    public Group updateGroup(long id, @Valid GroupUpdateCommand command) throws GroupNotFoundException, ValidationException {
+        GroupEntity groupEntity = groupRepository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
+        groupEntity.setName(command.getName());
+        groupEntity.setDescription(command.getDescription());
+        groupEntity = groupRepository.save(groupEntity);
+        return getGroup(groupEntity.getId());
+    }
+
+    public Group updateGroupParent(long groupId, long groupParentId) throws GroupNotFoundException, ValidationException {
+
+        Group group = getGroup(groupId);
+        List<Group> groupDescendants = flatMapGroupTree(group).toList();
+        // Check if the groupParentId is contained in the list of descendants of the group
+        if (groupDescendants.stream().map(Group::getId).toList().contains(groupParentId)) {
+            throw new ValidationException("Can't set parent to a group that is a descendant of the group");
+        }
+        GroupEntity groupEntity = groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
+        GroupEntity parentGroup = groupRepository.findById(groupParentId).orElseThrow(() -> new GroupNotFoundException(groupParentId));
+        groupEntity.setParent(parentGroup);
+        groupEntity = groupRepository.save(groupEntity);
+        return getGroup(groupEntity.getId());
+    }
+
+    private Stream<Group> flatMapGroupTree(Group group) {
+        return Stream.concat(Stream.of(group), group.getChildren().stream().flatMap(this::flatMapGroupTree));
+    }
+
+    public List<Group> flatMapGroupTrees(List<Group> group) {
+        return group.stream().flatMap(this::flatMapGroupTree).distinct().toList();
+    }
+
+    List<GroupEntity> getGroupEntities(List<Long> groupIds) {
+        return groupRepository.findAllById(groupIds);
     }
 }

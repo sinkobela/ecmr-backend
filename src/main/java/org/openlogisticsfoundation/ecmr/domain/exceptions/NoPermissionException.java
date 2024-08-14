@@ -8,9 +8,8 @@
 
 package org.openlogisticsfoundation.ecmr.domain.exceptions;
 
-public class LocationNotFoundException extends Exception {
-    public LocationNotFoundException(Long id) {
-        super("Location with id " + id + " not found");
+public class NoPermissionException extends Exception {
+    public NoPermissionException(String message) {
+        super(message);
     }
-
 }

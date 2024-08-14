@@ -8,11 +8,14 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
 public class Group {
     private Long id;
     private String name;
-    private Location location;
+    private String description;
+    private List<Group> children;
 }
