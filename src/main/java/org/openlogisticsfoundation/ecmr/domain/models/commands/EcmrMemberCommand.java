@@ -5,6 +5,7 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
+
 package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
 import jakarta.validation.constraints.Pattern;

@@ -26,6 +26,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,11 +45,6 @@ public class EcmrService {
     private final EcmrCreationService ecmrCreationService;
 
     public EcmrModel getEcmr(UUID ecmrId) throws EcmrNotFoundException {
-        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
-        return ecmrPersistenceMapper.toModel(ecmrEntity);
-    }
-
-    public EcmrModel getEcmrWithTan(UUID ecmrId, String tan) throws EcmrNotFoundException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
         return ecmrPersistenceMapper.toModel(ecmrEntity);
     }
@@ -89,19 +85,19 @@ public class EcmrService {
         signatureEntity.setSignatureType(signatureType);
 
         switch (signCommand.getSigner()) {
-        case Signer.SENDER -> {
+        case Signer.Sender -> {
             if (ecmrEntity.getSenderInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
             ecmrEntity.getSenderInformation().setSignature(signatureEntity);
         }
-        case Signer.CARRIER -> {
+        case Signer.Carrier -> {
             if (ecmrEntity.getCarrierInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
             ecmrEntity.getCarrierInformation().setSignature(signatureEntity);
         }
-        case Signer.CONSIGNEE -> {
+        case Signer.Consignee -> {
             if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }

@@ -9,7 +9,7 @@
 package org.openlogisticsfoundation.ecmr.domain.models;
 
 public enum Signer {
-    SENDER,
-    CARRIER,
-    CONSIGNEE
+    Sender,
+    Carrier,
+    Consignee
 }

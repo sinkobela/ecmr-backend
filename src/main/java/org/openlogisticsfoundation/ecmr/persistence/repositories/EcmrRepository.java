@@ -37,4 +37,6 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
     @EntityGraph(value = "Ecmr.all", type = EntityGraph.EntityGraphType.FETCH)
     @Query("SELECT ea.ecmr FROM EcmrAssignmentEntity ea WHERE ea.group.id in :groupIds AND ea.ecmr.type = :type")
     Page<EcmrEntity> findAllByTypeAndAssignedGroupIds(@Param("type") EcmrType type, @Param("groupIds") List<Long> groupIds, Pageable pageable);
+
+    boolean existsByEcmrId(UUID ecmrId);
 }
