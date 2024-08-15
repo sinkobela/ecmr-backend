@@ -46,6 +46,15 @@ public class UserController {
     private final UserWebMapper userWebMapper;
     private final AuthenticationService authenticationService;
 
+    @GetMapping("/current")
+    public ResponseEntity<AuthenticatedUser> current() {
+        try {
+            return ResponseEntity.ok(authenticationService.getAuthenticatedUser());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<User>> getAllUsers() {
