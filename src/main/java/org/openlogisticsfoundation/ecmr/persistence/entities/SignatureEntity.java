@@ -30,7 +30,7 @@ import lombok.Setter;
 public class SignatureEntity extends BaseEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
-    private SignatureType type;
+    private SignatureType signatureType;
     private String userName;
     private String userCompany;
     private String userStreet;

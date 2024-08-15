@@ -5,6 +5,7 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
+
 package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import java.io.ByteArrayInputStream;
@@ -15,9 +16,13 @@ import java.util.UUID;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
@@ -25,6 +30,7 @@ import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -94,8 +100,7 @@ public class EcmrController {
     }
 
     @GetMapping(path = { "{ecmrId}/external" })
-    public ResponseEntity<EcmrModel> getEcmrWithTan(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan", required = true)  @Valid @NotNull String tan) {
-
+    public ResponseEntity<EcmrModel> getEcmrWithTan(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan", required = true) @Valid @NotNull String tan) {
         try {
             EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId);
             return ResponseEntity.ok(ecmrModel);
@@ -139,7 +144,7 @@ public class EcmrController {
         }
     }
 
-    @GetMapping("/pdf/{id}")
+    @GetMapping("/{id}/pdf")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("id") UUID id) {
         try {
@@ -174,6 +179,21 @@ public class EcmrController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @PostMapping("/{id}/sign-on-glass")
+    @PreAuthorize("isAuthenticated()")
+    public void signOnGlass(@PathVariable(value = "id") UUID id, SignModel signModel) {
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            this.ecmrService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass);
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (SignatureNotValidException | SignatureAlreadyPresentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 }

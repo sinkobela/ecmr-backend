@@ -8,6 +8,8 @@
 
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
+import java.time.Instant;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -27,4 +29,6 @@ public class ExternalUserEntity extends BaseEntity {
     private String company;
     private String email;
     private String phone;
+    private String tan;
+    private Instant tanValidUntil;
 }

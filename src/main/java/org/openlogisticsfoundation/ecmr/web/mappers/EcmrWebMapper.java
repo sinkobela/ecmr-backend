@@ -22,7 +22,9 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GoodsReceivedCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SenderInformationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SuccessiveCarrierInformationCommand;
+import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 
 @Mapper(componentModel = "spring")
 public interface EcmrWebMapper {
@@ -99,4 +101,6 @@ public interface EcmrWebMapper {
     @Mapping(source = "grossWeightInKg.supplyChainConsignmentItemGrossWeight", target = "supplyChainConsignmentItemGrossWeight")
     @Mapping(source = "volumeInM3.supplyChainConsignmentItemGrossVolume", target = "supplyChainConsignmentItemGrossVolume")
     ItemCommand map(Item value);
+
+    SignCommand map(SignModel model);
 }
