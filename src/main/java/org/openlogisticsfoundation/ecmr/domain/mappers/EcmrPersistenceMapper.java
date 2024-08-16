@@ -19,6 +19,7 @@ import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.ConsigneeInformation;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
+import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CustomChargeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
@@ -29,6 +30,7 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.CustomChargeEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.ItemEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.SenderInformationEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.SuccessiveCarrierInformationEntity;
 
 @Mapper(componentModel = "spring")
@@ -154,4 +156,7 @@ public interface EcmrPersistenceMapper {
     Item map(ItemEntity value);
 
     EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
+
+    @Mapping(source = "signatureType", target = "type")
+    void signatureEntityToSignature(SignatureEntity signatureEntity, @MappingTarget Signature mappingTarget);
 }

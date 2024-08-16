@@ -11,6 +11,7 @@ import java.time.Instant;
 
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -39,5 +40,6 @@ public class SignatureEntity extends BaseEntity {
     private String userCountry;
     private Instant timestamp;
     // Base64 Encoded image (Sign on Glass) or digital signature (E-Seal)
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String data;
 }

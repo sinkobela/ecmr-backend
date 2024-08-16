@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
@@ -184,10 +184,10 @@ public class EcmrController {
 
     @PostMapping("/{id}/sign-on-glass")
     @PreAuthorize("isAuthenticated()")
-    public void signOnGlass(@PathVariable(value = "id") UUID id, SignModel signModel) {
+    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "id") UUID id, @RequestBody SignModel signModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            this.ecmrService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass);
+            return ResponseEntity.ok(this.ecmrService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (EcmrNotFoundException e) {

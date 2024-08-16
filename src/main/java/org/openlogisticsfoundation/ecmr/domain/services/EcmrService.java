@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
@@ -26,7 +27,6 @@ import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,7 +42,6 @@ public class EcmrService {
     private final EcmrRepository ecmrRepository;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final GroupService groupService;
-    private final EcmrCreationService ecmrCreationService;
 
     public EcmrModel getEcmr(UUID ecmrId) throws EcmrNotFoundException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
@@ -74,7 +73,7 @@ public class EcmrService {
         }
     }
 
-    public void signEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
+    public Signature signEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
             throws EcmrNotFoundException, SignatureAlreadyPresentException, SignatureNotValidException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
         SignatureEntity signatureEntity = new SignatureEntity();
@@ -107,5 +106,10 @@ public class EcmrService {
         }
 
         this.ecmrRepository.save(ecmrEntity);
+
+        Signature signatureModel = new Signature();
+        ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity,signatureModel);
+
+        return signatureModel;
     }
 }
