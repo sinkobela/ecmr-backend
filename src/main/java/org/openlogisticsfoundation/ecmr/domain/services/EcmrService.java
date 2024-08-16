@@ -18,8 +18,10 @@ import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
@@ -52,7 +54,8 @@ public class EcmrService {
         return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
     }
 
-    public List<EcmrModel> getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, String sortBy, String sortingOrder) {
+    public List<EcmrModel> getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, String sortBy,
+            String sortingOrder) {
         Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder);
         final Pageable pageable = PageRequest.of(page, size, sortDirection, "ecmr." + sortBy);
 
@@ -112,8 +115,21 @@ public class EcmrService {
         this.ecmrRepository.save(ecmrEntity);
 
         Signature signatureModel = new Signature();
-        ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity,signatureModel);
+        ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity, signatureModel);
 
         return signatureModel;
+    }
+
+    public String getShareToken(UUID ecmrId, EcmrRole ecmrRole) throws EcmrNotFoundException, ValidationException {
+        if(ecmrRole == EcmrRole.Reader) {
+            throw new ValidationException("No token required  for reader");
+        }
+        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+        return switch (ecmrRole) {
+            case Sender -> ecmrEntity.getShareWithSenderToken();
+            case Consignee -> ecmrEntity.getShareWithConsigneeToken();
+            case Carrier -> ecmrEntity.getShareWithCarrierToken();
+            default -> throw new ValidationException("Unexpected value: " + ecmrRole);
+        };
     }
 }

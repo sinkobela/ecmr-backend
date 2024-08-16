@@ -9,10 +9,9 @@ package org.openlogisticsfoundation.ecmr.web.services;
 
 import java.util.Optional;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
-import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
-import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
 import org.openlogisticsfoundation.ecmr.domain.services.UserService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.springframework.security.core.Authentication;
@@ -35,7 +34,7 @@ public class AuthenticationService {
         Jwt jwt = this.getJwt(authentication);
         Optional<String> emailClaim = Optional.ofNullable(jwt.getClaimAsString("email"));
         Optional<String> upnClaim = Optional.ofNullable(jwt.getClaimAsString("upn"));
-        String email = null;
+        String email;
         if (emailClaim.isPresent()) {
             email = emailClaim.get();
         } else if (upnClaim.isPresent()) {
@@ -44,13 +43,17 @@ public class AuthenticationService {
             throw new AuthenticationException("Authentication has no claim of type email or upn");
         }
 
-        User user = this.userService.getUsersByEmail(email);
-
-        return new AuthenticatedUser(user);
+        try {
+            User user = this.userService.getUserByEmail(email);
+            return new AuthenticatedUser(user);
+        } catch (UserNotFoundException e) {
+            throw new AuthenticationException("No user found for email: " + email);
+        }
     }
 
     private Authentication getAuthentication() throws AuthenticationException {
-        SecurityContext securityContext = Optional.ofNullable(SecurityContextHolder.getContext()).orElseThrow(() -> new AuthenticationException("SecurityContext is empty"));
+        SecurityContext securityContext = Optional.ofNullable(SecurityContextHolder.getContext())
+                .orElseThrow(() -> new AuthenticationException("SecurityContext is empty"));
         return Optional.ofNullable(securityContext.getAuthentication())
                 .filter(Authentication::isAuthenticated)
                 .orElseThrow(() -> new AuthenticationException("Authentication has isAuthenticated set to false"));

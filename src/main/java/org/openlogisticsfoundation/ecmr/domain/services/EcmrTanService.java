@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
@@ -29,16 +30,18 @@ public class EcmrTanService {
     private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
 
-    public EcmrModel getEcmrWithTan(UUID ecmrId, String tan) throws EcmrNotFoundException {
+    public EcmrModel getEcmrWithTan(UUID ecmrId, String tan) throws EcmrNotFoundException, ValidationException {
+        if(!this.isTanValid(ecmrId, tan)){
+            throw new ValidationException("No valid Tan given");
+        }
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
         return ecmrPersistenceMapper.toModel(ecmrEntity);
     }
 
     public boolean isTanValid(@Valid @NotNull UUID ecmrId, @Valid @NotNull String tan) throws EcmrNotFoundException {
-        if (ecmrRepository.existsByEcmrId(ecmrId)) {
+        if (!ecmrRepository.existsByEcmrId(ecmrId)) {
             throw new EcmrNotFoundException(ecmrId);
         }
         return ecmrAssignmentRepository.existsByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan);
-
     }
 }

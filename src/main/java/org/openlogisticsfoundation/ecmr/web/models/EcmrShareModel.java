@@ -8,7 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.web.models;
 
-import java.util.UUID;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,17 +16,9 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ExternalUserRegistrationModel {
+public class EcmrShareModel {
     @NotNull
-    private UUID ecmrId;
-    @NotNull
-    private String shareToken;
-    @NotNull
-    private String firstName;
-    @NotNull
-    private String lastName;
-    @NotNull
-    private String company;
     private String email;
-    private String phone;
+    @NotNull
+    private EcmrRole role;
 }

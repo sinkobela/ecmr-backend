@@ -10,8 +10,6 @@ package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
 import java.util.UUID;
 
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
-
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +20,7 @@ public class ExternalUserRegistrationCommand {
     @NotNull
     private UUID ecmrId;
     @NotNull
-    private EcmrRole role;
+    private String shareToken;
     @NotNull
     private String firstName;
     @NotNull

@@ -163,6 +163,6 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "shareWithConsigneeToken", ignore = true)
     EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
 
-    @Mapping(source = "signatureType", target = "type")
+    @Mapping(target = "type", ignore = true)
     void signatureEntityToSignature(SignatureEntity signatureEntity, @MappingTarget Signature mappingTarget);
 }

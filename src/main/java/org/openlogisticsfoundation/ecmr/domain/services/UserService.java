@@ -27,7 +27,6 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.UserToGroupEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.GroupRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToGroupRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,13 +144,10 @@ public class UserService {
         return userToGroupRepository.findUsersByGroupId(groupId).stream().map(userPersistenceMapper::toUser).toList();
     }
 
-    public List<User> getUsersByLocationId(long locationId) {
-        return userToGroupRepository.findUsersByGroupId(locationId).stream().map(userPersistenceMapper::toUser).toList();
-    }
-
-    public User getUsersByEmail(String email) {
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
+    public User getUserByEmail(String email) throws UserNotFoundException {
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         return userPersistenceMapper.toUser(userEntity);
     }
+
 
 }

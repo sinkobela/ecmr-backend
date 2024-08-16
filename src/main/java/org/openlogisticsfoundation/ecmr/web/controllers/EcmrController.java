@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
@@ -20,16 +21,21 @@ import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +59,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jdk.jshell.spi.ExecutionControl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -66,6 +73,7 @@ public class EcmrController {
     private final EcmrPdfService ecmrPdfService;
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
+    private final EcmrShareService ecmrShareService;
 
     /**
      * Retrieves a paginated and sorted list of {@link EcmrModel}.
@@ -134,9 +142,23 @@ public class EcmrController {
         }
     }
 
-    @GetMapping("/{id}/pdf")
+    @PatchMapping(path = { "{ecmrId}/share" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("id") UUID id) {
+    public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid EcmrShareModel ecmrShareModel) throws AuthenticationException {
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+        try {
+            return ResponseEntity.ok(
+                    this.ecmrShareService.shareEcmr(authenticatedUser, ecmrId, ecmrShareModel.getEmail(), ecmrShareModel.getRole()));
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (NotImplementedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+        }
+    }
+
+    @GetMapping("/{ecmrId}/pdf")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
             byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id);
             StreamingResponseBody streamingResponseBody = outputStream -> {
@@ -172,9 +194,9 @@ public class EcmrController {
         }
     }
 
-    @PostMapping("/{id}/sign-on-glass")
+    @PostMapping("/{ecmrId}/sign-on-glass")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "id") UUID id, @RequestBody SignModel signModel) {
+    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID id, @RequestBody SignModel signModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
             return ResponseEntity.ok(this.ecmrService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
@@ -183,6 +205,18 @@ public class EcmrController {
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (SignatureNotValidException | SignatureAlreadyPresentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @GetMapping("{ecmrId}/share-token")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID id, @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
+        try {
+            return ResponseEntity.ok(this.ecmrService.getShareToken(id, ecmrRole));
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
