@@ -58,6 +58,9 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "editedBy", ignore = true)
     @Mapping(target = "editedAt", ignore = true)
+    @Mapping(target = "shareWithSenderToken", ignore = true)
+    @Mapping(target = "shareWithCarrierToken", ignore = true)
+    @Mapping(target = "shareWithConsigneeToken", ignore = true)
     EcmrEntity toEntity(EcmrCommand ecmrModel, EcmrType type, EcmrStatus status);
 
     @Named("mapItem")
@@ -155,6 +158,9 @@ public interface EcmrPersistenceMapper {
     @Mapping(source = "transportCargoIdentification", target = "natureOfTheGoods.transportCargoIdentification")
     Item map(ItemEntity value);
 
+    @Mapping(target = "shareWithSenderToken", ignore = true)
+    @Mapping(target = "shareWithCarrierToken", ignore = true)
+    @Mapping(target = "shareWithConsigneeToken", ignore = true)
     EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
 
     @Mapping(source = "signatureType", target = "type")

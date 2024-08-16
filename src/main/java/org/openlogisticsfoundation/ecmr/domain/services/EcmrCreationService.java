@@ -10,6 +10,7 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 import java.time.Instant;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
@@ -61,6 +62,9 @@ public class EcmrCreationService {
 
     private EcmrEntity createEcmr(EcmrCommand ecmrCommand, EcmrType type, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
         EcmrEntity ecmrEntity = this.persistenceMapper.toEntity(ecmrCommand, type, EcmrStatus.NEW);
+        ecmrEntity.setShareWithSenderToken(RandomStringUtils.randomAlphanumeric(4));
+        ecmrEntity.setShareWithCarrierToken(RandomStringUtils.randomAlphanumeric(4));
+        ecmrEntity.setShareWithConsigneeToken(RandomStringUtils.randomAlphanumeric(4));
 
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmrEntity.setCreatedBy(fullName);

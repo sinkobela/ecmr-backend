@@ -15,6 +15,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -43,4 +45,7 @@ public class UserEntity extends BaseEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     private UserRole role;
+    @ManyToOne
+    @JoinColumn(name = "default_group_id")
+    private GroupEntity defaultGroup;
 }

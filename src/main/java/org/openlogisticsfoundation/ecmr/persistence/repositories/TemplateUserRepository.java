@@ -19,9 +19,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TemplateUserRepository extends JpaRepository<TemplateUserEntity, Long> {
-    List<TemplateUserEntity> findAllByEcmr_CreatedBy(String userName);
+    List<TemplateUserEntity> findAllByUserId(long userId);
 
-    Optional<TemplateUserEntity> findByIdAndEcmr_CreatedBy(Long id, String userName);
+    Optional<TemplateUserEntity> findByIdAndUserId(Long id, long userId);
 
     @Query("SELECT MAX(t.templateUserNumber) FROM TemplateUserEntity t JOIN EcmrEntity e ON t.ecmr.id = e.id WHERE e.createdBy = :createdByUser")
     Integer findMaxTemplateNumberForUser(@Param("createdByUser") String createdByUser);

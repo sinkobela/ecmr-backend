@@ -25,9 +25,8 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.TemplateUserEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.TemplateUserRepository;
-import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
-import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -41,16 +40,16 @@ public class TemplateUserService {
     private final EcmrWebMapper ecmrWebMapper;
     private final TemplateUserRepository templateUserRepository;
     private final TemplateUserPersistenceMapper templateUserPersistenceMapper;
+    private final UserRepository userRepository;
+    private final UserService userService;
 
-    public List<TemplateUser> getTemplatesForCurrentUser() {
-        //TODO: find by authenticated user, not Test User ->
-        return templateUserRepository.findAllByEcmr_CreatedBy("Test User").stream().map(templateUserPersistenceMapper::toTemplateUser).toList();
+    public List<TemplateUser> getTemplatesForCurrentUser(AuthenticatedUser authenticatedUser) {
+        return templateUserRepository.findAllByUserId(authenticatedUser.getUser().getId()).stream().map(templateUserPersistenceMapper::toTemplateUser).toList();
     }
 
-    public TemplateUser getTemplateForCurrentUser(Long id) throws TemplateUserNotFoundException {
-        //TODO: find by authenticated user, not Test User ->
+    public TemplateUser getTemplateForCurrentUser(AuthenticatedUser authenticatedUser, Long id) throws TemplateUserNotFoundException {
         TemplateUserEntity templateUserEntity =
-                templateUserRepository.findByIdAndEcmr_CreatedBy(id, "Test User").orElseThrow(() -> new TemplateUserNotFoundException(id));
+                templateUserRepository.findByIdAndUserId(id, authenticatedUser.getUser().getId()).orElseThrow(() -> new TemplateUserNotFoundException(id));
         return templateUserPersistenceMapper.toTemplateUser(templateUserEntity);
     }
 
@@ -58,7 +57,7 @@ public class TemplateUserService {
             throws UserNotFoundException {
         EcmrEntity ecmr = removeFields(ecmrCreationService.createTemplate(ecmrCommand, authenticatedUser));
         TemplateUserEntity templateUser = new TemplateUserEntity();
-
+        templateUser.setUser(userRepository.findById(authenticatedUser.getUser().getId()).orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId())));
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmr.setCreatedBy(fullName);
         ecmr.setCreatedAt(Instant.now());

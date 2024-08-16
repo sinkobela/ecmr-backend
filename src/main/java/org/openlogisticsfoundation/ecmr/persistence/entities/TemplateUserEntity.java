@@ -29,6 +29,10 @@ import lombok.Setter;
 public class TemplateUserEntity extends BaseEntity {
     private int templateUserNumber;
 
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
     @NotNull
     private String name;
 

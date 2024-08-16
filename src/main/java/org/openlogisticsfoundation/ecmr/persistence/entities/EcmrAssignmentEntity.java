@@ -12,6 +12,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -29,9 +30,9 @@ import lombok.Setter;
 public class EcmrAssignmentEntity extends BaseEntity {
     @OneToOne(optional = false)
     private EcmrEntity ecmr;
-    @OneToOne(optional = true)
+    @ManyToOne(optional = true)
     private GroupEntity group;
-    @OneToOne(optional = true)
+    @ManyToOne(optional = true)
     private ExternalUserEntity externalUser;
     @NotNull
     @Enumerated(EnumType.STRING)

@@ -27,6 +27,8 @@ public class ExternalUserRegistrationModel {
     private String firstName;
     @NotNull
     private String lastName;
+    @NotNull
+    private String company;
     private String email;
     private String phone;
 }

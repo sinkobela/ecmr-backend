@@ -99,16 +99,6 @@ public class EcmrController {
         }
     }
 
-    @GetMapping(path = { "{ecmrId}/external" })
-    public ResponseEntity<EcmrModel> getEcmrWithTan(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan", required = true) @Valid @NotNull String tan) {
-        try {
-            EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId);
-            return ResponseEntity.ok(ecmrModel);
-        } catch (EcmrNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-    }
-
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {

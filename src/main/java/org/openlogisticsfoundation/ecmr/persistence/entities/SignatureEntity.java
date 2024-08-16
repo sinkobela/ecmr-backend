@@ -15,6 +15,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,6 @@ public class SignatureEntity extends BaseEntity {
     private String userCountry;
     private Instant timestamp;
     // Base64 Encoded image (Sign on Glass) or digital signature (E-Seal)
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Lob
     private String data;
 }

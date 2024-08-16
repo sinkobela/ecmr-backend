@@ -50,16 +50,18 @@ public class TemplateUserController {
 
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<TemplateUser>> getAllTemplatesForUser() {
-        List<TemplateUser> templates = this.templateUserService.getTemplatesForCurrentUser();
+    public ResponseEntity<List<TemplateUser>> getAllTemplatesForUser() throws AuthenticationException {
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+        List<TemplateUser> templates = this.templateUserService.getTemplatesForCurrentUser(authenticatedUser);
         return ResponseEntity.ok(templates);
     }
 
     @GetMapping(path = { "{id}" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<TemplateUser> getTemplate(@PathVariable(value = "id") Long id) {
+    public ResponseEntity<TemplateUser> getTemplate(@PathVariable(value = "id") Long id) throws AuthenticationException {
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
         try {
-            return ResponseEntity.ok(templateUserService.getTemplateForCurrentUser(id));
+            return ResponseEntity.ok(templateUserService.getTemplateForCurrentUser(authenticatedUser, id));
         } catch (TemplateUserNotFoundException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }

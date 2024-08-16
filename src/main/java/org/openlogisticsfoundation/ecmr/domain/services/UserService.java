@@ -60,6 +60,16 @@ public class UserService {
             throw new NoPermissionException("At least one group without permission");
         }
 
+        if (userCommand.getGroupIds().isEmpty()) {
+            userEntity.setDefaultGroup(null);
+        } else {
+            if (!userCommand.getGroupIds().contains(userCommand.getDefaultGroupId())) {
+                throw new ValidationException("Default group has to be contained in group Ids");
+            }
+            GroupEntity defaultGroup = groupRepository.findById(userCommand.getDefaultGroupId()).orElseThrow(() -> new GroupNotFoundException(userCommand.getDefaultGroupId()));
+            userEntity.setDefaultGroup(defaultGroup);
+        }
+
         userEntity = userRepository.save(userEntity);
         for (GroupEntity groupEntity : groups) {
             UserToGroupEntity userToGroupEntity = new UserToGroupEntity(userEntity, groupEntity);
@@ -79,6 +89,16 @@ public class UserService {
 
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, userCommand.getGroupIds())) {
             throw new NoPermissionException("At least one group without permission");
+        }
+
+        if (userCommand.getGroupIds().isEmpty()) {
+            userEntity.setDefaultGroup(null);
+        } else {
+            if (!userCommand.getGroupIds().contains(userCommand.getDefaultGroupId())) {
+                throw new ValidationException("Default group has to be contained in group Ids");
+            }
+            GroupEntity defaultGroup = groupRepository.findById(userCommand.getDefaultGroupId()).orElseThrow(() -> new GroupNotFoundException(userCommand.getDefaultGroupId()));
+            userEntity.setDefaultGroup(defaultGroup);
         }
 
         // Get the current groups of the user

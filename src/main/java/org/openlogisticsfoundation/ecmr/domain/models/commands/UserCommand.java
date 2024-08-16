@@ -35,4 +35,5 @@ public class UserCommand {
     private String phone;
     @NotNull
     private List<Long> groupIds;
+    private Long defaultGroupId;
 }

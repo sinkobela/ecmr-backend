@@ -4,7 +4,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd" objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1723795667735-1" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-1" author="Artur.Blek (generated)">
         <createTable tableName="carrier_information">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_carrier_information"/>
@@ -21,7 +21,7 @@
             <column name="carrier_license_plate" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-2" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-2" author="Artur.Blek (generated)">
         <createTable tableName="consignee_information">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_consignee_information"/>
@@ -37,7 +37,7 @@
             <column name="signature_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-3" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-3" author="Artur.Blek (generated)">
         <createTable tableName="custom_charge">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_custom_charge"/>
@@ -47,7 +47,7 @@
             <column name="payer" type="SMALLINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-4" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-4" author="Artur.Blek (generated)">
         <createTable tableName="delivery_of_the_goods">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_delivery_of_the_goods"/>
@@ -56,7 +56,7 @@
             <column name="logistics_location_opening_hours" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-5" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-5" author="Artur.Blek (generated)">
         <createTable tableName="ecmr">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr"/>
@@ -104,9 +104,12 @@
             <column name="created_by" type="VARCHAR(255)"/>
             <column name="edited_at" type="DATETIME"/>
             <column name="edited_by" type="VARCHAR(255)"/>
+            <column name="share_with_sender_token" type="VARCHAR(255)"/>
+            <column name="share_with_carrier_token" type="VARCHAR(255)"/>
+            <column name="share_with_consignee_token" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-6" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-6" author="Artur.Blek (generated)">
         <createTable tableName="ecmr_assignment">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr_assignment"/>
@@ -121,7 +124,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-7" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-7" author="Artur.Blek (generated)">
         <createTable tableName="ecmr_external_user">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr_external_user"/>
@@ -135,7 +138,7 @@
             <column name="tan_valid_until" type="DATETIME"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-8" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-8" author="Artur.Blek (generated)">
         <createTable tableName="ecmr_group">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr_group"/>
@@ -147,7 +150,7 @@
             <column name="parent_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-9" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-9" author="Artur.Blek (generated)">
         <createTable tableName="ecmr_user">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr_user"/>
@@ -168,9 +171,10 @@
             <column name="role" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="default_group_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-10" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-10" author="Artur.Blek (generated)">
         <createTable tableName="goods_received">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_goods_received"/>
@@ -181,7 +185,7 @@
             <column name="consignee_time_of_departure" type="DATETIME"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-11" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-11" author="Artur.Blek (generated)">
         <createTable tableName="item">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_item"/>
@@ -198,7 +202,7 @@
             <column name="ecmr_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-12" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-12" author="Artur.Blek (generated)">
         <createTable tableName="sender_information">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_sender_information"/>
@@ -214,7 +218,7 @@
             <column name="signature_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-13" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-13" author="Artur.Blek (generated)">
         <createTable tableName="signature">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_signature"/>
@@ -229,10 +233,10 @@
             <column name="user_city" type="VARCHAR(255)"/>
             <column name="user_country" type="VARCHAR(255)"/>
             <column name="timestamp" type="DATETIME"/>
-            <column name="data" type="NVARCHAR(MAX)"/>
+            <column name="data" type="CLOB"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-14" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-14" author="Artur.Blek (generated)">
         <createTable tableName="successive_carrier_information">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_successive_carrier_information"/>
@@ -248,7 +252,7 @@
             <column name="signature_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-15" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-15" author="Artur.Blek (generated)">
         <createTable tableName="taking_over_the_goods">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_taking_over_the_goods"/>
@@ -258,12 +262,15 @@
             <column name="logistics_time_of_departure_date_time" type="DATETIME"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-16" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-16" author="Artur.Blek (generated)">
         <createTable tableName="template_user">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_template_user"/>
             </column>
             <column name="template_user_number" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="name" type="VARCHAR(255)">
@@ -272,7 +279,7 @@
             <column name="ecmr_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-17" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-17" author="Artur.Blek (generated)">
         <createTable tableName="to_be_paid_by">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_to_be_paid_by"/>
@@ -291,7 +298,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-18" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-18" author="Artur.Blek (generated)">
         <createTable tableName="user_to_group">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_to_group"/>
@@ -300,50 +307,53 @@
             <column name="group_id" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet id="1723795667735-19" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-19" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="carrier_information_id" constraintName="uc_ecmr_carrier_information" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-20" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-20" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="consignee_information_id" constraintName="uc_ecmr_consignee_information" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-21" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-21" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="delivery_of_the_goods_id" constraintName="uc_ecmr_delivery_of_the_goods" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-22" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-22" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="goods_received_id" constraintName="uc_ecmr_goods_received" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-23" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-23" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="sender_information_id" constraintName="uc_ecmr_sender_information" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-24" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-24" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="successive_carrier_information_id" constraintName="uc_ecmr_successive_carrier_information"
                              tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-25" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-25" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="taking_over_the_goods_id" constraintName="uc_ecmr_taking_over_the_goods" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-26" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-26" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="to_be_paid_by" constraintName="uc_ecmr_to_be_paid_by" tableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-27" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-27" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="email" constraintName="uc_ecmr_user_email" tableName="ecmr_user"/>
     </changeSet>
-    <changeSet id="1723795667735-28" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-28" author="Artur.Blek (generated)">
+        <addUniqueConstraint columnNames="user_id" constraintName="uc_template_user_user" tableName="template_user"/>
+    </changeSet>
+    <changeSet id="1723798707146-29" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="custom_charge_carriage_id" constraintName="uc_to_be_paid_by_custom_charge_carriage"
                              tableName="to_be_paid_by"/>
     </changeSet>
-    <changeSet id="1723795667735-29" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-30" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="custom_charge_customs_duties_id" constraintName="uc_to_be_paid_by_custom_charge_customs_duties"
                              tableName="to_be_paid_by"/>
     </changeSet>
-    <changeSet id="1723795667735-30" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-31" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="custom_charge_other_id" constraintName="uc_to_be_paid_by_custom_charge_other" tableName="to_be_paid_by"/>
     </changeSet>
-    <changeSet id="1723795667735-31" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-32" author="Artur.Blek (generated)">
         <addUniqueConstraint columnNames="custom_charge_supplementary_id" constraintName="uc_to_be_paid_by_custom_charge_supplementary"
                              tableName="to_be_paid_by"/>
     </changeSet>
-    <changeSet id="1723795667735-44" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-45" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="signature_id" baseTableName="carrier_information"
                                  constraintName="FK_CARRIER_INFORMATION_ON_SIGNATURE" referencedColumnNames="id" referencedTableName="signature"/>
 
@@ -351,7 +361,7 @@
             <column name="signature_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-45" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-46" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="signature_id" baseTableName="consignee_information"
                                  constraintName="FK_CONSIGNEE_INFORMATION_ON_SIGNATURE" referencedColumnNames="id" referencedTableName="signature"/>
 
@@ -359,24 +369,24 @@
             <column name="signature_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-46" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-47" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="ecmr_id" baseTableName="ecmr_assignment" constraintName="FK_ECMR_ASSIGNMENT_ON_ECMR"
                                  referencedColumnNames="id" referencedTableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-47" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-48" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="external_user_id" baseTableName="ecmr_assignment"
                                  constraintName="FK_ECMR_ASSIGNMENT_ON_EXTERNALUSER" referencedColumnNames="id"
                                  referencedTableName="ecmr_external_user"/>
     </changeSet>
-    <changeSet id="1723795667735-48" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-49" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="ecmr_assignment" constraintName="FK_ECMR_ASSIGNMENT_ON_GROUP"
                                  referencedColumnNames="id" referencedTableName="ecmr_group"/>
     </changeSet>
-    <changeSet id="1723795667735-49" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-50" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="ecmr_group" constraintName="FK_ECMR_GROUP_ON_PARENT"
                                  referencedColumnNames="id" referencedTableName="ecmr_group"/>
     </changeSet>
-    <changeSet id="1723795667735-50" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-51" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="carrier_information_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_CARRIER_INFORMATION"
                                  referencedColumnNames="id" referencedTableName="carrier_information"/>
 
@@ -384,7 +394,7 @@
             <column name="carrier_information_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-51" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-52" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="consignee_information_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_CONSIGNEE_INFORMATION"
                                  referencedColumnNames="id" referencedTableName="consignee_information"/>
 
@@ -392,7 +402,7 @@
             <column name="consignee_information_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-52" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-53" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="delivery_of_the_goods_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_DELIVERY_OF_THE_GOODS"
                                  referencedColumnNames="id" referencedTableName="delivery_of_the_goods"/>
 
@@ -400,11 +410,11 @@
             <column name="delivery_of_the_goods_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-53" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-54" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="goods_received_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_GOODS_RECEIVED"
                                  referencedColumnNames="id" referencedTableName="goods_received"/>
     </changeSet>
-    <changeSet id="1723795667735-54" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-55" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="sender_information_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_SENDER_INFORMATION"
                                  referencedColumnNames="id" referencedTableName="sender_information"/>
 
@@ -412,7 +422,7 @@
             <column name="sender_information_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-55" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-56" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="successive_carrier_information_id" baseTableName="ecmr"
                                  constraintName="FK_ECMR_ON_SUCCESSIVE_CARRIER_INFORMATION" referencedColumnNames="id"
                                  referencedTableName="successive_carrier_information"/>
@@ -421,7 +431,7 @@
             <column name="successive_carrier_information_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-56" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-57" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="taking_over_the_goods_id" baseTableName="ecmr" constraintName="FK_ECMR_ON_TAKING_OVER_THE_GOODS"
                                  referencedColumnNames="id" referencedTableName="taking_over_the_goods"/>
 
@@ -429,7 +439,7 @@
             <column name="taking_over_the_goods_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-57" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-58" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="to_be_paid_by" baseTableName="ecmr" constraintName="FK_ECMR_ON_TO_BE_PAID_BY"
                                  referencedColumnNames="id" referencedTableName="to_be_paid_by"/>
 
@@ -437,7 +447,11 @@
             <column name="to_be_paid_by"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-58" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-59" author="Artur.Blek (generated)">
+        <addForeignKeyConstraint baseColumnNames="default_group_id" baseTableName="ecmr_user" constraintName="FK_ECMR_USER_ON_DEFAULT_GROUP"
+                                 referencedColumnNames="id" referencedTableName="ecmr_group"/>
+    </changeSet>
+    <changeSet id="1723798707146-60" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="ecmr_id" baseTableName="item" constraintName="FK_ITEM_ON_ECMR" referencedColumnNames="id"
                                  referencedTableName="ecmr"/>
 
@@ -445,7 +459,7 @@
             <column name="ecmr_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-59" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-61" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="signature_id" baseTableName="sender_information" constraintName="FK_SENDER_INFORMATION_ON_SIGNATURE"
                                  referencedColumnNames="id" referencedTableName="signature"/>
 
@@ -453,7 +467,7 @@
             <column name="signature_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-60" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-62" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="signature_id" baseTableName="successive_carrier_information"
                                  constraintName="FK_SUCCESSIVE_CARRIER_INFORMATION_ON_SIGNATURE" referencedColumnNames="id"
                                  referencedTableName="signature"/>
@@ -462,35 +476,39 @@
             <column name="signature_id"/>
         </createIndex>
     </changeSet>
-    <changeSet id="1723795667735-61" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-63" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="ecmr_id" baseTableName="template_user" constraintName="FK_TEMPLATE_USER_ON_ECMR"
                                  referencedColumnNames="id" referencedTableName="ecmr"/>
     </changeSet>
-    <changeSet id="1723795667735-62" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-64" author="Artur.Blek (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="template_user" constraintName="FK_TEMPLATE_USER_ON_USER"
+                                 referencedColumnNames="id" referencedTableName="ecmr_user"/>
+    </changeSet>
+    <changeSet id="1723798707146-65" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="custom_charge_carriage_id" baseTableName="to_be_paid_by"
                                  constraintName="FK_TO_BE_PAID_BY_ON_CUSTOM_CHARGE_CARRIAGE" referencedColumnNames="id"
                                  referencedTableName="custom_charge"/>
     </changeSet>
-    <changeSet id="1723795667735-63" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-66" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="custom_charge_customs_duties_id" baseTableName="to_be_paid_by"
                                  constraintName="FK_TO_BE_PAID_BY_ON_CUSTOM_CHARGE_CUSTOMS_DUTIES" referencedColumnNames="id"
                                  referencedTableName="custom_charge"/>
     </changeSet>
-    <changeSet id="1723795667735-64" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-67" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="custom_charge_other_id" baseTableName="to_be_paid_by"
                                  constraintName="FK_TO_BE_PAID_BY_ON_CUSTOM_CHARGE_OTHER" referencedColumnNames="id"
                                  referencedTableName="custom_charge"/>
     </changeSet>
-    <changeSet id="1723795667735-65" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-68" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="custom_charge_supplementary_id" baseTableName="to_be_paid_by"
                                  constraintName="FK_TO_BE_PAID_BY_ON_CUSTOM_CHARGE_SUPPLEMENTARY" referencedColumnNames="id"
                                  referencedTableName="custom_charge"/>
     </changeSet>
-    <changeSet id="1723795667735-66" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-69" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="user_to_group" constraintName="FK_USER_TO_GROUP_ON_GROUP"
                                  referencedColumnNames="id" referencedTableName="ecmr_group"/>
     </changeSet>
-    <changeSet id="1723795667735-67" author="thomas.dukvin (generated)">
+    <changeSet id="1723798707146-70" author="Artur.Blek (generated)">
         <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_to_group" constraintName="FK_USER_TO_GROUP_ON_USER"
                                  referencedColumnNames="id" referencedTableName="ecmr_user"/>
     </changeSet>

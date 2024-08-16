@@ -48,6 +48,10 @@ public class EcmrService {
         return ecmrPersistenceMapper.toModel(ecmrEntity);
     }
 
+    EcmrEntity getEcmrEntity(UUID ecmrId) throws EcmrNotFoundException {
+        return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+    }
+
     public List<EcmrModel> getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, String sortBy, String sortingOrder) {
         Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder);
         final Pageable pageable = PageRequest.of(page, size, sortDirection, "ecmr." + sortBy);
