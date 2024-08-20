@@ -156,6 +156,21 @@ public class EcmrController {
         }
     }
 
+    @GetMapping(path = { "{ecmrId}/import" })
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<EcmrModel> importEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws AuthenticationException {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.ecmrShareService.importEcmr(authenticatedUser, ecmrId));
+        } catch (EcmrNotFoundException | UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (NotImplementedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+    }
+
     @GetMapping("/{ecmrId}/pdf")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {

@@ -16,8 +16,11 @@ import java.util.UUID;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
@@ -44,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EcmrShareService {
     private final EcmrService ecmrService;
+    private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final ExternalUserRepository externalUserRepository;
     private final PhoneMessageProvider phoneMessageProvider;
@@ -53,7 +57,8 @@ public class EcmrShareService {
     @Value("${app.frontend-url}")
     String frontendAddress;
 
-    public void registerExternalUser(@Valid ExternalUserRegistrationCommand command) throws EcmrNotFoundException, ValidationException, MessageProviderException {
+    public void registerExternalUser(@Valid ExternalUserRegistrationCommand command)
+            throws EcmrNotFoundException, ValidationException, MessageProviderException {
         if (StringUtils.isBlank(command.getPhone())) {
             // Currently only phone is supported. Sharing an ecmr via e-mail could be a security risk
             throw new ValidationException("Phone must be filled");
@@ -107,4 +112,21 @@ public class EcmrShareService {
         }
     }
 
+    public EcmrModel importEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId)
+            throws EcmrNotFoundException, ValidationException, UserNotFoundException {
+        EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
+        UserEntity userEntity = userRepository.findById(authenticatedUser.getUser().getId())
+                .orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
+        if (userEntity.getDefaultGroup() == null) {
+            throw new ValidationException("No Default Group");
+        } else {
+            EcmrAssignmentEntity assignmentEntity = new EcmrAssignmentEntity();
+            assignmentEntity.setEcmr(ecmr);
+            assignmentEntity.setRole(EcmrRole.Reader);
+            assignmentEntity.setGroup(userEntity.getDefaultGroup());
+            ecmrAssignmentRepository.save(assignmentEntity);
+
+            return ecmrPersistenceMapper.toModel(ecmr);
+        }
+    }
 }
