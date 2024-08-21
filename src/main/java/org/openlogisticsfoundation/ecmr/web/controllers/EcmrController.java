@@ -114,8 +114,6 @@ public class EcmrController {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
             this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser, groupIds);
-        } catch (UserNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {
@@ -135,14 +133,29 @@ public class EcmrController {
         }
     }
 
-    @PatchMapping(path = { "{ecmrId}" })
+    @PatchMapping(path = { "{ecmrId}/archive" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrModel> changeEcmrType(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam EcmrType type) {
+    public ResponseEntity<EcmrModel> archiveEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
-            EcmrModel result = this.ecmrUpdateService.changeType(ecmrId, type);
+            EcmrModel result = this.ecmrUpdateService.archiveEcmr(ecmrId);
             return ResponseEntity.ok(result);
         } catch (EcmrNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @PatchMapping(path = { "{ecmrId}/reactivate" })
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<EcmrModel> reactivateEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
+        try {
+            EcmrModel result = this.ecmrUpdateService.reactivateEcmr(ecmrId);
+            return ResponseEntity.ok(result);
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 

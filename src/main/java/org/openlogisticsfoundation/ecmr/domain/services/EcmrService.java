@@ -80,7 +80,7 @@ public class EcmrService {
     }
 
     public String getShareToken(UUID ecmrId, EcmrRole ecmrRole) throws EcmrNotFoundException, ValidationException {
-        if(ecmrRole == EcmrRole.Reader) {
+        if (ecmrRole == EcmrRole.Reader) {
             throw new ValidationException("No token required  for reader");
         }
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
@@ -90,5 +90,19 @@ public class EcmrService {
             case Carrier -> ecmrEntity.getShareWithCarrierToken();
             default -> throw new ValidationException("Unexpected value: " + ecmrRole);
         };
+    }
+
+    public EcmrEntity setEcmrStatus(EcmrEntity ecmrEntity) {
+        ecmrEntity.setEcmrStatus(EcmrStatus.NEW);
+        if (ecmrEntity.getSenderInformation().getSignature() != null) {
+            ecmrEntity.setEcmrStatus(EcmrStatus.LOADING);
+        }
+        if(ecmrEntity.getCarrierInformation().getSignature() != null) {
+            ecmrEntity.setEcmrStatus(EcmrStatus.IN_TRANSPORT);
+        }
+        if(ecmrEntity.getConsigneeInformation().getSignature() != null) {
+            ecmrEntity.setEcmrStatus(EcmrStatus.ARRIVED_AT_DESTINATION);
+        }
+        return ecmrRepository.save(ecmrEntity);
     }
 }

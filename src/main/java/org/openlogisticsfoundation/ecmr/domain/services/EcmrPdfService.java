@@ -10,6 +10,7 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,6 @@ import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -43,7 +43,6 @@ public class EcmrPdfService {
 
     private final EcmrService ecmrService;
     private final ResourceLoader resourceLoader;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public byte[] createJasperReportForEcmr(UUID id) {
         try {
@@ -60,13 +59,14 @@ public class EcmrPdfService {
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (JRException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating report", e);
+            log.error(e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating report: " + e.getMessage());
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "I/O error occurred", e);
         }
     }
 
-    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel) throws IOException, EcmrNotFoundException {
+    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel) throws IOException {
         HashMap<String, Object> parameters = new HashMap<>();
 
         //sender data
@@ -78,7 +78,7 @@ public class EcmrPdfService {
         parameters.put("senderCountry", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue());
 
         //consignee Data
-        parameters.put("consigneeNameCompany",  ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNameCompany());
+        parameters.put("consigneeNameCompany", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNameCompany());
         parameters.put("consigneeNamePerson", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNamePerson());
         parameters.put("consigneeStreet", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeStreet());
         parameters.put("consigneePostcode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneePostcode());
@@ -87,10 +87,12 @@ public class EcmrPdfService {
 
         //taking over The goods
         parameters.put("takingOverTheGoodsPlace", ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getTakingOverTheGoodsPlace());
-        if(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfArrivalDateTime() != null)
-            parameters.put("logisticsTimeOfArrivalDateTime", Date.from(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfArrivalDateTime()));
-        if(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfDepartureDateTime() != null)
-            parameters.put("logisticsTimeOfDepartureDateTime", Date.from(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfDepartureDateTime()));
+        if (ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfArrivalDateTime() != null)
+            parameters.put("logisticsTimeOfArrivalDateTime",
+                    Date.from(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfArrivalDateTime()));
+        if (ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfDepartureDateTime() != null)
+            parameters.put("logisticsTimeOfDepartureDateTime",
+                    Date.from(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfDepartureDateTime()));
 
         //carrier Data
         parameters.put("carrierNameCompany", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierNameCompany());
@@ -103,14 +105,17 @@ public class EcmrPdfService {
 
         //successive carrier Data
         parameters.put("successiveCarrierName", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierNameCompany());
-        parameters.put("successiveCarrierPersonName", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierNamePerson());
+        parameters.put("successiveCarrierPersonName",
+                ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierNamePerson());
         parameters.put("successiveCarrierStreetName", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierStreet());
         parameters.put("successiveCarrierPostcode", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierPostcode());
         parameters.put("successiveCarrierCity", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierCity());
-        parameters.put("successiveCarrierCountryCode", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierCountryCode().getValue());
+        parameters.put("successiveCarrierCountryCode",
+                ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierCountryCode().getValue());
 
         //Carriers reservations
-        parameters.put("carrierReservationsObservations", ecmrModel.getEcmrConsignment().getCarriersReservationsAndObservationsOnTakingOverTheGoods().getCarrierReservationsObservations());
+        parameters.put("carrierReservationsObservations",
+                ecmrModel.getEcmrConsignment().getCarriersReservationsAndObservationsOnTakingOverTheGoods().getCarrierReservationsObservations());
 
         //Delivery of the goods
         parameters.put("deliveryOfTheGoodsPlace", ecmrModel.getEcmrConsignment().getDeliveryOfTheGoods().getLogisticsLocationCity());
@@ -122,19 +127,24 @@ public class EcmrPdfService {
         //To be paid by
         parameters.put("customChargeCarriageValue", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getValue());
         parameters.put("customChargeCarriageCurrency", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getCurrency());
-        if(ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getPayer() != null)
-            parameters.put("customChargeCarriagePayer", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getPayer().toString());
+        if (ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getPayer() != null)
+            parameters.put("customChargeCarriagePayer",
+                    ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCarriage().getPayer().toString());
         parameters.put("customChargeSupplementaryValue", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getValue());
-        parameters.put("customChargeSupplementaryCurrency", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getCurrency());
-        if(ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getPayer() != null)
-            parameters.put("customChargeSupplementaryPayer", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getPayer().toString());
+        parameters.put("customChargeSupplementaryCurrency",
+                ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getCurrency());
+        if (ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getPayer() != null)
+            parameters.put("customChargeSupplementaryPayer",
+                    ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeSupplementary().getPayer().toString());
         parameters.put("customChargeCustomsDutiesValue", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getValue());
-        parameters.put("customChargeCustomsDutiesCurrency", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getCurrency());
-        if(ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getPayer() != null)
-            parameters.put("customChargeCustomsDutiesPayer", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getPayer().toString());
+        parameters.put("customChargeCustomsDutiesCurrency",
+                ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getCurrency());
+        if (ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getPayer() != null)
+            parameters.put("customChargeCustomsDutiesPayer",
+                    ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeCustomsDuties().getPayer().toString());
         parameters.put("customChargeOtherValue", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeOther().getValue());
         parameters.put("customChargeOtherCurrency", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeOther().getCurrency());
-        if(ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeOther().getPayer() != null)
+        if (ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeOther().getPayer() != null)
             parameters.put("customChargeOtherPayer", ecmrModel.getEcmrConsignment().getToBePaidBy().getCustomChargeOther().getPayer().toString());
 
         //Documents
@@ -150,11 +160,30 @@ public class EcmrPdfService {
         parameters.put("customCashOnDelivery", ecmrModel.getEcmrConsignment().getCashOnDelivery().getCustomCashOnDelivery());
 
         //Established
-        if(ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedDate() != null)
+        if (ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedDate() != null)
             parameters.put("customEstablishedDate", Date.from(ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedDate()));
         parameters.put("customEstablishedIn", ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedIn());
 
-        //TODO Signatures and Legal field
+        //Sender Signature
+        if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature() != null) {
+            Renderable renderableSignature =
+                    this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getData());
+            parameters.put("senderSignature", renderableSignature);
+        }
+
+        //Carrier Signature
+        if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature() != null) {
+            Renderable renderableSignature =
+                    this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
+            parameters.put("carrierSignature", renderableSignature);
+        }
+
+        //Consignee Signature
+        if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
+            Renderable renderableSignature =
+                    this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
+            parameters.put("consigneeSignature", renderableSignature);
+        }
 
         //eCmr Logo
         InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();
@@ -163,6 +192,20 @@ public class EcmrPdfService {
         parameters.put("ecmrLogo", renderableWaterMark);
 
         return parameters;
+    }
+
+    private Renderable decodeImage(String base64Image) throws IOException {
+        try {
+            if (base64Image == null || !base64Image.contains(",")) {
+                throw new IllegalArgumentException("Invalid base64 image string");
+            }
+            String base64ImageString = base64Image.split(",")[1];
+            byte[] imageBytes = Base64.getDecoder().decode(base64ImageString);
+            return SimpleDataRenderer.getInstance(imageBytes);
+        } catch (Exception e) {
+            log.error("Error while decoding image", e);
+            throw new IOException(e);
+        }
     }
 
     private List<ItemBean> convertToItemBeans(List<Item> items) {

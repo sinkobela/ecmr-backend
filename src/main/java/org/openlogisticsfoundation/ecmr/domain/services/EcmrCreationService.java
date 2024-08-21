@@ -13,9 +13,7 @@ import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.mappers.UserPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
@@ -23,10 +21,8 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -37,11 +33,11 @@ public class EcmrCreationService {
     private final EcmrPersistenceMapper persistenceMapper;
     private final EcmrRepository ecmrRepository;
     private final EcmrAssignmentRepository ecmrAssignmentRepository;
-    private final UserPersistenceMapper userPersistenceMapper;
-    private final UserRepository userRepository;
     private final GroupService groupService;
+    private final EcmrService ecmrService;
 
-    public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds) throws UserNotFoundException, NoPermissionException {
+    public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
+            throws NoPermissionException {
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, groupIds)) {
             throw new NoPermissionException("No permission for at least one group id");
         }
@@ -54,13 +50,14 @@ public class EcmrCreationService {
             ecmrAssignmentEntity.setRole(EcmrRole.Sender);
             ecmrAssignmentRepository.save(ecmrAssignmentEntity);
         }
+        this.ecmrService.setEcmrStatus(ecmrEntity);
     }
 
-    public EcmrEntity createTemplate(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
+    public EcmrEntity createTemplate(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser) {
         return this.createEcmr(ecmrCommand, EcmrType.TEMPLATE, authenticatedUser);
     }
 
-    private EcmrEntity createEcmr(EcmrCommand ecmrCommand, EcmrType type, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
+    private EcmrEntity createEcmr(EcmrCommand ecmrCommand, EcmrType type, AuthenticatedUser authenticatedUser) {
         EcmrEntity ecmrEntity = this.persistenceMapper.toEntity(ecmrCommand, type, EcmrStatus.NEW);
         ecmrEntity.setShareWithSenderToken(RandomStringUtils.randomAlphanumeric(4));
         ecmrEntity.setShareWithCarrierToken(RandomStringUtils.randomAlphanumeric(4));
@@ -71,9 +68,6 @@ public class EcmrCreationService {
 
         ecmrEntity.setCreatedAt(Instant.now());
         ecmrEntity = this.ecmrRepository.save(ecmrEntity);
-
-        String email = authenticatedUser.getUser().getEmail();
-        UserEntity userEntity = this.userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
 
         return ecmrEntity;
     }

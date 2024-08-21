@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class EcmrSignService {
     private final EcmrRepository ecmrRepository;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
+    private final EcmrService ecmrService;
 
     public Signature signEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
             throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException {
@@ -55,6 +57,7 @@ public class EcmrSignService {
             if (ecmrEntity.getSenderInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
+            this.validateEcmrStatus(EcmrStatus.NEW, ecmrEntity);
             this.validateFieldsSender(ecmrEntity);
             ecmrEntity.getSenderInformation().setSignature(signatureEntity);
         }
@@ -62,24 +65,28 @@ public class EcmrSignService {
             if (ecmrEntity.getCarrierInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
+            this.validateEcmrStatus(EcmrStatus.LOADING, ecmrEntity);
             ecmrEntity.getCarrierInformation().setSignature(signatureEntity);
         }
         case Signer.Consignee -> {
             if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
+            this.validateEcmrStatus(EcmrStatus.IN_TRANSPORT, ecmrEntity);
             this.validateFieldsConsignee(ecmrEntity);
             ecmrEntity.getConsigneeInformation().setSignature(signatureEntity);
         }
         default -> throw new ValidationException("Signature Type " + signCommand.getSigner().name() + " not valid");
         }
 
-        this.ecmrRepository.save(ecmrEntity);
+        this.ecmrService.setEcmrStatus(ecmrEntity);
+        return ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity);
+    }
 
-        Signature signatureModel = new Signature();
-        ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity, signatureModel);
-
-        return signatureModel;
+    private void validateEcmrStatus(EcmrStatus requieredStatus, EcmrEntity ecmrEntity) throws ValidationException {
+        if(ecmrEntity.getEcmrStatus() != requieredStatus) {
+            throw new ValidationException("Ecmr status needs to be "+requieredStatus.name());
+        }
     }
 
     private void validateFieldsSender(EcmrEntity ecmrEntity) throws ValidationException {

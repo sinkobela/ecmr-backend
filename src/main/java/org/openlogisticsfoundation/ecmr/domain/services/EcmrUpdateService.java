@@ -19,6 +19,7 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
@@ -37,12 +38,24 @@ public class EcmrUpdateService {
     private final EcmrRepository ecmrRepository;
     private final EcmrPersistenceMapper persistenceMapper;
     private final Logger logger = LoggerFactory.getLogger(EcmrUpdateService.class);
+    private final EcmrService ecmrService;
 
-    public EcmrModel changeType(UUID ecmrUuid, EcmrType ecmrType) throws EcmrNotFoundException {
-        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrUuid).orElseThrow(() -> new EcmrNotFoundException(ecmrUuid));
-        ecmrEntity.setType(ecmrType);
-        EcmrEntity result = this.ecmrRepository.save(ecmrEntity);
-        return persistenceMapper.toModel(result);
+    public EcmrModel archiveEcmr(UUID ecmrUuid) throws EcmrNotFoundException, ValidationException {
+        EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrUuid);
+        if(ecmrEntity.getType() != EcmrType.ECMR) {
+            throw new ValidationException("Only ecmrs can be archived");
+        }
+        ecmrEntity.setType(EcmrType.ARCHIVED);
+        return persistenceMapper.toModel(this.ecmrRepository.save(ecmrEntity));
+    }
+
+    public EcmrModel reactivateEcmr(UUID ecmrUuid) throws EcmrNotFoundException, ValidationException {
+        EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrUuid);
+        if(ecmrEntity.getType() != EcmrType.ARCHIVED) {
+            throw new ValidationException("Only archived ecmrs can be reactivated");
+        }
+        ecmrEntity.setType(EcmrType.ECMR);
+        return persistenceMapper.toModel(this.ecmrRepository.save(ecmrEntity));
     }
 
     public void archiveEcmrs() {
@@ -65,6 +78,7 @@ public class EcmrUpdateService {
         ecmrEntity.setEditedBy(fullName);
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
+        ecmrEntity = this.ecmrService.setEcmrStatus(ecmrEntity);
         return persistenceMapper.toModel(ecmrEntity);
     }
 
@@ -82,11 +96,8 @@ public class EcmrUpdateService {
             return false;
         }
         // goods received: only when both sender and carrier signed
-        else if (goodsReceivedIsSet(consignment.getGoodsReceived()) && !(senderSigned && carrierSigned)) {
-            return false;
-        } else {
-            return true;
-        }
+        else
+            return !goodsReceivedIsSet(consignment.getGoodsReceived()) || senderSigned && carrierSigned;
     }
 
     private boolean goodsReceivedIsSet(GoodsReceived goodsReceived) {

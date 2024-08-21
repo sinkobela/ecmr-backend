@@ -36,8 +36,6 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.SuccessiveCarrierIn
 @Mapper(componentModel = "spring")
 public interface EcmrPersistenceMapper {
 
-    @Mapping(source = "type", target = "type")
-    @Mapping(source = "status", target = "ecmrStatus")
     @Mapping(target = "senderInformation.id", ignore = true)
     @Mapping(target = "carrierInformation.id", ignore = true)
     @Mapping(target = "consigneeInformation.id", ignore = true)
@@ -136,7 +134,6 @@ public interface EcmrPersistenceMapper {
     @Mapping(source = "carrierLicensePlate", target = "carrierLicensePlate")
     CarrierInformation map(CarrierInformationEntity value);
 
-    //TODO street, personName, companyName umbennenen in entity
     @Mapping(source = "street", target = "successiveCarrierStreet")
     @Mapping(source = "namePerson", target = "successiveCarrierNamePerson")
     @Mapping(source = "nameCompany", target = "successiveCarrierNameCompany")
@@ -164,5 +161,5 @@ public interface EcmrPersistenceMapper {
     EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
 
     @Mapping(target = "type", ignore = true)
-    void signatureEntityToSignature(SignatureEntity signatureEntity, @MappingTarget Signature mappingTarget);
+    Signature signatureEntityToSignature(SignatureEntity signatureEntity);
 }
