@@ -19,7 +19,6 @@ import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureNotValidException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -32,6 +31,7 @@ import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
@@ -59,7 +59,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -74,6 +73,7 @@ public class EcmrController {
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
     private final EcmrShareService ecmrShareService;
+    private final EcmrSignService ecmrSignService;
 
     /**
      * Retrieves a paginated and sorted list of {@link EcmrModel}.
@@ -128,7 +128,11 @@ public class EcmrController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws EcmrNotFoundException {
-        ecmrService.deleteEcmr(ecmrId);
+        try {
+            ecmrService.deleteEcmr(ecmrId);
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PatchMapping(path = { "{ecmrId}" })
@@ -211,15 +215,15 @@ public class EcmrController {
 
     @PostMapping("/{ecmrId}/sign-on-glass")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID id, @RequestBody SignModel signModel) {
+    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID id, @RequestBody @Valid @NotNull SignModel signModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            return ResponseEntity.ok(this.ecmrService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
+            return ResponseEntity.ok(this.ecmrSignService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (SignatureNotValidException | SignatureAlreadyPresentException e) {
+        } catch (ValidationException | SignatureAlreadyPresentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

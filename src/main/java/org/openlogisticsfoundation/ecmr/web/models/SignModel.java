@@ -10,12 +10,16 @@ package org.openlogisticsfoundation.ecmr.web.models;
 
 import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
 public class SignModel {
+    @NotNull
     private Signer signer;
+    @NotNull
     private String data;
+    private String city;
 }

@@ -18,4 +18,5 @@ import lombok.Getter;
 public class SignCommand {
     private Signer signer;
     private String data;
+    private String city;
 }
