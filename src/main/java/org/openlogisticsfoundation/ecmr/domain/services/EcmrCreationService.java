@@ -34,12 +34,16 @@ public class EcmrCreationService {
     private final EcmrRepository ecmrRepository;
     private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final GroupService groupService;
+    private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
 
     public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
             throws NoPermissionException {
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, groupIds)) {
             throw new NoPermissionException("No permission for at least one group id");
+        }
+        if(!authorisationService.validateSaveCommand(ecmrCommand)) {
+            throw new NoPermissionException("Save command is not valid");
         }
         List<GroupEntity> groupEntities = groupService.getGroupEntities(groupIds);
         EcmrEntity ecmrEntity = this.createEcmr(ecmrCommand, EcmrType.ECMR, authenticatedUser);

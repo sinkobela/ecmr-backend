@@ -15,10 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
@@ -40,20 +42,25 @@ public class EcmrSignService {
     private final EcmrRepository ecmrRepository;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final EcmrService ecmrService;
+    private final AuthorisationService authorisationService;
 
-    public Signature signEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
-            throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException {
+    public Signature signEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
+            throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
         SignatureEntity signatureEntity = new SignatureEntity();
         signatureEntity.setData(signCommand.getData());
         signatureEntity.setTimestamp(Instant.now());
-        signatureEntity.setUserName(authenticatedUser.getUser().getFirstName() + " " + authenticatedUser.getUser().getLastName());
-        signatureEntity.setUserCountry(authenticatedUser.getUser().getCountry().name());
+        signatureEntity.setUserName(internalOrExternalUser.getFullName());
+        signatureEntity.setUserCountry((internalOrExternalUser.isInternalUser()) ? internalOrExternalUser.getInternalUser().getCountry().name() :
+                null);
         signatureEntity.setSignatureType(signatureType);
         signatureEntity.setUserCity(signCommand.getCity());
 
         switch (signCommand.getSigner()) {
         case Signer.Sender -> {
+            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
+                throw new NoPermissionException("Sender sign but no Sender Role");
+            }
             if (ecmrEntity.getSenderInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
@@ -62,6 +69,9 @@ public class EcmrSignService {
             ecmrEntity.getSenderInformation().setSignature(signatureEntity);
         }
         case Signer.Carrier -> {
+            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Carrier)) {
+                throw new NoPermissionException("Carrier sign but no Carrier Role");
+            }
             if (ecmrEntity.getCarrierInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }
@@ -69,6 +79,9 @@ public class EcmrSignService {
             ecmrEntity.getCarrierInformation().setSignature(signatureEntity);
         }
         case Signer.Consignee -> {
+            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Consignee)) {
+                throw new NoPermissionException("Consignee sign but no Consignee Role");
+            }
             if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
                 throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
             }

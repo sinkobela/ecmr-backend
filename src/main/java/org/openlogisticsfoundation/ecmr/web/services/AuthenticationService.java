@@ -8,10 +8,14 @@
 package org.openlogisticsfoundation.ecmr.web.services;
 
 import java.util.Optional;
+import java.util.UUID;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.ExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.User;
+import org.openlogisticsfoundation.ecmr.domain.services.ExternalUserService;
 import org.openlogisticsfoundation.ecmr.domain.services.UserService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.springframework.security.core.Authentication;
@@ -20,14 +24,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
 
     private final UserService userService;
+    private final ExternalUserService externalUserService;
 
-    public AuthenticationService(UserService userService) {
-        this.userService = userService;
-    }
 
     public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException {
         Authentication authentication = this.getAuthentication();
@@ -49,6 +54,10 @@ public class AuthenticationService {
         } catch (UserNotFoundException e) {
             throw new AuthenticationException("No user found for email: " + email);
         }
+    }
+
+    public ExternalUser getExternalUser(UUID ecmrId, String tan) throws ExternalUserNotFoundException {
+        return this.externalUserService.findExternalUser(ecmrId, tan);
     }
 
     private Authentication getAuthentication() throws AuthenticationException {

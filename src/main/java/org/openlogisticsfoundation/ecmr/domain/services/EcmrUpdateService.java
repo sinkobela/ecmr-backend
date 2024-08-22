@@ -10,48 +10,54 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
-import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
-import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
 @AllArgsConstructor
+@Log4j2
 public class EcmrUpdateService {
     private final EcmrRepository ecmrRepository;
     private final EcmrPersistenceMapper persistenceMapper;
-    private final Logger logger = LoggerFactory.getLogger(EcmrUpdateService.class);
+    private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
 
-    public EcmrModel archiveEcmr(UUID ecmrUuid) throws EcmrNotFoundException, ValidationException {
+    public EcmrModel archiveEcmr(UUID ecmrUuid, AuthenticatedUser authenticatedUser)
+            throws EcmrNotFoundException, ValidationException, NoPermissionException {
+        if (authorisationService.hasNoRole(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrUuid)) {
+            throw new NoPermissionException("No permission for this task");
+        }
         EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrUuid);
-        if(ecmrEntity.getType() != EcmrType.ECMR) {
+        if (ecmrEntity.getType() != EcmrType.ECMR) {
             throw new ValidationException("Only ecmrs can be archived");
         }
         ecmrEntity.setType(EcmrType.ARCHIVED);
         return persistenceMapper.toModel(this.ecmrRepository.save(ecmrEntity));
     }
 
-    public EcmrModel reactivateEcmr(UUID ecmrUuid) throws EcmrNotFoundException, ValidationException {
+    public EcmrModel reactivateEcmr(UUID ecmrUuid, AuthenticatedUser authenticatedUser)
+            throws EcmrNotFoundException, ValidationException, NoPermissionException {
+        if (authorisationService.hasNoRole(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrUuid)) {
+            throw new NoPermissionException("No permission for this task");
+        }
         EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrUuid);
-        if(ecmrEntity.getType() != EcmrType.ARCHIVED) {
+        if (ecmrEntity.getType() != EcmrType.ARCHIVED) {
             throw new ValidationException("Only archived ecmrs can be reactivated");
         }
         ecmrEntity.setType(EcmrType.ECMR);
@@ -60,53 +66,29 @@ public class EcmrUpdateService {
 
     public void archiveEcmrs() {
         List<EcmrEntity> entities = ecmrRepository.findAllByEcmrStatusAndType(EcmrStatus.ARRIVED_AT_DESTINATION, EcmrType.ECMR);
-        logger.info("Archiving {} ECMRs", entities.size());
+        log.info("Archiving {} ECMRs", entities.size());
         for (EcmrEntity entity : entities) {
             entity.setType(EcmrType.ARCHIVED);
             this.ecmrRepository.save(entity);
         }
     }
 
-    public EcmrModel updateEcmr(EcmrCommand ecmrCommand, UUID ecmrId, AuthenticatedUser authenticatedUser) throws EcmrNotFoundException {
+    public EcmrModel updateEcmr(EcmrCommand ecmrCommand, UUID ecmrId, InternalOrExternalUser internalOrExternalUser)
+            throws EcmrNotFoundException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId)
                 .orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+
+        if (!authorisationService.validateUpdateCommand(ecmrCommand, ecmrEntity, internalOrExternalUser)) {
+            throw new NoPermissionException("Update is not allowed");
+        }
 
         ecmrEntity = persistenceMapper.toEntity(ecmrEntity, ecmrCommand, EcmrType.ECMR);
         ecmrEntity.setEditedAt(Instant.now());
 
-        String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
-        ecmrEntity.setEditedBy(fullName);
+        ecmrEntity.setEditedBy(internalOrExternalUser.getFullName());
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
         ecmrEntity = this.ecmrService.setEcmrStatus(ecmrEntity);
         return persistenceMapper.toModel(ecmrEntity);
     }
-
-    public boolean checkIfUpdatesAreValid(EcmrModel model) {
-        EcmrConsignment consignment = model.getEcmrConsignment();
-        boolean senderSigned = consignment.getSignatureOrStampOfTheSender().getSenderSignature() != null;
-        boolean carrierSigned = consignment.getSignatureOrStampOfTheCarrier().getCarrierSignature() != null;
-        // signature or stamp of the carrier: only when sender has signed
-        if (carrierSigned && !senderSigned) {
-            return false;
-        }
-        // carriers reservations and observations on taking over the goods : only when sender signed and carrier didn't
-        else if (consignment.getCarriersReservationsAndObservationsOnTakingOverTheGoods().getCarrierReservationsObservations() != null
-                && !(senderSigned && !carrierSigned)) {
-            return false;
-        }
-        // goods received: only when both sender and carrier signed
-        else
-            return !goodsReceivedIsSet(consignment.getGoodsReceived()) || senderSigned && carrierSigned;
-    }
-
-    private boolean goodsReceivedIsSet(GoodsReceived goodsReceived) {
-        return Stream.of(
-                        goodsReceived.getConfirmedLogisticsLocationName(),
-                        goodsReceived.getConsigneeReservationsObservations(),
-                        goodsReceived.getConsigneeTimeOfArrival(),
-                        goodsReceived.getConsigneeTimeOfDeparture())
-                .anyMatch(Objects::nonNull);
-    }
-
 }

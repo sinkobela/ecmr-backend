@@ -34,4 +34,9 @@ public class ItemCommand {
     @Max(9_999)
     private float supplyChainConsignmentItemGrossVolume;
 
+    @Override
+    public String toString() {
+        return logisticsShippingMarksMarking + logisticsShippingMarksCustomBarcode + logisticsPackageItemQuantity + logisticsPackageType
+                + transportCargoIdentification + supplyChainConsignmentItemGrossWeight + supplyChainConsignmentItemGrossVolume;
+    }
 }

@@ -18,6 +18,7 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
@@ -25,6 +26,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
@@ -88,8 +90,10 @@ public class EcmrController {
     @GetMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<EcmrModel>> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page, @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-            @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy, @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder)
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy,
+            @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder)
             throws AuthenticationException {
         AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
         List<EcmrModel> ecmrs = this.ecmrService.getEcmrsForUser(authenticatedUser, type, page, size, sortBy, sortingOrder);
@@ -100,10 +104,15 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> getEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
-            EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId);
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser()));
             return ResponseEntity.ok(ecmrModel);
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
@@ -127,9 +136,14 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws EcmrNotFoundException {
         try {
-            ecmrService.deleteEcmr(ecmrId);
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            ecmrService.deleteEcmr(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser()));
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
@@ -137,12 +151,17 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> archiveEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
-            EcmrModel result = this.ecmrUpdateService.archiveEcmr(ecmrId);
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            EcmrModel result = this.ecmrUpdateService.archiveEcmr(ecmrId, authenticatedUser);
             return ResponseEntity.ok(result);
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
@@ -150,18 +169,24 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> reactivateEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
-            EcmrModel result = this.ecmrUpdateService.reactivateEcmr(ecmrId);
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            EcmrModel result = this.ecmrUpdateService.reactivateEcmr(ecmrId, authenticatedUser);
             return ResponseEntity.ok(result);
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
     @PatchMapping(path = { "{ecmrId}/share" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid EcmrShareModel ecmrShareModel) throws AuthenticationException {
+    public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid EcmrShareModel ecmrShareModel)
+            throws AuthenticationException {
         AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
         try {
             return ResponseEntity.ok(
@@ -192,7 +217,8 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
-            byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id);
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
             StreamingResponseBody streamingResponseBody = outputStream -> {
                 try (InputStream inputStream = new ByteArrayInputStream(ecmrReportData)) {
                     inputStream.transferTo(outputStream);
@@ -200,56 +226,79 @@ public class EcmrController {
                     throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
                 }
             };
-            return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
+            return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
                     .body(streamingResponseBody);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (PdfCreationException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
 
     @PutMapping()
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EcmrModel> updateEcmr(@RequestBody EcmrModel ecmrModel) {
-        if (!this.ecmrUpdateService.checkIfUpdatesAreValid(ecmrModel)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
             UUID ecmrId = UUID.fromString(ecmrModel.getEcmrId());
             EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
-            EcmrModel result = this.ecmrUpdateService.updateEcmr(ecmrCommand, ecmrId, authenticatedUser);
+            EcmrModel result = this.ecmrUpdateService.updateEcmr(ecmrCommand, ecmrId, new InternalOrExternalUser(authenticatedUser.getUser()));
             return ResponseEntity.ok(result);
         } catch (EcmrNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (AuthenticationException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
     @PostMapping("/{ecmrId}/sign-on-glass")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID id, @RequestBody @Valid @NotNull SignModel signModel) {
+    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SignModel signModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            return ResponseEntity.ok(this.ecmrSignService.signEcmr(authenticatedUser, id, ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
+            return ResponseEntity.ok(this.ecmrSignService.signEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
+                    ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException | SignatureAlreadyPresentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 
     @GetMapping("{ecmrId}/share-token")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID id, @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
+    public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID id,
+            @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
         try {
             return ResponseEntity.ok(this.ecmrService.getShareToken(id, ecmrRole));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @GetMapping("/{ecmrId}/role")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<EcmrRole>> getCurrentEcmrRoles(@PathVariable(name = "ecmrId") UUID ecmrId) {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.ecmrService.getCurrentEcmrRoles(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser())));
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
 }

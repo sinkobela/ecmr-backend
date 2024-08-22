@@ -120,15 +120,14 @@ public class GroupController {
 
     @PostMapping("/{id}/update-parent")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Group> updateGroupParent(@PathVariable long id, @RequestBody @Valid GroupParentUpdateModel groupParentUpdateModel) throws AuthenticationException {
-        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+    public ResponseEntity<Group> updateGroupParent(@PathVariable long id, @RequestBody @Valid GroupParentUpdateModel groupParentUpdateModel) {
         try {
             Group group = groupService.updateGroupParent(id, groupParentUpdateModel.getParentId());
             return ResponseEntity.ok(group);
         } catch (GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException e) {
-            throw new RuntimeException(e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 

@@ -20,10 +20,11 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -44,11 +45,12 @@ public class EcmrPdfService {
     private final EcmrService ecmrService;
     private final ResourceLoader resourceLoader;
 
-    public byte[] createJasperReportForEcmr(UUID id) {
+    public byte[] createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);
-            EcmrModel ecmrModel = this.ecmrService.getEcmr(id);
+            EcmrModel ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
 
             List<ItemBean> itemBeans = convertToItemBeans(ecmrModel.getEcmrConsignment().getItemList());
             JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(itemBeans);
@@ -56,13 +58,11 @@ public class EcmrPdfService {
             parameters.put("items", itemDataSource);
 
             return JasperRunManager.runReportToPdf(jasperReport, parameters, new JREmptyDataSource());
-        } catch (EcmrNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (JRException e) {
             log.error(e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generating report: " + e.getMessage());
+            throw new PdfCreationException("Error generating report: " + e.getMessage());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "I/O error occurred", e);
+            throw new PdfCreationException("I/O error occurred: " + e.getMessage());
         }
     }
 

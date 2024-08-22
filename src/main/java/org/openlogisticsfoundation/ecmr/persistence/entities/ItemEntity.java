@@ -37,4 +37,10 @@ public class ItemEntity extends BaseEntity {
     private Integer supplyChainConsignmentItemGrossWeight;
     //Volume In m³
     private float supplyChainConsignmentItemGrossVolume;
+
+    @Override
+    public String toString() {
+        return logisticsShippingMarksMarking + logisticsShippingMarksCustomBarcode + logisticsPackageItemQuantity + logisticsPackageType
+                + transportCargoIdentification + supplyChainConsignmentItemGrossWeight + supplyChainConsignmentItemGrossVolume;
+    }
 }
