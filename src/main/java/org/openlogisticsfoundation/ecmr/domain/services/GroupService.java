@@ -43,7 +43,11 @@ public class GroupService {
     }
 
     public List<Group> getGroupsForUser(AuthenticatedUser authenticatedUser) {
-        List<GroupEntity> usersGroupEntities = userToGroupRepository.findGroupsByUserId(authenticatedUser.getUser().getId());
+       return this.getGroupsForUser(authenticatedUser.getUser().getId());
+    }
+
+    public List<Group> getGroupsForUser(long userId) {
+        List<GroupEntity> usersGroupEntities = userToGroupRepository.findGroupsByUserId(userId);
         List<Group> usersGroups = usersGroupEntities.stream().map(groupPersistenceMapper::toGroup).toList();
         usersGroups = removeGroupsThatAreDescendantsOfOtherGroups(usersGroups);
         return usersGroups;
@@ -51,7 +55,7 @@ public class GroupService {
 
     public boolean areAllGroupIdsPartOfUsersGroup(AuthenticatedUser authenticatedUser, List<Long> groupIds) {
         List<Group> usersGroups = getGroupsForUser(authenticatedUser);
-        List<Long> usersGroupIds = flatMapGroupTrees(usersGroups).stream().map(group -> group.getId()).toList();
+        List<Long> usersGroupIds = flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
         return groupIds.stream().allMatch(usersGroupIds::contains);
     }
 
@@ -93,7 +97,7 @@ public class GroupService {
         return getGroup(group.getId());
     }
 
-    public Group updateGroup(long id, @Valid GroupUpdateCommand command) throws GroupNotFoundException, ValidationException {
+    public Group updateGroup(long id, @Valid GroupUpdateCommand command) throws GroupNotFoundException {
         GroupEntity groupEntity = groupRepository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
         groupEntity.setName(command.getName());
         groupEntity.setDescription(command.getDescription());

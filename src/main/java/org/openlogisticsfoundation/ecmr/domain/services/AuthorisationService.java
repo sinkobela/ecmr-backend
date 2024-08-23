@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CustomChargeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.DeliveryOfTheGoodsCommand;
@@ -23,7 +24,6 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.GoodsReceivedComm
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TakingOverTheGoodsCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ToBePaidByCommand;
-import org.openlogisticsfoundation.ecmr.persistence.entities.BaseEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.CustomChargeEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.DeliveryOfTheGoodsEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
@@ -34,7 +34,6 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.ItemEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.TakingOverTheGoodsEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.ToBePaidByEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToGroupRepository;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthorisationService {
 
     private final EcmrAssignmentRepository assignmentRepository;
-    private final UserToGroupRepository userToGroupRepository;
+    private final GroupService groupService;
 
     public boolean tanValid(UUID ecmrId, String tan) {
         return assignmentRepository.existsByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan);
@@ -71,7 +70,7 @@ public class AuthorisationService {
     }
 
     public List<EcmrRole> getRolesOfUser(InternalOrExternalUser internalOrExternalUser, UUID ecmrId) {
-        if(internalOrExternalUser.isInternalUser()) {
+        if (internalOrExternalUser.isInternalUser()) {
             return getRolesOfInternalUser(internalOrExternalUser.getInternalUser().getId(), ecmrId);
         } else {
             return getRolesOfExternalUser(internalOrExternalUser.getExternalUser().getTan(), ecmrId);
@@ -79,8 +78,8 @@ public class AuthorisationService {
     }
 
     private List<EcmrRole> getRolesOfInternalUser(long userId, UUID ecmrId) {
-        List<Long> groupIds =
-                userToGroupRepository.findGroupsByUserId(userId).stream().map(BaseEntity::getId).toList();
+        List<Group> usersGroups = groupService.getGroupsForUser(userId);
+        List<Long> groupIds = groupService.flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
         return this.assignmentRepository.findByEcmr_EcmrIdAndGroup_IdIn(ecmrId, groupIds).stream()
                 .map(EcmrAssignmentEntity::getRole).toList();
     }
