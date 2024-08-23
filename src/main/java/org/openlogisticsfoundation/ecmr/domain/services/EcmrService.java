@@ -53,7 +53,7 @@ public class EcmrService {
         return ecmrPersistenceMapper.toModel(ecmrEntity);
     }
 
-    EcmrEntity getEcmrEntity(UUID ecmrId) throws EcmrNotFoundException {
+    public EcmrEntity getEcmrEntity(UUID ecmrId) throws EcmrNotFoundException {
         return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
     }
 
@@ -90,19 +90,6 @@ public class EcmrService {
         }
         ecmrAssignmentRepository.deleteByEcmr_EcmrId(ecmrId);
         ecmrRepository.delete(ecmrEntity);
-    }
-
-    public String getShareToken(UUID ecmrId, EcmrRole ecmrRole) throws EcmrNotFoundException, ValidationException {
-        if (ecmrRole == EcmrRole.Reader) {
-            throw new ValidationException("No token required  for reader");
-        }
-        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
-        return switch (ecmrRole) {
-            case Sender -> ecmrEntity.getShareWithSenderToken();
-            case Consignee -> ecmrEntity.getShareWithConsigneeToken();
-            case Carrier -> ecmrEntity.getShareWithCarrierToken();
-            default -> throw new ValidationException("Unexpected value: " + ecmrRole);
-        };
     }
 
     public EcmrEntity setEcmrStatus(EcmrEntity ecmrEntity) {

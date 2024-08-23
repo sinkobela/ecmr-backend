@@ -22,7 +22,9 @@ import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
+import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
@@ -44,13 +46,28 @@ public class EcmrPdfService {
 
     private final EcmrService ecmrService;
     private final ResourceLoader resourceLoader;
+    private final EcmrPersistenceMapper ecmrPersistenceMapper;
+
 
     public byte[] createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
             throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+        EcmrModel ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
+        return this.createJasperReportForEcmr(ecmrModel);
+    }
+
+    public byte[] createJasperReportForEcmr(UUID id, String shareToken)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+        EcmrEntity ecmrEntity = this.ecmrService.getEcmrEntity(id);
+        if(!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
+            throw new NoPermissionException("Share Token mandatory");
+        }
+        return this.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
+    }
+
+    private byte[] createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);
-            EcmrModel ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
 
             List<ItemBean> itemBeans = convertToItemBeans(ecmrModel.getEcmrConsignment().getItemList());
             JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(itemBeans);

@@ -185,31 +185,40 @@ public class EcmrController {
 
     @PatchMapping(path = { "{ecmrId}/share" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid EcmrShareModel ecmrShareModel)
-            throws AuthenticationException {
-        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+    public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId,
+            @RequestBody @Valid EcmrShareModel ecmrShareModel) {
         try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             return ResponseEntity.ok(
-                    this.ecmrShareService.shareEcmr(authenticatedUser, ecmrId, ecmrShareModel.getEmail(), ecmrShareModel.getRole()));
+                    this.ecmrShareService.shareEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId, ecmrShareModel.getEmail(),
+                            ecmrShareModel.getRole()));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (NotImplementedException e) {
             throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
 
     @GetMapping(path = { "{ecmrId}/import" })
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrModel> importEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws AuthenticationException {
+    public ResponseEntity<EcmrModel> importEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam @Valid @NotNull String shareToken) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
-            return ResponseEntity.ok(this.ecmrShareService.importEcmr(authenticatedUser, ecmrId));
+            return ResponseEntity.ok(this.ecmrShareService.importEcmr(authenticatedUser, ecmrId, shareToken));
         } catch (EcmrNotFoundException | UserNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (NotImplementedException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, e.getMessage());
         } catch (ValidationException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
 
@@ -281,11 +290,14 @@ public class EcmrController {
     public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID id,
             @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
         try {
-            return ResponseEntity.ok(this.ecmrService.getShareToken(id, ecmrRole));
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.ecmrShareService.getShareToken(id, ecmrRole, new InternalOrExternalUser(authenticatedUser.getUser())));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        } catch (ValidationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 

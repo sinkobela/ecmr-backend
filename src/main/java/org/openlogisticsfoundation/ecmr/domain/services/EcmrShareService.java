@@ -10,6 +10,7 @@ package org.openlogisticsfoundation.ecmr.domain.services;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
@@ -25,6 +27,7 @@ import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.MessageProviderException;
@@ -53,6 +56,7 @@ public class EcmrShareService {
     private final PhoneMessageProvider phoneMessageProvider;
     private final UserRepository userRepository;
     private final GroupPersistenceMapper groupPersistenceMapper;
+    private final AuthorisationService authorisationService;
 
     @Value("${app.frontend-url}")
     String frontendAddress;
@@ -90,8 +94,16 @@ public class EcmrShareService {
         this.phoneMessageProvider.sendMessage(command.getPhone(), tanMessage);
     }
 
-    public EcmrShareResponse shareEcmr(AuthenticatedUser authenticatedUser, @Valid @NotNull UUID ecmrId, @Valid @NotNull String email,
-            @Valid @NotNull EcmrRole role) throws EcmrNotFoundException {
+    public EcmrShareResponse shareEcmr(InternalOrExternalUser internalOrExternalUser, @Valid @NotNull UUID ecmrId, @Valid @NotNull String email,
+            @Valid @NotNull EcmrRole role) throws EcmrNotFoundException, NoPermissionException, ValidationException {
+        if(role == EcmrRole.Reader) {
+            throw new ValidationException("Ecmr can't be shared to Reader");
+        }
+        List<EcmrRole> rolesOfUser = authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
+        if (!rolesOfUser.contains(EcmrRole.Sender) || !rolesOfUser.contains(EcmrRole.Carrier)) {
+            throw new NoPermissionException("No Permission to share as Consignee or Readonly");
+        }
+        this.validateShareRoles(rolesOfUser, role);
         EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
         Optional<UserEntity> userEntityOpt = userRepository.findByEmail(email);
         if (userEntityOpt.isPresent()) {
@@ -112,21 +124,57 @@ public class EcmrShareService {
         }
     }
 
-    public EcmrModel importEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId)
+    private void validateShareRoles(List<EcmrRole> userRoles, EcmrRole roleToShare) throws NoPermissionException {
+        switch (roleToShare) {
+        case Sender:
+            if (!userRoles.contains(EcmrRole.Sender)) {
+                throw new NoPermissionException("Only Sender can share with Sender");
+            }
+            break;
+        case Carrier, Consignee:
+            if (!userRoles.contains(EcmrRole.Carrier) || !userRoles.contains(EcmrRole.Sender)) {
+                throw new NoPermissionException("Only Carrier and Sender can share with " + roleToShare.name());
+            }
+            break;
+        case Reader:
+            if (!userRoles.contains(EcmrRole.Carrier) || !userRoles.contains(EcmrRole.Sender) || !userRoles.contains(EcmrRole.Consignee)) {
+                throw new NoPermissionException("Reader cant share ecmr");
+            }
+            break;
+        }
+    }
+
+    public String getShareToken(UUID ecmrId, EcmrRole ecmrRole, InternalOrExternalUser internalOrExternalUser)
+            throws EcmrNotFoundException, NoPermissionException {
+        List<EcmrRole> rolesOfUser = authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
+        this.validateShareRoles(rolesOfUser, ecmrRole);
+        EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
+        return switch (ecmrRole) {
+            case Sender -> ecmrEntity.getShareWithSenderToken();
+            case Consignee -> ecmrEntity.getShareWithConsigneeToken();
+            case Carrier -> ecmrEntity.getShareWithCarrierToken();
+            case Reader -> ecmrEntity.getShareWithReaderToken();
+        };
+    }
+
+    public EcmrModel importEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, String shareToken)
             throws EcmrNotFoundException, ValidationException, UserNotFoundException {
-        EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
+        EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
+        if (!shareToken.equals(ecmrEntity.getShareWithReaderToken())) {
+            throw new ValidationException("You need the share token to import this ecmr");
+        }
         UserEntity userEntity = userRepository.findById(authenticatedUser.getUser().getId())
                 .orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
         if (userEntity.getDefaultGroup() == null) {
             throw new ValidationException("No Default Group");
         } else {
             EcmrAssignmentEntity assignmentEntity = new EcmrAssignmentEntity();
-            assignmentEntity.setEcmr(ecmr);
+            assignmentEntity.setEcmr(ecmrEntity);
             assignmentEntity.setRole(EcmrRole.Reader);
             assignmentEntity.setGroup(userEntity.getDefaultGroup());
             ecmrAssignmentRepository.save(assignmentEntity);
 
-            return ecmrPersistenceMapper.toModel(ecmr);
+            return ecmrPersistenceMapper.toModel(ecmrEntity);
         }
     }
 }

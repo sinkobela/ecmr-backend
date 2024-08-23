@@ -66,6 +66,7 @@ public class EcmrCreationService {
         ecmrEntity.setShareWithSenderToken(RandomStringUtils.randomAlphanumeric(4));
         ecmrEntity.setShareWithCarrierToken(RandomStringUtils.randomAlphanumeric(4));
         ecmrEntity.setShareWithConsigneeToken(RandomStringUtils.randomAlphanumeric(4));
+        ecmrEntity.setShareWithReaderToken(RandomStringUtils.randomAlphanumeric(4));
 
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmrEntity.setCreatedBy(fullName);
