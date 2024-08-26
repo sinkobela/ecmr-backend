@@ -91,6 +91,10 @@ public class AuthorisationService {
     }
 
     private boolean validateUpdateCommand(EcmrCommand ecmrToChange, EcmrEntity ecmrEntity, List<EcmrRole> rolesOfUser) {
+        if(ecmrEntity.getEcmrStatus() != EcmrStatus.NEW &&
+                !ecmrEntity.getReferenceIdentificationNumber().equals(ecmrToChange.getReferenceIdentificationNumber())) {
+            return false;
+        }
         if ((!rolesOfUser.contains(EcmrRole.Sender) || ecmrEntity.getEcmrStatus() != EcmrStatus.NEW)
                 && this.checkSenderFieldsChanged(ecmrToChange, ecmrEntity)) {
             return false;

@@ -8,8 +8,8 @@
 
 package org.openlogisticsfoundation.ecmr.web.controllers;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import static org.openlogisticsfoundation.ecmr.web.controllers.PdfHelper.createPdfResponse;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -40,9 +40,7 @@ import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -228,16 +226,7 @@ public class EcmrController {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
-            StreamingResponseBody streamingResponseBody = outputStream -> {
-                try (InputStream inputStream = new ByteArrayInputStream(ecmrReportData)) {
-                    inputStream.transferTo(outputStream);
-                } catch (Exception e) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-                }
-            };
-            return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
-                    .body(streamingResponseBody);
+            return createPdfResponse(ecmrReportData);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {

@@ -9,8 +9,8 @@
 
 package org.openlogisticsfoundation.ecmr.web.controllers;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import static org.openlogisticsfoundation.ecmr.web.controllers.PdfHelper.createPdfResponse;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -43,9 +43,7 @@ import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.ExternalUserRegistrationModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -102,7 +100,7 @@ public class AnonymousController {
     }
 
     @GetMapping(path = { "/ecmr/{ecmrId}" })
-    public ResponseEntity<EcmrModel> getEcmrWithTan(@PathVariable(value = "ecmrId") UUID ecmrId,
+    public ResponseEntity<EcmrModel> getEcmrWith(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
             ExternalUser externalUser = authenticationService.getExternalUser(ecmrId, tan);
@@ -190,20 +188,29 @@ public class AnonymousController {
     }
 
     @GetMapping("/ecmr/{ecmrId}/pdf")
-    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id,
+    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID ecmrId,
+            @RequestParam(name = "tan") @Valid @NotNull String tan) {
+        try {
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser));
+            return createPdfResponse(ecmrReportData);
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (PdfCreationException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ExternalUserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    @GetMapping("/ecmr/{ecmrId}/share-pdf")
+    public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFileShare(@PathVariable("ecmrId") UUID id,
             @RequestParam @Valid @NotNull String shareToken) {
         try {
             byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id, shareToken);
-            StreamingResponseBody streamingResponseBody = outputStream -> {
-                try (InputStream inputStream = new ByteArrayInputStream(ecmrReportData)) {
-                    inputStream.transferTo(outputStream);
-                } catch (Exception e) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-                }
-            };
-            return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
-                    .body(streamingResponseBody);
+            return createPdfResponse(ecmrReportData);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (PdfCreationException e) {
