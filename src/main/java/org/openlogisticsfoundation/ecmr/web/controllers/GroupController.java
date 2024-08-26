@@ -10,6 +10,8 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import java.util.List;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasChildrenException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasNoParentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
@@ -30,6 +32,7 @@ import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,6 +116,19 @@ public class GroupController {
             return ResponseEntity.ok(group);
         } catch (GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Boolean> deleteGroup(@PathVariable long id) {
+        try {
+            Boolean deleteResult = groupService.deleteGroup(id);
+            return ResponseEntity.ok(deleteResult);
+        } catch (GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (GroupHasChildrenException | GroupHasNoParentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 

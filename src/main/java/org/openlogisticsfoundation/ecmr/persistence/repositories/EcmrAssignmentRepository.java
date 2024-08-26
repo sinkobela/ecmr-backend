@@ -21,7 +21,7 @@ public interface EcmrAssignmentRepository extends JpaRepository<EcmrAssignmentEn
     void deleteByEcmr_EcmrId(UUID ecmrId);
     List<EcmrAssignmentEntity> findByEcmr_EcmrIdAndGroup_IdIn(UUID ecmrId, List<Long> groupIds);
     List<EcmrAssignmentEntity> findByEcmr_EcmrIdAndExternalUser_Tan(UUID ecmrId, String externalUserTan);
+    List<EcmrAssignmentEntity> findByGroup_Id(long id);
     List<EcmrAssignmentEntity> findByEcmr_EcmrIdAndGroup_idInAndRole(UUID ecmrId, List<Long> groupIds, EcmrRole role);
     List<EcmrAssignmentEntity> findByEcmr_EcmrIdAndExternalUser_TanAndRole(UUID ecmrId, String externalUserTan, EcmrRole role);
-
 }

@@ -14,19 +14,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasChildrenException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasNoParentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
+import org.openlogisticsfoundation.ecmr.domain.models.User;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupCreationCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GroupUpdateCommand;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserToGroupEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.GroupRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserToGroupRepository;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +45,8 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupPersistenceMapper groupPersistenceMapper;
     private final UserToGroupRepository userToGroupRepository;
+    private final UserRepository userRepository;
+    private final EcmrAssignmentRepository ecmrAssignmentRepository;
 
     public List<Group> getAllGroups() {
         List<GroupEntity> groupEntities = groupRepository.findByParentId(null);
@@ -103,6 +114,50 @@ public class GroupService {
         groupEntity.setDescription(command.getDescription());
         groupEntity = groupRepository.save(groupEntity);
         return getGroup(groupEntity.getId());
+    }
+
+    @Transactional
+    public Boolean deleteGroup(long id) throws GroupNotFoundException, GroupHasChildrenException, GroupHasNoParentException {
+        GroupEntity groupEntity = groupRepository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
+        if(groupEntity.getChildren().isEmpty() && groupEntity.getParent() != null) {
+            GroupEntity parentEntity = groupEntity.getParent();
+
+            //Update user group id & user default group
+            List<UserEntity> userList = userToGroupRepository.findUsersByGroupId(id);
+            updateUsersGroup(userList, parentEntity, groupEntity);
+
+            // Update ECMR Assignments to the parent group
+            List<EcmrAssignmentEntity> ecmrAssignments = ecmrAssignmentRepository.findByGroup_Id(id);
+            updateEcmrAssignmentsGroup(ecmrAssignments, parentEntity);
+
+            groupRepository.delete(groupEntity);
+            return true;
+        } else if(!groupEntity.getChildren().isEmpty()){
+            throw new GroupHasChildrenException(groupEntity.getId());
+        } else {
+            throw new GroupHasNoParentException(groupEntity.getId());
+        }
+    }
+
+    public void updateUsersGroup(List<UserEntity> users, GroupEntity  newGroup, GroupEntity oldGroup) {
+        for (UserEntity user : users) {
+            userToGroupRepository.deleteByUserIdAndGroupId(user.getId(), oldGroup.getId());
+
+            UserToGroupEntity newUserToGroup = new UserToGroupEntity(user, newGroup);
+            userToGroupRepository.save(newUserToGroup);
+
+            if(user.getDefaultGroup().getId() == oldGroup.getId()){
+                user.setDefaultGroup(newGroup);
+                userRepository.save(user);
+            }
+        }
+    }
+
+    public void updateEcmrAssignmentsGroup(List<EcmrAssignmentEntity> ecmrAssignments, GroupEntity newGroup) {
+        for (EcmrAssignmentEntity assignment : ecmrAssignments) {
+            assignment.setGroup(newGroup);
+            ecmrAssignmentRepository.save(assignment);
+        }
     }
 
     public Group updateGroupParent(long groupId, long groupParentId) throws GroupNotFoundException, ValidationException {
