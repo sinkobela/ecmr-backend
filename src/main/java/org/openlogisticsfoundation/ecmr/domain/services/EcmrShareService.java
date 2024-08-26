@@ -27,6 +27,7 @@ import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
@@ -57,6 +58,7 @@ public class EcmrShareService {
     private final UserRepository userRepository;
     private final GroupPersistenceMapper groupPersistenceMapper;
     private final AuthorisationService authorisationService;
+    private final GroupService groupService;
 
     @Value("${app.frontend-url}")
     String frontendAddress;
@@ -96,11 +98,11 @@ public class EcmrShareService {
 
     public EcmrShareResponse shareEcmr(InternalOrExternalUser internalOrExternalUser, @Valid @NotNull UUID ecmrId, @Valid @NotNull String email,
             @Valid @NotNull EcmrRole role) throws EcmrNotFoundException, NoPermissionException, ValidationException {
-        if(role == EcmrRole.Reader) {
+        if (role == EcmrRole.Reader) {
             throw new ValidationException("Ecmr can't be shared to Reader");
         }
         List<EcmrRole> rolesOfUser = authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
-        if (!rolesOfUser.contains(EcmrRole.Sender) || !rolesOfUser.contains(EcmrRole.Carrier)) {
+        if (!rolesOfUser.contains(EcmrRole.Sender) && !rolesOfUser.contains(EcmrRole.Carrier)) {
             throw new NoPermissionException("No Permission to share as Consignee or Readonly");
         }
         this.validateShareRoles(rolesOfUser, role);
@@ -111,6 +113,14 @@ public class EcmrShareService {
             if (userEntity.getDefaultGroup() == null) {
                 return new EcmrShareResponse(ShareEcmrResult.ErrorInternalUserHasNoGroup, null);
             } else {
+                if (rolesOfUser.contains(role)) {
+                    this.changeRoleToReadonly(internalOrExternalUser, role, ecmrId);
+                }
+                List<EcmrAssignmentEntity> assignment = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndGroup_idInAndRole(
+                        ecmrId, List.of(userEntity.getDefaultGroup().getId()), role);
+                if(!assignment.isEmpty()) {
+                    return new EcmrShareResponse(ShareEcmrResult.SharedInternal, this.groupPersistenceMapper.toGroup(userEntity.getDefaultGroup()));
+                }
                 EcmrAssignmentEntity assignmentEntity = new EcmrAssignmentEntity();
                 assignmentEntity.setEcmr(ecmr);
                 assignmentEntity.setRole(role);
@@ -124,6 +134,21 @@ public class EcmrShareService {
         }
     }
 
+    private void changeRoleToReadonly(InternalOrExternalUser internalOrExternalUser, EcmrRole roleToChange, UUID ecmrId) {
+        List<EcmrAssignmentEntity> userAssignments;
+        if (internalOrExternalUser.isInternalUser()) {
+            List<Group> usersGroups = groupService.getGroupsForUser(internalOrExternalUser.getInternalUser().getId());
+            List<Long> groupIds = groupService.flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
+            userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndGroup_idInAndRole(ecmrId,
+                    groupIds, roleToChange);
+        } else {
+            userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndRole(
+                    ecmrId, internalOrExternalUser.getExternalUser().getTan(), roleToChange);
+        }
+        userAssignments.forEach(userAssignment -> userAssignment.setRole(EcmrRole.Reader));
+        ecmrAssignmentRepository.saveAll(userAssignments);
+    }
+
     private void validateShareRoles(List<EcmrRole> userRoles, EcmrRole roleToShare) throws NoPermissionException {
         switch (roleToShare) {
         case Sender:
@@ -132,12 +157,12 @@ public class EcmrShareService {
             }
             break;
         case Carrier, Consignee:
-            if (!userRoles.contains(EcmrRole.Carrier) || !userRoles.contains(EcmrRole.Sender)) {
+            if (!userRoles.contains(EcmrRole.Carrier) && !userRoles.contains(EcmrRole.Sender)) {
                 throw new NoPermissionException("Only Carrier and Sender can share with " + roleToShare.name());
             }
             break;
         case Reader:
-            if (!userRoles.contains(EcmrRole.Carrier) || !userRoles.contains(EcmrRole.Sender) || !userRoles.contains(EcmrRole.Consignee)) {
+            if (!userRoles.contains(EcmrRole.Carrier) && !userRoles.contains(EcmrRole.Sender) && !userRoles.contains(EcmrRole.Consignee)) {
                 throw new NoPermissionException("Reader cant share ecmr");
             }
             break;
