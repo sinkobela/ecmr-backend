@@ -56,6 +56,13 @@ public class UserController {
         }
     }
 
+    @GetMapping("/mail")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<String>> getAllUserMails() {
+        List<String> groups = this.userService.getAllUserEmails();
+        return ResponseEntity.ok(groups);
+    }
+
     @GetMapping()
     @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<User>> getAllUsers() {

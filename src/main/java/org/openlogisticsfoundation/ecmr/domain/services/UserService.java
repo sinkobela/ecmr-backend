@@ -44,6 +44,10 @@ public class UserService {
     private final GroupPersistenceMapper groupPersistenceMapper;
     private final GroupService groupService;
 
+    public List<String> getAllUserEmails() {
+        return userRepository.findAll().stream().map(UserEntity::getEmail).toList();
+    }
+
     public List<User> getAllUsers() {
         return userRepository.findAll().stream().map(userPersistenceMapper::toUser).toList();
     }
