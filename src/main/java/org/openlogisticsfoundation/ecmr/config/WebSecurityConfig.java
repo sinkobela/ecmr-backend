@@ -8,9 +8,13 @@
 package org.openlogisticsfoundation.ecmr.config;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -38,6 +42,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class WebSecurityConfig {
 
+    private UserRepository userRepository;
+
     public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
     }
 
@@ -52,10 +58,18 @@ public class WebSecurityConfig {
                 .map(SimpleGrantedAuthority::new).toList();
     }
 
-    @SuppressWarnings("unchecked")
     private Set<String> getRoles(Jwt jwt) {
-        //TODO Get roles for user. Maybe from jwt token or from database?
-        return Set.of();
+        Optional<String> emailOpt = Optional.ofNullable(jwt.getClaimAsString("email")).or(() -> Optional.ofNullable(jwt.getClaimAsString("upn")));
+        if (emailOpt.isEmpty()) {
+            return Set.of();
+        }
+        Optional<UserEntity> userOpt = userRepository.findByEmail(emailOpt.get());
+        return userOpt.map(userEntity -> this.mapRoles(userEntity.getRole())).orElseGet(Set::of);
+    }
+
+    private Set<String> mapRoles(UserRole userRole) {
+        return (userRole == UserRole.Admin) ? Set.of(UserRole.Admin.name(), UserRole.User.name()) : Set.of(UserRole.User.name());
+
     }
 
     @Bean

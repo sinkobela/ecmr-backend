@@ -56,7 +56,7 @@ public class GroupController {
     private final GroupWebMapper groupWebMapper;
 
     @GetMapping()
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<Group>> getAllGroups(@RequestParam(defaultValue = "false") boolean currentUserGroupsOnly) throws AuthenticationException {
         List<Group> groups;
         if (currentUserGroupsOnly) {
@@ -69,7 +69,7 @@ public class GroupController {
     }
 
     @GetMapping("/flat-list")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<GroupFlatModel>> getAllGroupsAsFlatList(@RequestParam(defaultValue = "false") boolean currentUserGroupsOnly) throws AuthenticationException {
         List<Group> groups;
         if (currentUserGroupsOnly) {
@@ -83,7 +83,7 @@ public class GroupController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<Group> getGroup(@PathVariable long id) {
         try {
             return ResponseEntity.ok(groupService.getGroup(id));
@@ -93,7 +93,7 @@ public class GroupController {
     }
 
     @PostMapping()
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<Group> createGroup(@RequestBody @Valid GroupCreationModel groupCreationModel) throws AuthenticationException {
         GroupCreationCommand groupCreationCommand = groupWebMapper.toCommand(groupCreationModel);
         AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
@@ -108,7 +108,7 @@ public class GroupController {
     }
 
     @PostMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<Group> updateGroup(@PathVariable long id, @RequestBody @Valid GroupUpdateModel groupUpdateModel) {
         try {
             GroupUpdateCommand command = groupWebMapper.toCommand(groupUpdateModel);
@@ -133,7 +133,7 @@ public class GroupController {
     }
 
     @PostMapping("/{id}/update-parent")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<Group> updateGroupParent(@PathVariable long id, @RequestBody @Valid GroupParentUpdateModel groupParentUpdateModel) {
         try {
             Group group = groupService.updateGroupParent(id, groupParentUpdateModel.getParentId());
@@ -146,7 +146,7 @@ public class GroupController {
     }
 
     @GetMapping("/{id}/users")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<User>> getUsersForGroup(@PathVariable long id) {
         return ResponseEntity.ok(userService.getUsersByGroupId(id));
     }

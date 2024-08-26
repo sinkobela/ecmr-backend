@@ -47,6 +47,7 @@ public class UserController {
     private final AuthenticationService authenticationService;
 
     @GetMapping("/current")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AuthenticatedUser> current() {
         try {
             return ResponseEntity.ok(authenticationService.getAuthenticatedUser());
@@ -56,14 +57,14 @@ public class UserController {
     }
 
     @GetMapping()
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> groups = this.userService.getAllUsers();
         return ResponseEntity.ok(groups);
     }
 
     @PostMapping()
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<User> createUser(@RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) throws AuthenticationException {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
@@ -78,8 +79,9 @@ public class UserController {
     }
 
     @PostMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) throws AuthenticationException {
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
+    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel)
+            throws AuthenticationException {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
@@ -95,7 +97,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/groups")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<Group>> getGroupsForUser(@PathVariable long id) {
         return ResponseEntity.ok(userService.getGroupsByUserId(id));
     }
