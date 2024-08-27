@@ -8,6 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
@@ -16,5 +17,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    Optional<UserEntity> findByEmail(String email);
+    List<UserEntity> findAllByDeactivatedFalse();
+    Optional<UserEntity> findByEmailAndDeactivatedFalse(String email);
 }

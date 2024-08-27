@@ -45,7 +45,7 @@ public class UserService {
     private final GroupService groupService;
 
     public List<String> getAllUserEmails() {
-        return userRepository.findAll().stream().map(UserEntity::getEmail).toList();
+        return userRepository.findAllByDeactivatedFalse().stream().map(UserEntity::getEmail).toList();
     }
 
     public List<User> getAllUsers() {
@@ -59,6 +59,18 @@ public class UserService {
             groups.add(groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId)));
         }
 
+        this.validateAndSetGroup(authenticatedUser, userCommand, userEntity);
+
+        userEntity = userRepository.save(userEntity);
+        for (GroupEntity groupEntity : groups) {
+            UserToGroupEntity userToGroupEntity = new UserToGroupEntity(userEntity, groupEntity);
+            this.userToGroupRepository.save(userToGroupEntity);
+        }
+        return userPersistenceMapper.toUser(userEntity);
+    }
+
+    private void validateAndSetGroup(AuthenticatedUser authenticatedUser, @Valid UserCommand userCommand, UserEntity userEntity)
+            throws NoPermissionException, ValidationException, GroupNotFoundException {
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, userCommand.getGroupIds())) {
             throw new NoPermissionException("At least one group without permission");
         }
@@ -72,13 +84,6 @@ public class UserService {
             GroupEntity defaultGroup = groupRepository.findById(userCommand.getDefaultGroupId()).orElseThrow(() -> new GroupNotFoundException(userCommand.getDefaultGroupId()));
             userEntity.setDefaultGroup(defaultGroup);
         }
-
-        userEntity = userRepository.save(userEntity);
-        for (GroupEntity groupEntity : groups) {
-            UserToGroupEntity userToGroupEntity = new UserToGroupEntity(userEntity, groupEntity);
-            this.userToGroupRepository.save(userToGroupEntity);
-        }
-        return userPersistenceMapper.toUser(userEntity);
     }
 
     public List<Group> getGroupsByUserId(Long userId) {
@@ -90,19 +95,7 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         userEntity = userPersistenceMapper.toUserEntity(userEntity, userCommand);
 
-        if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, userCommand.getGroupIds())) {
-            throw new NoPermissionException("At least one group without permission");
-        }
-
-        if (userCommand.getGroupIds().isEmpty()) {
-            userEntity.setDefaultGroup(null);
-        } else {
-            if (!userCommand.getGroupIds().contains(userCommand.getDefaultGroupId())) {
-                throw new ValidationException("Default group has to be contained in group Ids");
-            }
-            GroupEntity defaultGroup = groupRepository.findById(userCommand.getDefaultGroupId()).orElseThrow(() -> new GroupNotFoundException(userCommand.getDefaultGroupId()));
-            userEntity.setDefaultGroup(defaultGroup);
-        }
+        this.validateAndSetGroup(authenticatedUser, userCommand, userEntity);
 
         // Get the current groups of the user
         List<GroupEntity> groups = userToGroupRepository.findGroupsByUserId(userId);
@@ -148,10 +141,18 @@ public class UserService {
         return userToGroupRepository.findUsersByGroupId(groupId).stream().map(userPersistenceMapper::toUser).toList();
     }
 
-    public User getUserByEmail(String email) throws UserNotFoundException {
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+    public User getActiveUserByEmail(String email) throws UserNotFoundException {
+        UserEntity userEntity = userRepository.findByEmailAndDeactivatedFalse(email).orElseThrow(() -> new UserNotFoundException(email));
         return userPersistenceMapper.toUser(userEntity);
     }
 
-
+    public void changeUserActiveState(AuthenticatedUser authenticatedUser, long userId, boolean isDeactivated) throws NoPermissionException,
+            UserNotFoundException {
+        if(authenticatedUser.getUser().getId() == userId) {
+            throw new NoPermissionException("A user can't activate itself");
+        }
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        userEntity.setDeactivated(isDeactivated);
+        userRepository.save(userEntity);
+    }
 }

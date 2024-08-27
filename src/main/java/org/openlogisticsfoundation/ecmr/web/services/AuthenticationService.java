@@ -49,10 +49,10 @@ public class AuthenticationService {
         }
 
         try {
-            User user = this.userService.getUserByEmail(email);
+            User user = this.userService.getActiveUserByEmail(email);
             return new AuthenticatedUser(user);
         } catch (UserNotFoundException e) {
-            throw new AuthenticationException("No user found for email: " + email);
+            throw new AuthenticationException("No active user found for email: " + email);
         }
     }
 

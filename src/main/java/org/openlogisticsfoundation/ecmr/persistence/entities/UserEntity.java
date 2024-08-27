@@ -48,4 +48,5 @@ public class UserEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "default_group_id")
     private GroupEntity defaultGroup;
+    private boolean deactivated = false;
 }

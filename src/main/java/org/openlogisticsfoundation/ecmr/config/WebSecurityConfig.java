@@ -63,7 +63,7 @@ public class WebSecurityConfig {
         if (emailOpt.isEmpty()) {
             return Set.of();
         }
-        Optional<UserEntity> userOpt = userRepository.findByEmail(emailOpt.get());
+        Optional<UserEntity> userOpt = userRepository.findByEmailAndDeactivatedFalse(emailOpt.get());
         return userOpt.map(userEntity -> this.mapRoles(userEntity.getRole())).orElseGet(Set::of);
     }
 

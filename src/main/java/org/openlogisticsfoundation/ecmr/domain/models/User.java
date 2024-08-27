@@ -24,4 +24,5 @@ public class User {
     private String phone;
     private UserRole role;
     private Long defaultGroupId;
+    private boolean deactivated;
 }

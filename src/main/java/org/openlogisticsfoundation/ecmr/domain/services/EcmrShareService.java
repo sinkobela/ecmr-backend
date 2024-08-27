@@ -107,7 +107,7 @@ public class EcmrShareService {
         }
         this.validateShareRoles(rolesOfUser, role);
         EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
-        Optional<UserEntity> userEntityOpt = userRepository.findByEmail(email);
+        Optional<UserEntity> userEntityOpt = userRepository.findByEmailAndDeactivatedFalse(email);
         if (userEntityOpt.isPresent()) {
             UserEntity userEntity = userEntityOpt.get();
             if (userEntity.getDefaultGroup() == null) {

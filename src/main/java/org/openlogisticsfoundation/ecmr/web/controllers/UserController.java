@@ -108,4 +108,35 @@ public class UserController {
     public ResponseEntity<List<Group>> getGroupsForUser(@PathVariable long id) {
         return ResponseEntity.ok(userService.getGroupsByUserId(id));
     }
+
+    @PostMapping("/{id}/activate")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
+    public ResponseEntity<Void> activateUser(@PathVariable long id)
+            throws AuthenticationException {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            userService.changeUserActiveState(authenticatedUser, id, false);
+            return ResponseEntity.ok().build();
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
+    public ResponseEntity<Void> deactivateUser(@PathVariable long id)
+            throws AuthenticationException {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            userService.changeUserActiveState(authenticatedUser, id, true);
+            return ResponseEntity.ok().build();
+        } catch (UserNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
 }
