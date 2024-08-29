@@ -48,6 +48,10 @@ cache:
   paths:
     - .m2/repository
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 # Run unit tests and generate reports
 test:
   stage: test
