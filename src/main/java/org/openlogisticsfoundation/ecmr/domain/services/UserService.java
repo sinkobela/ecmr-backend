@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserAlreadyExistsException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
@@ -52,7 +53,8 @@ public class UserService {
         return userRepository.findAll().stream().map(userPersistenceMapper::toUser).toList();
     }
 
-    public User createUser(AuthenticatedUser authenticatedUser, @Valid UserCommand userCommand) throws ValidationException, GroupNotFoundException, NoPermissionException {
+    public User createUser(AuthenticatedUser authenticatedUser, @Valid UserCommand userCommand)
+            throws ValidationException, GroupNotFoundException, NoPermissionException, UserAlreadyExistsException {
         UserEntity userEntity = userPersistenceMapper.toUserEntity(userCommand);
         List<GroupEntity> groups = new ArrayList<>();
         for (long groupId : userCommand.getGroupIds()) {
@@ -61,7 +63,12 @@ public class UserService {
 
         this.validateAndSetGroup(authenticatedUser, userCommand, userEntity);
 
-        userEntity = userRepository.save(userEntity);
+        try{
+            userEntity = userRepository.save(userEntity);
+        } catch (Exception e) {
+            throw new UserAlreadyExistsException(userEntity.getEmail());
+        }
+
         for (GroupEntity groupEntity : groups) {
             UserToGroupEntity userToGroupEntity = new UserToGroupEntity(userEntity, groupEntity);
             this.userToGroupRepository.save(userToGroupEntity);

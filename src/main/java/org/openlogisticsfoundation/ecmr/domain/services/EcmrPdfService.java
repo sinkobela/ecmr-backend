@@ -193,6 +193,8 @@ public class EcmrPdfService {
             Renderable renderableSignature =
                     this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
             parameters.put("carrierSignature", renderableSignature);
+            parameters.put("consigneeSigningLocation", ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getUserCity());
+            parameters.put("consigneeTimeOfArrival", Date.from(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getTimestamp()));
         }
 
         //Consignee Signature
@@ -201,6 +203,8 @@ public class EcmrPdfService {
                     this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
             parameters.put("consigneeSignature", renderableSignature);
         }
+
+        parameters.put("nonContractualCarrierRemarks", ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
 
         //eCmr Logo
         InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();

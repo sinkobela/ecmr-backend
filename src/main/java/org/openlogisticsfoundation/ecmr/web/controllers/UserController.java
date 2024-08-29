@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserAlreadyExistsException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -82,6 +83,8 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (UserAlreadyExistsException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT , e.getMessage());
         }
     }
 

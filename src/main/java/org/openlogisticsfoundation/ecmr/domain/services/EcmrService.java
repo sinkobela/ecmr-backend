@@ -9,6 +9,7 @@
 package org.openlogisticsfoundation.ecmr.domain.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
@@ -22,9 +23,13 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
+import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +51,7 @@ public class EcmrService {
     private final AuthorisationService authorisationService;
 
     public EcmrModel getEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, NoPermissionException {
-        if(authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
+        if (authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
             throw new NoPermissionException("No permission to load ecmr");
         }
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
@@ -57,19 +62,21 @@ public class EcmrService {
         return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
     }
 
-    public List<EcmrModel> getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, String sortBy,
-            String sortingOrder) {
-        Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder);
-        final Pageable pageable = PageRequest.of(page, size, sortDirection, "ecmr." + sortBy);
+    public EcmrPageModel getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, SortingField sortBy,
+            SortingOrder sortingOrder, FilterRequestCommand filterRequestCommand) {
+        Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder.name());
+        final Pageable pageable = PageRequest.of(page, size, sortDirection, sortBy.getEntryFieldName());
 
         List<Group> usersGroups = groupService.getGroupsForUser(authenticatedUser);
         List<Long> usersGroupIds = groupService.flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
 
-        final Page<EcmrEntity> ecmrPage = ecmrRepository.findAllByTypeAndAssignedGroupIds(ecmrType, usersGroupIds, pageable);
+        final Page<EcmrEntity> ecmrPage = ecmrRepository.findAllByTypeAndAssignedGroupIds(ecmrType, usersGroupIds,
+                filterRequestCommand.getReferenceId(), filterRequestCommand.getFrom(), filterRequestCommand.getTo(),
+                Optional.ofNullable(filterRequestCommand.getTransportType()).map(Enum::name).orElse(null),
+                filterRequestCommand.getStatus(), filterRequestCommand.getLicensePlate(), filterRequestCommand.getCarrierName(),
+                filterRequestCommand.getCarrierPostCode(), filterRequestCommand.getConsigneePostCode(), pageable);
 
-        return ecmrPage.get()
-                .map(ecmrPersistenceMapper::toModel)
-                .toList();
+        return new EcmrPageModel(ecmrPage.getTotalPages(), ecmrPage.getTotalElements(), ecmrPage.get().map(ecmrPersistenceMapper::toModel).toList());
     }
 
     @Transactional
@@ -77,7 +84,7 @@ public class EcmrService {
             NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
 
-        if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
+        if (authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
             throw new NoPermissionException("No permission for this task");
         }
 
@@ -97,10 +104,10 @@ public class EcmrService {
         if (ecmrEntity.getSenderInformation().getSignature() != null) {
             ecmrEntity.setEcmrStatus(EcmrStatus.LOADING);
         }
-        if(ecmrEntity.getCarrierInformation().getSignature() != null) {
+        if (ecmrEntity.getCarrierInformation().getSignature() != null) {
             ecmrEntity.setEcmrStatus(EcmrStatus.IN_TRANSPORT);
         }
-        if(ecmrEntity.getConsigneeInformation().getSignature() != null) {
+        if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
             ecmrEntity.setEcmrStatus(EcmrStatus.ARRIVED_AT_DESTINATION);
         }
         return ecmrRepository.save(ecmrEntity);

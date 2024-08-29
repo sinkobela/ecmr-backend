@@ -28,6 +28,8 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
+import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
+import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
@@ -37,7 +39,9 @@ import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
+import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
@@ -85,17 +89,20 @@ public class EcmrController {
      * @param sortingOrder The sorting order used for sorting the result.
      * @return A paginated and sorted list of {@link EcmrModel}.
      */
-    @GetMapping()
+    @PostMapping("/my-ecmrs")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<EcmrModel>> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
+    public ResponseEntity<EcmrPageModel> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
             @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-            @RequestParam(name = "sortBy", defaultValue = "ecmrId", required = false) String sortBy,
-            @RequestParam(name = "sortingOrder", defaultValue = "asc", required = false) String sortingOrder)
+            @RequestParam(name = "sortBy", defaultValue = "referenceId", required = false) SortingField sortBy,
+            @RequestParam(name = "sortingOrder", defaultValue = "ASC", required = false) SortingOrder sortingOrder,
+            @RequestBody FilterRequestModel filterRequestModel
+    )
             throws AuthenticationException {
         AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-        List<EcmrModel> ecmrs = this.ecmrService.getEcmrsForUser(authenticatedUser, type, page, size, sortBy, sortingOrder);
-        return ResponseEntity.ok(ecmrs);
+        EcmrPageModel pageModel = this.ecmrService.getEcmrsForUser(authenticatedUser, type, page, size, sortBy, sortingOrder,
+                ecmrWebMapper.map(filterRequestModel));
+        return ResponseEntity.ok(pageModel);
     }
 
     @GetMapping(path = { "{ecmrId}" })

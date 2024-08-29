@@ -19,11 +19,13 @@ import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CarrierInformationCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ConsigneeInformationCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GoodsReceivedCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SenderInformationCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SuccessiveCarrierInformationCommand;
+import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 
 @Mapper(componentModel = "spring")
@@ -103,4 +105,6 @@ public interface EcmrWebMapper {
     ItemCommand map(Item value);
 
     SignCommand map(SignModel model);
+
+    FilterRequestCommand map(FilterRequestModel model);
 }
