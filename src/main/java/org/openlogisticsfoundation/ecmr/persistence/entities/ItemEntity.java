@@ -36,7 +36,7 @@ public class ItemEntity extends BaseEntity {
     //Gross Weight in KG
     private Integer supplyChainConsignmentItemGrossWeight;
     //Volume In m³
-    private float supplyChainConsignmentItemGrossVolume;
+    private Float supplyChainConsignmentItemGrossVolume;
 
     @Override
     public String toString() {
