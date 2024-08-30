@@ -65,7 +65,7 @@ public class UserController {
     }
 
     @GetMapping()
-    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> groups = this.userService.getAllUsers();
         return ResponseEntity.ok(groups);

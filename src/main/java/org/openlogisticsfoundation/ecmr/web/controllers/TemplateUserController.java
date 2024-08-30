@@ -97,12 +97,9 @@ public class TemplateUserController {
     public ResponseEntity<TemplateUser> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
             throws TemplateUserNotFoundException {
         try {
-            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            this.templateUserService.shareTemplate(id, userIDs, authenticatedUser);
+            this.templateUserService.shareTemplate(id, userIDs);
         } catch (UserNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (AuthenticationException e){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
         return ResponseEntity.ok(new TemplateUser());
     }

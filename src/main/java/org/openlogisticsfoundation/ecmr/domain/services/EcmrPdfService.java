@@ -205,6 +205,8 @@ public class EcmrPdfService {
         }
 
         parameters.put("nonContractualCarrierRemarks", ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
+        parameters.put("referenceId", ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue());
+        parameters.put("ecmrId", ecmrModel.getEcmrId());
 
         //eCmr Logo
         InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();

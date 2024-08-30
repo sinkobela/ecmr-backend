@@ -97,6 +97,8 @@
 	<parameter name="consigneeSignature" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSigningLocation" class="java.lang.String"/>
 	<parameter name="nonContractualCarrierRemarks" class="java.lang.String"/>
+	<parameter name="referenceId" class="java.lang.String"/>
+	<parameter name="ecmrId" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -1880,6 +1882,35 @@
 				<reportElement x="454" y="16" width="100" height="20" uuid="fa4f3aed-a86f-4925-a044-51b63b098b18"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="70" y="16" width="95" height="20" uuid="c38975c1-b182-4ff4-a631-8a0f19d94532"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{referenceId}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="16" width="70" height="20" uuid="c52dae29-1e15-414d-88eb-14fbff33aa13">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="0">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Reference ID:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="16" width="200" height="20" uuid="0e10c361-d58a-490c-9a55-28c1c3416db3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ecmrId}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>

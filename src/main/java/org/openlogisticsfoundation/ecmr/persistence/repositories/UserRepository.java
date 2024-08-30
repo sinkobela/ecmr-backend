@@ -19,4 +19,5 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     List<UserEntity> findAllByDeactivatedFalse();
     Optional<UserEntity> findByEmailAndDeactivatedFalse(String email);
+    Optional<UserEntity> findByIdAndDeactivatedFalse(Long userId);
 }

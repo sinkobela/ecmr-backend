@@ -153,6 +153,11 @@ public class UserService {
         return userPersistenceMapper.toUser(userEntity);
     }
 
+    public User getActiveUserById(Long userId) throws UserNotFoundException {
+        UserEntity userEntity = userRepository.findByIdAndDeactivatedFalse(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        return userPersistenceMapper.toUser(userEntity);
+    }
+
     public void changeUserActiveState(AuthenticatedUser authenticatedUser, long userId, boolean isDeactivated) throws NoPermissionException,
             UserNotFoundException {
         if(authenticatedUser.getUser().getId() == userId) {
