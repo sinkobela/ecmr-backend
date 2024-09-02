@@ -29,6 +29,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestComm
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.HistoryLogRepository;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,6 +50,7 @@ public class EcmrService {
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final GroupService groupService;
     private final AuthorisationService authorisationService;
+    private final HistoryLogRepository historyLogRepository;
 
     public EcmrModel getEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, NoPermissionException {
         if (authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
@@ -95,6 +97,7 @@ public class EcmrService {
                 || ecmrEntity.getEcmrStatus() != EcmrStatus.NEW) {
             throw new ValidationException("Ecmr can not be deleted");
         }
+        historyLogRepository.deleteAllByEcmr_EcmrId(ecmrId);
         ecmrAssignmentRepository.deleteByEcmr_EcmrId(ecmrId);
         ecmrRepository.delete(ecmrEntity);
     }

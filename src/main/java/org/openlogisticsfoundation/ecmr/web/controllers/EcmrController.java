@@ -233,7 +233,8 @@ public class EcmrController {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             byte[] ecmrReportData = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
-            return createPdfResponse(ecmrReportData);
+            String refId = this.ecmrService.getEcmrEntity(id).getReferenceIdentificationNumber();
+            return createPdfResponse(ecmrReportData, refId);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {

@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class PdfHelper {
     private PdfHelper() {}
 
-    static ResponseEntity<StreamingResponseBody> createPdfResponse(byte[] ecmrReportData) {
+    static ResponseEntity<StreamingResponseBody> createPdfResponse(byte[] ecmrReportData, String filename) {
         StreamingResponseBody streamingResponseBody = outputStream -> {
             try (InputStream inputStream = new ByteArrayInputStream(ecmrReportData)) {
                 inputStream.transferTo(outputStream);
@@ -28,8 +28,9 @@ public class PdfHelper {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
             }
         };
+
         return ResponseEntity.ok().contentLength(ecmrReportData.length).contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ecmr-report.pdf\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"eCMR-"+ filename + ".pdf\"")
                 .body(streamingResponseBody);
     }
 }

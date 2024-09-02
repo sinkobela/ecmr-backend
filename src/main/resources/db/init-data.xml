@@ -20,7 +20,7 @@
                    ('Benedikt', 'Hilbert', 'DE', 'benedikt.hilbert@rhenus.com', '12345', 'Admin', 1, 0),
                    ('Timo', 'Volkenrath', 'DE', 'timo.volkenrath@rhenus.com', '12345', 'Admin', 1, 0),
                    ('Deniz', 'Baskale', 'DE', 'deniz.baskale@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Thomas', 'Thomas', 'DE', 'thomas.dukvin@rhenus.com', '12345', 'Admin', 1, 0),
+                   ('Thomas', 'Dukvin', 'DE', 'thomas.dukvin@rhenus.com', '12345', 'Admin', 1, 0),
                    ('Baris', 'Baskale', 'DE', 'baris.baskale@rhenus.com', '12345', 'Admin', 1, 0),
                    ('Jan', 'Eissing', 'DE', 'jan.eissing@rhenus.com', '12345', 'Admin', 1, 0);
 

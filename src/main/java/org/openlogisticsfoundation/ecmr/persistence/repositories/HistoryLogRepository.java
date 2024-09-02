@@ -18,4 +18,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HistoryLogRepository extends JpaRepository<HistoryLogEntity, Long> {
     List<HistoryLogEntity> findByEcmr_EcmrIdOrderByTimestampDesc(UUID ecmrId);
+    void deleteAllByEcmr_EcmrId(UUID ecmrId);
 }
