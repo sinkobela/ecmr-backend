@@ -14,6 +14,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
@@ -36,13 +37,14 @@ public class EcmrCreationService {
     private final GroupService groupService;
     private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
+    private final HistoryLogService historyLogService;
 
     public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
             throws NoPermissionException {
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, groupIds)) {
             throw new NoPermissionException("No permission for at least one group id");
         }
-        if(!authorisationService.validateSaveCommand(ecmrCommand)) {
+        if (!authorisationService.validateSaveCommand(ecmrCommand)) {
             throw new NoPermissionException("Save command is not valid");
         }
         List<GroupEntity> groupEntities = groupService.getGroupEntities(groupIds);
@@ -73,6 +75,10 @@ public class EcmrCreationService {
 
         ecmrEntity.setCreatedAt(Instant.now());
         ecmrEntity = this.ecmrRepository.save(ecmrEntity);
+
+        if (type == EcmrType.ECMR) {
+            this.historyLogService.writeHistoryLog(ecmrEntity, fullName, ActionType.Creation);
+        }
 
         return ecmrEntity;
     }

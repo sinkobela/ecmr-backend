@@ -18,6 +18,7 @@ import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
@@ -37,6 +38,7 @@ public class EcmrUpdateService {
     private final EcmrPersistenceMapper persistenceMapper;
     private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
+    private final HistoryLogService historyLogService;
 
     public EcmrModel archiveEcmr(UUID ecmrUuid, AuthenticatedUser authenticatedUser)
             throws EcmrNotFoundException, ValidationException, NoPermissionException {
@@ -89,6 +91,9 @@ public class EcmrUpdateService {
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
         ecmrEntity = this.ecmrService.setEcmrStatus(ecmrEntity);
+
+        historyLogService.writeHistoryLog(ecmrEntity, internalOrExternalUser.getFullName(), ActionType.Edit);
+
         return persistenceMapper.toModel(ecmrEntity);
     }
 }
