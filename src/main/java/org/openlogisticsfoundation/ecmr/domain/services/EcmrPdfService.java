@@ -24,6 +24,7 @@ import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -48,23 +49,22 @@ public class EcmrPdfService {
     private final ResourceLoader resourceLoader;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
 
-
-    public byte[] createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
+    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
             throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
         EcmrModel ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
         return this.createJasperReportForEcmr(ecmrModel);
     }
 
-    public byte[] createJasperReportForEcmr(UUID id, String shareToken)
+    public PdfFile createJasperReportForEcmr(UUID id, String shareToken)
             throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
         EcmrEntity ecmrEntity = this.ecmrService.getEcmrEntity(id);
-        if(!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
+        if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
             throw new NoPermissionException("Share Token mandatory");
         }
         return this.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
     }
 
-    private byte[] createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
+    private PdfFile createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);
@@ -74,7 +74,8 @@ public class EcmrPdfService {
             HashMap<String, Object> parameters = setEcmrParameters(ecmrModel);
             parameters.put("items", itemDataSource);
 
-            return JasperRunManager.runReportToPdf(jasperReport, parameters, new JREmptyDataSource());
+            return new PdfFile("eCMR-" + ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber() + ".pdf",
+                    JasperRunManager.runReportToPdf(jasperReport, parameters, new JREmptyDataSource()));
         } catch (JRException e) {
             log.error(e);
             throw new PdfCreationException("Error generating report: " + e.getMessage());
@@ -193,8 +194,10 @@ public class EcmrPdfService {
             Renderable renderableSignature =
                     this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
             parameters.put("carrierSignature", renderableSignature);
-            parameters.put("consigneeSigningLocation", ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getUserCity());
-            parameters.put("consigneeTimeOfArrival", Date.from(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getTimestamp()));
+            parameters.put("consigneeSigningLocation",
+                    ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getUserCity());
+            parameters.put("consigneeTimeOfArrival",
+                    Date.from(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getTimestamp()));
         }
 
         //Consignee Signature
@@ -204,7 +207,8 @@ public class EcmrPdfService {
             parameters.put("consigneeSignature", renderableSignature);
         }
 
-        parameters.put("nonContractualCarrierRemarks", ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
+        parameters.put("nonContractualCarrierRemarks",
+                ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
         parameters.put("referenceId", ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue());
         parameters.put("ecmrId", ecmrModel.getEcmrId());
 
