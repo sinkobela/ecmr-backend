@@ -33,10 +33,31 @@ public class AuthenticationService {
     private final UserService userService;
     private final ExternalUserService externalUserService;
 
-
     public AuthenticatedUser getAuthenticatedUser() throws AuthenticationException {
+        return this.getAuthenticatedUser(false);
+    }
+
+    public AuthenticatedUser getAuthenticatedUser(boolean withTechnical) throws AuthenticationException {
+        User user = this.getUser();
+        if (user.isTechnical() && !withTechnical) {
+            throw new AuthenticationException("Technical User not allowed");
+        }
+        return new AuthenticatedUser(user);
+    }
+
+    private User getUser() throws AuthenticationException {
         Authentication authentication = this.getAuthentication();
-        Jwt jwt = this.getJwt(authentication);
+        Object principal = Optional.ofNullable(authentication.getPrincipal())
+                .orElseThrow(() -> new AuthenticationException("Authentication has no principal"));
+
+        return switch (principal) {
+            case Jwt jwt -> this.getUserFromJwt(jwt);
+            case User user -> user;
+            default -> throw new AuthenticationException("Principal is not of type Jwt or ApiKeyAuthentication");
+        };
+    }
+
+    private User getUserFromJwt(Jwt jwt) throws AuthenticationException {
         Optional<String> emailClaim = Optional.ofNullable(jwt.getClaimAsString("email"));
         Optional<String> upnClaim = Optional.ofNullable(jwt.getClaimAsString("upn"));
         String email;
@@ -49,8 +70,7 @@ public class AuthenticationService {
         }
 
         try {
-            User user = this.userService.getActiveUserByEmail(email);
-            return new AuthenticatedUser(user);
+            return this.userService.getActiveUserByEmail(email);
         } catch (UserNotFoundException e) {
             throw new AuthenticationException("No active user found for email: " + email);
         }
@@ -66,14 +86,5 @@ public class AuthenticationService {
         return Optional.ofNullable(securityContext.getAuthentication())
                 .filter(Authentication::isAuthenticated)
                 .orElseThrow(() -> new AuthenticationException("Authentication has isAuthenticated set to false"));
-    }
-
-    private Jwt getJwt(Authentication authorization) throws AuthenticationException {
-        Object principal = Optional.ofNullable(authorization.getPrincipal())
-                .orElseThrow(() -> new AuthenticationException("Authentication has no principal"));
-        if (principal instanceof Jwt jwt) {
-            return jwt;
-        }
-        throw new AuthenticationException("Principal is not of type Jwt");
     }
 }

@@ -75,7 +75,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<User> createUser(@RequestBody @Valid UserCreationAndUpdateModel userCreationAndUpdateModel) throws AuthenticationException {
         try {
-            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
             UserCommand command = userWebMapper.toCommand(userCreationAndUpdateModel);
             User user = userService.createUser(authenticatedUser, command);
             return ResponseEntity.ok(user);
@@ -84,7 +84,7 @@ public class UserController {
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (UserAlreadyExistsException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT , e.getMessage());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
 

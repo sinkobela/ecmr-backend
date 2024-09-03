@@ -127,7 +127,7 @@ public class EcmrController {
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         try {
-            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser(true);
             this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser, groupIds);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -232,7 +232,7 @@ public class EcmrController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
-            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
             PdfFile ecmrReport = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
             return createPdfResponse(ecmrReport);
         } catch (AuthenticationException e) {

@@ -59,8 +59,8 @@ public class GroupController {
     @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     public ResponseEntity<List<Group>> getAllGroups(@RequestParam(defaultValue = "false") boolean currentUserGroupsOnly) throws AuthenticationException {
         List<Group> groups;
+        AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
         if (currentUserGroupsOnly) {
-            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             groups = this.groupService.getGroupsForUser(authenticatedUser);
         } else {
             groups = this.groupService.getAllGroups();

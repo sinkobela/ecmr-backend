@@ -13,16 +13,16 @@
     </changeSet>
     <changeSet id="initial-users" author="artur.blek@rhenus.com">
         <sql>
-            INSERT INTO ecmr_user (first_name, last_name, country, email, phone, role, default_group_id, deactivated)
-            VALUES ('Artur', 'Blek', 'DE', 'artur.blek@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Niklas', 'Nopper', 'DE', 'niklas.nopper@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Jonas', 'Kassan', 'DE', 'jonas.kassan@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Benedikt', 'Hilbert', 'DE', 'benedikt.hilbert@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Timo', 'Volkenrath', 'DE', 'timo.volkenrath@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Deniz', 'Baskale', 'DE', 'deniz.baskale@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Thomas', 'Dukvin', 'DE', 'thomas.dukvin@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Baris', 'Baskale', 'DE', 'baris.baskale@rhenus.com', '12345', 'Admin', 1, 0),
-                   ('Jan', 'Eissing', 'DE', 'jan.eissing@rhenus.com', '12345', 'Admin', 1, 0);
+            INSERT INTO ecmr_user (first_name, last_name, country, email, phone, role, default_group_id)
+            VALUES ('Artur', 'Blek', 'DE', 'artur.blek@rhenus.com', '12345', 'Admin', 1),
+                   ('Niklas', 'Nopper', 'DE', 'niklas.nopper@rhenus.com', '12345', 'Admin', 1),
+                   ('Jonas', 'Kassan', 'DE', 'jonas.kassan@rhenus.com', '12345', 'Admin', 1),
+                   ('Benedikt', 'Hilbert', 'DE', 'benedikt.hilbert@rhenus.com', '12345', 'Admin', 1),
+                   ('Timo', 'Volkenrath', 'DE', 'timo.volkenrath@rhenus.com', '12345', 'Admin', 1),
+                   ('Deniz', 'Baskale', 'DE', 'deniz.baskale@rhenus.com', '12345', 'Admin', 1),
+                   ('Thomas', 'Dukvin', 'DE', 'thomas.dukvin@rhenus.com', '12345', 'Admin', 1),
+                   ('Baris', 'Baskale', 'DE', 'baris.baskale@rhenus.com', '12345', 'Admin', 1),
+                   ('Jan', 'Eissing', 'DE', 'jan.eissing@rhenus.com', '12345', 'Admin', 1);
 
             INSERT INTO user_to_group
             SELECT u.id as user_id, 1 as group_id

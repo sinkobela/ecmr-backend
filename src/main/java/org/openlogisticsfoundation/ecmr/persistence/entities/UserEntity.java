@@ -8,6 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
 import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
 
@@ -48,5 +49,8 @@ public class UserEntity extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "default_group_id")
     private GroupEntity defaultGroup;
+    @ColumnDefault("false")
     private boolean deactivated = false;
+    @ColumnDefault("false")
+    private boolean technical = false;
 }

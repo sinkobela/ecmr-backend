@@ -7,12 +7,17 @@
  */
 package org.openlogisticsfoundation.ecmr.config;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.openlogisticsfoundation.ecmr.domain.models.ApiKeyAuthentication;
 import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
+import org.openlogisticsfoundation.ecmr.domain.services.ApiKeyAuthenticationService;
 import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -25,14 +30,22 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.filter.GenericFilterBean;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 
 @Configuration
@@ -43,6 +56,7 @@ import lombok.AllArgsConstructor;
 public class WebSecurityConfig {
 
     private UserRepository userRepository;
+    private final ApiKeyAuthenticationService apiKeyAuthenticationService;
 
     public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
     }
@@ -85,12 +99,30 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, Jwt2AuthenticationConverter authenticationConverter) throws Exception {
         http.oauth2ResourceServer(oauthConfig -> oauthConfig.jwt(jwtConfig -> jwtConfig.jwtAuthenticationConverter(authenticationConverter)));
+        http.addFilterBefore(new ApiKeyFilter(this.apiKeyAuthenticationService), UsernamePasswordAuthenticationFilter.class);
         http.cors(x -> {
         });
         http.csrf(AbstractHttpConfigurer::disable);
         http.anonymous(AbstractHttpConfigurer::disable);
         http.exceptionHandling(x -> x.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
         return http.build();
+    }
+
+    @AllArgsConstructor
+    static class ApiKeyFilter extends GenericFilterBean {
+        private final ApiKeyAuthenticationService apiKeyAuthenticationService;
+
+        @Override
+        public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException,
+                ServletException {
+            String apiKeyString = ((HttpServletRequest) servletRequest).getHeader("X-API-KEY");
+            if (StringUtils.isNoneBlank(apiKeyString)) {
+                UUID apiKey = UUID.fromString(apiKeyString);
+                Optional<ApiKeyAuthentication> apiKeyAuthentication = this.apiKeyAuthenticationService.getApiKeyAuthentication(apiKey);
+                SecurityContextHolder.getContext().setAuthentication(apiKeyAuthentication.orElse(null));
+            }
+            filterChain.doFilter(servletRequest, servletResponse);
+        }
     }
 
 }
