@@ -95,7 +95,7 @@ public class EcmrController {
     public ResponseEntity<EcmrPageModel> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
             @RequestParam(name = "page", defaultValue = "0", required = false) int page,
             @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-            @RequestParam(name = "sortBy", defaultValue = "referenceId", required = false) SortingField sortBy,
+            @RequestParam(name = "sortBy", defaultValue = "creationDate", required = false) SortingField sortBy,
             @RequestParam(name = "sortingOrder", defaultValue = "ASC", required = false) SortingOrder sortingOrder,
             @RequestBody FilterRequestModel filterRequestModel
     )
