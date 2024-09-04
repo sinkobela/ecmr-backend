@@ -42,6 +42,7 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
             + "AND (:carrierName is null or e.carrierInformation.nameCompany LIKE %:carrierName%)"
             + "AND (:carrierPostCode is null or e.carrierInformation.postcode LIKE %:carrierPostCode%)"
             + "AND (:consigneePostCode is null or e.consigneeInformation.postcode LIKE %:consigneePostCode%)"
+            + "AND (:lastEditor is null or e.editedBy LIKE %:lastEditor% )"
             + "AND (:ecmrTransportType is null OR "
             + "((:ecmrTransportType = 'National' AND e.senderInformation.countryCode = e.consigneeInformation.countryCode)"
             + "OR (:ecmrTransportType = 'International' AND e.senderInformation.countryCode != e.consigneeInformation.countryCode)))"
@@ -50,7 +51,7 @@ public interface EcmrRepository extends JpaRepository<EcmrEntity, Long> {
             @Param("referenceId") String referenceId, @Param("from") String from, @Param("to") String to,
             @Param("ecmrTransportType") String ecmrTransportType, @Param("ecmrStatus") EcmrStatus ecmrStatus,
             @Param("licensePlate") String licensePlate, @Param("carrierName") String carrierName, @Param("carrierPostCode") String carrierPostCode,
-            @Param("consigneePostCode") String consigneePostCode,
+            @Param("consigneePostCode") String consigneePostCode, @Param("lastEditor") String lastEditor,
             Pageable pageable);
 
     boolean existsByEcmrId(UUID ecmrId);

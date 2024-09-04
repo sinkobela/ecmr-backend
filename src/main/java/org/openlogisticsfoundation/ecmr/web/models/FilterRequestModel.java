@@ -25,4 +25,5 @@ public class FilterRequestModel {
     private String carrierName;
     private String carrierPostCode;
     private String consigneePostCode;
+    private String lastEditor;
 }

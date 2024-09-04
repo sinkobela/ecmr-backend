@@ -21,7 +21,9 @@ public enum SortingField {
     licensePlate("carrierInformation.carrierLicensePlate"),
     carrierName("carrierInformation.nameCompany"),
     carrierPostCode("carrierInformation.postcode"),
-    consigneePostCode("consigneeInformation.postcode");
-
+    consigneePostCode("consigneeInformation.postcode"),
+    lastEditor("editedBy"),
+    lastEditDate("editedAt"),
+    creationDate("createdAt");
     private final String entryFieldName;
 }

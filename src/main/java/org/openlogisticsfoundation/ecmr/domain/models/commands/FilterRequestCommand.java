@@ -25,4 +25,5 @@ public class FilterRequestCommand {
     private String carrierName;
     private String carrierPostCode;
     private String consigneePostCode;
+    private String lastEditor;
 }

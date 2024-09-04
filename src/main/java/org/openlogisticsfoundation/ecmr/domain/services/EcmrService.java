@@ -76,7 +76,8 @@ public class EcmrService {
                 filterRequestCommand.getReferenceId(), filterRequestCommand.getFrom(), filterRequestCommand.getTo(),
                 Optional.ofNullable(filterRequestCommand.getTransportType()).map(Enum::name).orElse(null),
                 filterRequestCommand.getStatus(), filterRequestCommand.getLicensePlate(), filterRequestCommand.getCarrierName(),
-                filterRequestCommand.getCarrierPostCode(), filterRequestCommand.getConsigneePostCode(), pageable);
+                filterRequestCommand.getCarrierPostCode(), filterRequestCommand.getConsigneePostCode(), filterRequestCommand.getLastEditor(),
+                pageable);
 
         return new EcmrPageModel(ecmrPage.getTotalPages(), ecmrPage.getTotalElements(), ecmrPage.get().map(ecmrPersistenceMapper::toModel).toList());
     }
