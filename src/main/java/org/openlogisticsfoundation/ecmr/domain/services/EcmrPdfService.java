@@ -7,8 +7,10 @@
  */
 package org.openlogisticsfoundation.ecmr.domain.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
@@ -28,6 +30,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -207,6 +210,11 @@ public class EcmrPdfService {
             parameters.put("consigneeSignature", renderableSignature);
         }
 
+        //National International Information Text
+        boolean isNational = isNationalTransport(ecmrModel);
+        parameters.put("DE_InternationalNationalTransport", getInformationText("DE", isNational));
+        parameters.put("EN_InternationalNationalTransport", getInformationText("EN", isNational));
+
         parameters.put("nonContractualCarrierRemarks",
                 ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
         parameters.put("referenceId", ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue());
@@ -219,6 +227,23 @@ public class EcmrPdfService {
         parameters.put("ecmrLogo", renderableWaterMark);
 
         return parameters;
+    }
+
+    private String getInformationText(String language, boolean isNational) throws IOException {
+        File file;
+        if (isNational) {
+            file = ResourceUtils.getFile("classpath:/texts/" + language + "_NationalTransport.txt");
+        } else {
+            file = ResourceUtils.getFile("classpath:/texts/" + language + "_InternationalTransport.txt");
+        }
+        return Files.readString(file.toPath());
+    }
+
+    private boolean isNationalTransport(EcmrModel ecmrModel) {
+        String senderCountry = ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue();
+        String consigneeCountry = ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue();
+
+        return senderCountry.equals(consigneeCountry);
     }
 
     private Renderable decodeImage(String base64Image) throws IOException {
