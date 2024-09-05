@@ -7,15 +7,17 @@
  */
 package org.openlogisticsfoundation.ecmr.domain.services;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
@@ -230,8 +232,9 @@ public class EcmrPdfService {
 
     private String getInformationText(String language, boolean isNational) throws IOException {
         String filePath = "reports/texts/" + language + (isNational ? "_NationalTransport.txt" : "_InternationalTransport.txt");
-        ClassPathResource resource = new ClassPathResource(filePath);
-        return Files.readString(resource.getFile().toPath());
+        InputStream resource = new ClassPathResource(filePath).getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource));
+        return reader.lines().collect(Collectors.joining());
     }
 
     private boolean isNationalTransport(EcmrModel ecmrModel) {
