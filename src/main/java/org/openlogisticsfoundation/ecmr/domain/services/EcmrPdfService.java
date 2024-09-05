@@ -78,7 +78,7 @@ public class EcmrPdfService {
             HashMap<String, Object> parameters = setEcmrParameters(ecmrModel);
             parameters.put("items", itemDataSource);
 
-            return new PdfFile("eCMR-" + ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber() + ".pdf",
+            return new PdfFile("eCMR-" + ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue() + ".pdf",
                     JasperRunManager.runReportToPdf(jasperReport, parameters, new JREmptyDataSource()));
         } catch (JRException e) {
             log.error(e);
