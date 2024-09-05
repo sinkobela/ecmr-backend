@@ -7,7 +7,6 @@
  */
 package org.openlogisticsfoundation.ecmr.domain.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -28,9 +27,9 @@ import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -230,18 +229,18 @@ public class EcmrPdfService {
     }
 
     private String getInformationText(String language, boolean isNational) throws IOException {
-        File file;
-        if (isNational) {
-            file = ResourceUtils.getFile("classpath:/texts/" + language + "_NationalTransport.txt");
-        } else {
-            file = ResourceUtils.getFile("classpath:/texts/" + language + "_InternationalTransport.txt");
-        }
-        return Files.readString(file.toPath());
+        String filePath = "reports/texts/" + language + (isNational ? "_NationalTransport.txt" : "_InternationalTransport.txt");
+        ClassPathResource resource = new ClassPathResource(filePath);
+        return Files.readString(resource.getFile().toPath());
     }
 
     private boolean isNationalTransport(EcmrModel ecmrModel) {
         String senderCountry = ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue();
         String consigneeCountry = ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue();
+
+        if (senderCountry == null || consigneeCountry == null) {
+            return false;
+        }
 
         return senderCountry.equals(consigneeCountry);
     }
