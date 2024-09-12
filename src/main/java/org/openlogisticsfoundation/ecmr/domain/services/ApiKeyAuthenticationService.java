@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiKeyAuthenticationService {
     private final ApiKeyRepository apiKeyRepository;
     private final UserPersistenceMapper userMapper;
+    private final RoleService roleService;
 
     public Optional<ApiKeyAuthentication> getApiKeyAuthentication(UUID apiKey) {
         Optional<ApiKeyEntity> apiKeyEntity = this.apiKeyRepository.findByValue(apiKey);
@@ -31,6 +32,7 @@ public class ApiKeyAuthenticationService {
                 return null;
             }
             return entity;
-        }).map(entity -> new ApiKeyAuthentication(entity.getValue(), entity.getDescription(), userMapper.toUser(entity.getUser())));
+        }).map(entity -> new ApiKeyAuthentication(entity.getValue(), entity.getDescription(), userMapper.toUser(entity.getUser()),
+                roleService.mapRolesToGrantedAuthorities(roleService.mapUserRoleToStrings(entity.getUser().getRole()))));
     }
 }

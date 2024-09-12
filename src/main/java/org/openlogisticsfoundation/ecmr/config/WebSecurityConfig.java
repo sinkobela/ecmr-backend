@@ -12,12 +12,11 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openlogisticsfoundation.ecmr.domain.models.ApiKeyAuthentication;
-import org.openlogisticsfoundation.ecmr.domain.models.UserRole;
 import org.openlogisticsfoundation.ecmr.domain.services.ApiKeyAuthenticationService;
+import org.openlogisticsfoundation.ecmr.domain.services.RoleService;
 import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -57,6 +56,7 @@ public class WebSecurityConfig {
 
     private UserRepository userRepository;
     private final ApiKeyAuthenticationService apiKeyAuthenticationService;
+    private final RoleService roleService;
 
     public interface Jwt2AuthoritiesConverter extends Converter<Jwt, Collection<? extends GrantedAuthority>> {
     }
@@ -66,10 +66,7 @@ public class WebSecurityConfig {
 
     @Bean
     public Jwt2AuthoritiesConverter authoritiesConverter() {
-        return jwt -> getRoles(jwt).stream()
-                .map(role -> "ROLE_" + role).collect(Collectors.toSet())
-                .stream()
-                .map(SimpleGrantedAuthority::new).toList();
+        return jwt -> this.roleService.mapRolesToGrantedAuthorities(getRoles(jwt));
     }
 
     private Set<String> getRoles(Jwt jwt) {
@@ -78,12 +75,7 @@ public class WebSecurityConfig {
             return Set.of();
         }
         Optional<UserEntity> userOpt = userRepository.findByEmailAndDeactivatedFalse(emailOpt.get());
-        return userOpt.map(userEntity -> this.mapRoles(userEntity.getRole())).orElseGet(Set::of);
-    }
-
-    private Set<String> mapRoles(UserRole userRole) {
-        return (userRole == UserRole.Admin) ? Set.of(UserRole.Admin.name(), UserRole.User.name()) : Set.of(UserRole.User.name());
-
+        return userOpt.map(userEntity -> this.roleService.mapUserRoleToStrings(userEntity.getRole())).orElseGet(Set::of);
     }
 
     @Bean

@@ -10,6 +10,7 @@ package org.openlogisticsfoundation.ecmr.domain.models;
 import java.util.List;
 import java.util.UUID;
 
+import org.openlogisticsfoundation.ecmr.config.SimpleGrantedAuthority;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 import lombok.Getter;
@@ -20,8 +21,8 @@ public class ApiKeyAuthentication extends AbstractAuthenticationToken {
     private final String apiKeyDescription;
     private final User user;
 
-    public ApiKeyAuthentication(UUID apiKey, String apiKeyDescription, User user) {
-        super(List.of());
+    public ApiKeyAuthentication(UUID apiKey, String apiKeyDescription, User user, List<SimpleGrantedAuthority> roles) {
+        super(roles);
         this.apiKey = apiKey;
         this.apiKeyDescription = apiKeyDescription;
         this.user = user;
