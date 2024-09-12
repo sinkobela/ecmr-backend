@@ -51,6 +51,8 @@ cache:
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 
 # Run unit tests and generate reports
 test:
@@ -74,10 +76,10 @@ test:
   rules:
     # Make this job available in branch pipelines (variable CI_COMMIT_BRANCH exists) and merge request pipelines (variable CI_MERGE_REQUEST_IID exists)
     # Job is not allowed to fail in MRs
-    - if: $CI_COMMIT_BRANCH
-      allow_failure: true
-    - if: $CI_MERGE_REQUEST_IID
-      allow_failure: false
+    # - if: $CI_COMMIT_BRANCH
+    #  allow_failure: true
+    # - if: $CI_MERGE_REQUEST_IID
+    #  allow_failure: false
 
 coverage:
   # Must be in a stage later than test stage.
@@ -129,7 +131,7 @@ third-party-license-check:
     when: on_failure
   rules:
     # License check must succeed in main and MRs
-    - if: ($CI_COMMIT_BRANCH == "main") || $CI_MERGE_REQUEST_IID
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_IID
       allow_failure: true
     # "Default clause" meaning: in all other cases
     - when: on_success
@@ -149,33 +151,32 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-
-# docker-build-ecmr-backend:
-#  tags:
-#    - ecmr
-#  variables:
-#    IMAGE_TAG: $CI_REGISTRY_IMAGE
-#  stage: archive
-#  cache: {}
-#  image: docker:24.0.5
-#  services:
-#    - name: 'docker:24.0.5-dind'
-#      command: ['--host=0.0.0.0:2375']
-#  before_script:
-#  - echo "CI_REGISTRY=$CI_REGISTRY"
-#  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#  - docker info
-#  - rm -rf ~/.docker/manifests || true
-#  script:
-#  - echo "DOCKER_HOST=$DOCKER_HOST"
-#  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
-#  - echo "$IMAGE_TAG={$IMAGE_TAG}"
-#  - cd ecmr-backend/
-#  - docker pull $IMAGE_TAG:latest || true
-#  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest .
-#  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#  - docker push $IMAGE_TAG:latest
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == "main"
-#      changes:
-#      - ecmr-backend/**/*
+docker-build-ecmr-backend:
+  tags:
+    - ecmr
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE
+  stage: archive
+  cache: {}
+  image: docker:dind
+  services:
+  - name: docker:dind
+    command: ['--host=0.0.0.0:2375']
+    alias: docker  
+  before_script:
+  - echo "CI_REGISTRY=$CI_REGISTRY"
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker info
+  - rm -rf ~/.docker/manifests || true
+  script:
+  - echo "DOCKER_HOST=$DOCKER_HOST"
+  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+  - echo "$IMAGE_TAG={$IMAGE_TAG}"
+  - docker pull $IMAGE_TAG:latest || true
+  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest -f Dockerfile-for-compose .
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker push $IMAGE_TAG:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+      - ecmr-backend/**/*
