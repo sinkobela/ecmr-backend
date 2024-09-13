@@ -132,7 +132,7 @@ third-party-license-check:
   rules:
     # License check must succeed in main and MRs
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_IID
-      allow_failure: true
+      allow_failure: false
     # "Default clause" meaning: in all other cases
     - when: on_success
       allow_failure: true
@@ -162,7 +162,7 @@ docker-build-ecmr-backend:
   services:
   - name: docker:dind
     command: ['--host=0.0.0.0:2375']
-    alias: docker  
+    alias: docker
   before_script:
   - echo "CI_REGISTRY=$CI_REGISTRY"
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
