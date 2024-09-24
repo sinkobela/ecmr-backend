@@ -124,7 +124,7 @@ public class EcmrController {
 
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrModel> createEcmr(@RequestBody EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
+    public ResponseEntity<EcmrModel> createEcmr(@RequestBody @Valid EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser(true);
@@ -248,7 +248,7 @@ public class EcmrController {
 
     @PutMapping()
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EcmrModel> updateEcmr(@RequestBody EcmrModel ecmrModel) {
+    public ResponseEntity<EcmrModel> updateEcmr(@RequestBody @Valid EcmrModel ecmrModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
             UUID ecmrId = UUID.fromString(ecmrModel.getEcmrId());
