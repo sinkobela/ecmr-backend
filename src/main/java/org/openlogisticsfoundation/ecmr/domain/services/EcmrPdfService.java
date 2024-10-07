@@ -222,10 +222,12 @@ public class EcmrPdfService {
         parameters.put("ecmrId", ecmrModel.getEcmrId());
 
         //eCmr Logo
-        InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();
-        byte[] waterMarkBytes = imageStream.readAllBytes();
-        Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
-        parameters.put("ecmrLogo", renderableWaterMark);
+        if (!isNational) {
+            InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();
+            byte[] waterMarkBytes = imageStream.readAllBytes();
+            Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
+            parameters.put("ecmrLogo", renderableWaterMark);
+        }
 
         return parameters;
     }
