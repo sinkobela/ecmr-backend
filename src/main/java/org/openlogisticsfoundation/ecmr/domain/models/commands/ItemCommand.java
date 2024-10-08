@@ -32,7 +32,7 @@ public class ItemCommand {
     private Integer supplyChainConsignmentItemGrossWeight;
     @Min(1)
     @Max(9_999)
-    private float supplyChainConsignmentItemGrossVolume;
+    private Integer supplyChainConsignmentItemGrossVolume;
 
     @Override
     public String toString() {

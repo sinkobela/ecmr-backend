@@ -21,5 +21,5 @@ class ItemBean {
     private String logisticsPackageType;
     private String transportCargoIdentification;
     private Integer supplyChainConsignmentItemGrossWeight;
-    private Float supplyChainConsignmentItemGrossVolume;
+    private Integer supplyChainConsignmentItemGrossVolume;
 }
