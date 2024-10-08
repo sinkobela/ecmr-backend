@@ -1,5 +1,5 @@
 
-Lists of 156 third-party dependencies.
+Lists of 158 third-party dependencies.
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Classic Module (ch.qos.logback:logback-classic:1.4.14 - http://logback.qos.ch/logback-classic)
      (Eclipse Public License - v 1.0) (GNU Lesser General Public License) Logback Core Module (ch.qos.logback:logback-core:1.4.14 - http://logback.qos.ch/logback-core)
      (Apache License, Version 2.0) ClassMate (com.fasterxml:classmate:1.6.0 - https://github.com/FasterXML/java-classmate)
@@ -29,6 +29,8 @@ Lists of 156 third-party dependencies.
      (Apache License, Version 2.0) Apache Commons Collections (commons-collections:commons-collections:3.2.2 - http://commons.apache.org/collections/)
      (The Apache Software License, Version 2.0) Commons Digester (commons-digester:commons-digester:2.1 - http://commons.apache.org/digester/)
      (The Apache Software License, Version 2.0) Commons Logging (commons-logging:commons-logging:1.1.1 - http://commons.apache.org/logging)
+     (MIT License) hypersistence-tsid (io.hypersistence:hypersistence-tsid:2.1.1 - https://github.com/vladmihalcea/hypersistence-tsid)
+     (The Apache Software License, Version 2.0) hypersistence-utils-hibernate-63 (io.hypersistence:hypersistence-utils-hibernate-63:3.8.2 - https://github.com/vladmihalcea/hypersistence-utils/hypersistence-utils-hibernate-63)
      (The Apache Software License, Version 2.0) micrometer-commons (io.micrometer:micrometer-commons:1.12.4 - https://github.com/micrometer-metrics/micrometer)
      (The Apache Software License, Version 2.0) micrometer-core (io.micrometer:micrometer-core:1.12.4 - https://github.com/micrometer-metrics/micrometer)
      (The Apache Software License, Version 2.0) micrometer-jakarta9 (io.micrometer:micrometer-jakarta9:1.12.4 - https://github.com/micrometer-metrics/micrometer)

@@ -5,4 +5,5 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <include file="db/init.xml"/>
     <include file="db/init-data.xml"/>
+    <include file="db/init-sealed-documents.xml"/>
 </databaseChangeLog>
