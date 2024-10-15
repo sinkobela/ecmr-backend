@@ -7,6 +7,7 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
+import jakarta.persistence.Column;
 import org.openlogisticsfoundation.ecmr.api.model.areas.seventeen.PayerType;
 
 import jakarta.persistence.Entity;
@@ -23,6 +24,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomChargeEntity extends BaseEntity {
+    @Column(name = "charge_value")
     private Float value;
     private String currency;
     private PayerType payer;

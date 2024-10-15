@@ -1,0 +1,16 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+    objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet author="lisa.gebel" id="1725362715659-77">
+        <renameColumn
+                      columnDataType="FLOAT"
+                      newColumnName="charge_value"
+                      oldColumnName="value"
+                      tableName="custom_charge"/>
+    </changeSet>
+
+</databaseChangeLog>
