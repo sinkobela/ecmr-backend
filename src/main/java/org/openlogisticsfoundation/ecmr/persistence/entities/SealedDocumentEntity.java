@@ -7,14 +7,12 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
@@ -35,8 +33,7 @@ public class SealedDocumentEntity {
     private Instant last_updated;
     @Version
     private Integer version;
-    @Type(JsonType.class)
-    @Column(columnDefinition = "json")
+    @Lob
     private String sealedEcmr;
 }
 

@@ -8,7 +8,7 @@
 
 
     <changeSet id="1725362715659-76" author="lisa.gebel">
-        <createTable tableName="SEALED_DOCUMENT">
+        <createTable tableName="sealed_document">
             <column autoIncrement="true" name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_sealed_document"/>
             </column>
@@ -19,7 +19,7 @@
             <column name="version" type="INTEGER">
                 <constraints nullable="false"/>
             </column>
-            <column name="sealed_ecmr" type="JSON">
+            <column name="sealed_ecmr" type="CLOB">
                 <constraints nullable="false"/>
             </column>
         </createTable>
