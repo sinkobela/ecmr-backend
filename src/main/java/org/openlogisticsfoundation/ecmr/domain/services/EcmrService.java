@@ -16,6 +16,7 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -23,9 +24,11 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestCommand;
+import org.openlogisticsfoundation.ecmr.domain.services.statuschange.EcmrStatusChangedService;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
@@ -51,6 +54,8 @@ public class EcmrService {
     private final GroupService groupService;
     private final AuthorisationService authorisationService;
     private final HistoryLogRepository historyLogRepository;
+    private final EcmrStatusChangedService ecmrStatusChangedService;
+    private final EcmrPdfService ecmrPdfService;
 
     public EcmrModel getEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, NoPermissionException {
         if (authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
@@ -104,6 +109,7 @@ public class EcmrService {
     }
 
     public EcmrEntity setEcmrStatus(EcmrEntity ecmrEntity) {
+        EcmrStatus initialState = ecmrEntity.getEcmrStatus();
         ecmrEntity.setEcmrStatus(EcmrStatus.NEW);
         if (ecmrEntity.getSenderInformation().getSignature() != null) {
             ecmrEntity.setEcmrStatus(EcmrStatus.LOADING);
@@ -114,7 +120,9 @@ public class EcmrService {
         if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
             ecmrEntity.setEcmrStatus(EcmrStatus.ARRIVED_AT_DESTINATION);
         }
-        return ecmrRepository.save(ecmrEntity);
+        ecmrEntity = ecmrRepository.save(ecmrEntity);
+        ecmrStatusChangedService.ecmrStatusChanged(initialState, ecmrEntity);
+        return ecmrEntity;
     }
 
     public List<EcmrRole> getCurrentEcmrRoles(@Valid @NotNull UUID ecmrId, @Valid @NotNull InternalOrExternalUser internalOrExternalUser)
@@ -123,5 +131,20 @@ public class EcmrService {
             throw new EcmrNotFoundException(ecmrId);
         }
         return authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
+    }
+
+    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+        EcmrModel ecmrModel = this.getEcmr(id, internalOrExternalUser);
+        return this.ecmrPdfService.createJasperReportForEcmr(ecmrModel);
+    }
+
+    public PdfFile createJasperReportForEcmr(UUID id, String shareToken)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+        EcmrEntity ecmrEntity = this.getEcmrEntity(id);
+        if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
+            throw new NoPermissionException("Share Token mandatory");
+        }
+        return this.ecmrPdfService.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
     }
 }

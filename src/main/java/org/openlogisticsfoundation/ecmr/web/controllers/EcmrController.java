@@ -33,7 +33,6 @@ import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
-import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
@@ -74,7 +73,6 @@ public class EcmrController {
     private final EcmrService ecmrService;
     private final EcmrUpdateService ecmrUpdateService;
     private final EcmrCreationService ecmrCreationService;
-    private final EcmrPdfService ecmrPdfService;
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
     private final EcmrShareService ecmrShareService;
@@ -233,7 +231,7 @@ public class EcmrController {
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
-            PdfFile ecmrReport = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
             return createPdfResponse(ecmrReport);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());

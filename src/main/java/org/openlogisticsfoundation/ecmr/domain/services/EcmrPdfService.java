@@ -16,19 +16,13 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
-import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -49,26 +43,9 @@ import net.sf.jasperreports.renderers.SimpleDataRenderer;
 @Log4j2
 public class EcmrPdfService {
 
-    private final EcmrService ecmrService;
     private final ResourceLoader resourceLoader;
-    private final EcmrPersistenceMapper ecmrPersistenceMapper;
 
-    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
-            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
-        EcmrModel ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
-        return this.createJasperReportForEcmr(ecmrModel);
-    }
-
-    public PdfFile createJasperReportForEcmr(UUID id, String shareToken)
-            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
-        EcmrEntity ecmrEntity = this.ecmrService.getEcmrEntity(id);
-        if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
-            throw new NoPermissionException("Share Token mandatory");
-        }
-        return this.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
-    }
-
-    private PdfFile createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
+    public PdfFile createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);

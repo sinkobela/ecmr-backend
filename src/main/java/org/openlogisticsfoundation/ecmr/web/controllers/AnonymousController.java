@@ -31,7 +31,6 @@ import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
-import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
@@ -74,7 +73,6 @@ public class AnonymousController {
     private final EcmrWebMapper ecmrWebMapper;
     private final EcmrUpdateService ecmrUpdateService;
     private final EcmrSignService ecmrSignService;
-    private final EcmrPdfService ecmrPdfService;
 
     @GetMapping("/is-tan-valid")
     public ResponseEntity<Boolean> isTanValid(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId,
@@ -193,7 +191,7 @@ public class AnonymousController {
             @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
             ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
-            PdfFile ecmrReport = this.ecmrPdfService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser));
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser));
             return createPdfResponse(ecmrReport);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
@@ -210,7 +208,7 @@ public class AnonymousController {
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFileShare(@PathVariable("ecmrId") UUID id,
             @RequestParam @Valid @NotNull String shareToken) {
         try {
-            PdfFile ecmrReport = this.ecmrPdfService.createJasperReportForEcmr(id, shareToken);
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, shareToken);
             return createPdfResponse(ecmrReport);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
