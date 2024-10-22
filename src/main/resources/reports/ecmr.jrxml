@@ -36,7 +36,7 @@
 		<field name="logisticsPackageType" class="java.lang.String"/>
 		<field name="transportCargoIdentification" class="java.lang.String"/>
 		<field name="supplyChainConsignmentItemGrossWeight" class="java.lang.Integer"/>
-		<field name="supplyChainConsignmentItemGrossVolume" class="java.lang.Float"/>
+		<field name="supplyChainConsignmentItemGrossVolume" class="java.lang.Integer"/>
 	</subDataset>
 	<parameter name="senderNameCompany" class="java.lang.String"/>
 	<parameter name="senderNamePerson" class="java.lang.String"/>
