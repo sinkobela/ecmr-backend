@@ -1,0 +1,9 @@
+[[section-tutorial]]
+
+== Tutorial
+
+There is a tutorial to show how to setup, start and use the ecmr backend.
+
+== Database setup
+
+Create your own user. Please be careful and use a valid email address.

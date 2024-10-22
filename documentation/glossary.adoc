@@ -1,0 +1,31 @@
+[[section-glossary]]
+== Glossary for the eCMR
+
+Contents
+
+We define the project-specific terms for the eCMR, and additionally refer to the global Glossary of the Silicon Economy.
+
+The project uses the eCMR terminology as described in the UN/CEFACT standard.
+Therefore, the defined words in this standard are listed here:
+
+Source: UN/CEFACT, document "Business Requirements Specification eCMR", Chapter 6.2 "Definitions Business Terms" (https://unece.org/trade/uncefact/mainstandards[Link])
+
+|===
+| Transport Service Contract                               | Definition
+
+| Transport Services Buyer (Sender/Consignor or Consignee) | The buyer of transport services.
+| Transport Services Provider (Carrier)                    | The provider of transport services.
+| Sender/Consignor                                         | The party consigning goods as stipulated in a contract of carriage by road (eCMR) and referred as Sender in the CMR Convention
+| Consignee                                                | The party receiving a consignment of goods as stipulated in a contract of carriage by road (eCMR).
+| Carrier / subsequent carrier                             | The party which provides transport services as stipulated in a contract of carriage by road (eCMR).
+| Dispatch place                                           | The party where goods are collected or taken over by the carrier. Operational term is ‘Pick-up Place’ or ‘Ship-from’.
+| Delivery Party                                           | The party to which goods should be delivered by the carrier. Operational term is ‘Place of Positioning’ or ‘Ship to’.
+| Contract of carriage by road (eCMR)                     | Means a contract in which a transport company, against the payment of freight, undertakes to carry goods from one place to another. In the CMR Convention, a contract of carriage is confirmed by the making out of a consignment note.
+| Consignment                                              | A consignment is a separately identifiable collection of Consignment Items (available to be) transported from one Consignor to one Consignee as specified in one single transport contract (eCMR).
+| Consignment Item                                         | A separately identifiable quantity of products grouped together by Customs tariff code or packaging for transport purposes. A Consignment Item is the lowest level of information within a Consignment. In the case of cross-border consignments each Consignment Item must have only one associated Customs tariff code in order to satisfy Customs requirements
+| TDED | Trade Data Elements Directory
+The United Nations Trade Data Element Directory (UNTDED, ISO 7372) is developed and published by UN/CEFACT. The directory consists of a four-digit number to identify each data element, a data element name, and a description that provides a definition of the data element. It provides an internationally accepted standard repository for the semantic of trade data elements used in international trade.
+
+UNTDED2005 ISO 7372 (https://unece.org/DAM/trade/untdid/UNTDED2005.pdf[link])
+
+|===

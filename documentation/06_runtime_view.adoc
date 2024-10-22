@@ -1,0 +1,40 @@
+[[section-runtime-view]]
+== Runtime View
+
+In contrast to the static building block view, this section visualizes dynamic aspects of an XXX.
+The runtime view describes concrete behavior and interactions of the system’s building blocks across the architecture, i.e., how instances of building blocks of an XXX perform their job and communicate at runtime.
+Important usage scenarios with architectural relevance are e.g. interactions at critical external interfaces, operation and administration (launch, start-up, stop), and error and exception scenarios.
+
+=== General Component Communication
+
+All inter component communication in the XXX relies on passing JSON messages via REST or via accessing a Postgres database.
+
+To achieve a common understanding of all XXX components, specific communication schemes must be adhered to so that:
+
+This common communication scheme is a key motivation for the SDK which is intended to be the canonical implementation of high level access functions which enforce those.
+
+A description of key elements of this communication scheme is described in the following chapters.
+
+==== API
+
+Give some description regarding technologie, protocol etc.
+Add a link to data model.
+Add a  here to Swagger file
+
+==== Database schemes and definitions
+
+=== Use Case 1
+This use case shows how ecmr backend is used in its default way.
+
+[Note]
+====
+This process is currently being worked on and will undergo major changes.
+====
+
+The following communication steps are executed
+when the application starts and the PlatformGateConfiguration is set for the platform.
+The PlatformGateConfigurationService checks whether the PlatformGateConfiguration has been set.
+If not, the platform is registered to an eFTI-Gate. This use case also shows how the
+application accesses PlatformGateConfiguration data at a later time.
+
+[plantuml]

@@ -1,0 +1,161 @@
+[[section-concepts]]
+== Cross-cutting Concepts
+
+Concepts form the basis for conceptual integrity (consistency, homogeneity) of the architecture.
+Thus, they are an important contribution to achieve inner qualities.
+This section describes general structures and system-wide cross-cutting aspects.
+It also presents various technical solutions.
+
+=== Design Patterns
+
+The XXX uses different design patterns.
+
+==== Micro Services
+
+A microservice architecture is a variant of a service-oriented architecture (SOA).
+The target system is composed of a set of fine-granular services ("micros") that allow for easy, independent distribution, as well as independent changes and extensions.
+Each microservice has a high degree of autonomy and isolation, and can be developed autonomously and deployed in its own container (as an implementation of the Application Container architecture pattern).
+Each microservice can be located in a different place and implemented using a different technology; they communicate with each other using lightweight protocols (fast, data-efficient protocols such as REST ).
+
+The goals of this architecture are reuse, high cohesion, low coupling, separation of concerns, single responsibility, and information hiding.
+Its advantages are modularity and maintainability, as well as faster adaptation to changing requirements (scaling).
+
+==== Event-Driven Communication
+
+Software components are loosely coupled via known interfaces.
+In a purely event-oriented system, this knowledge is no longer necessary, since events can simply be triggered and assigned to recipients via certain criteria (e.g., topics).
+This enables asynchronous or event-based communication, where the sending and receiving of data is staggered and without blocking the process, e.g. by waiting for the recipient to respond.
+This creates greater temporal and spatial flexibility, but also risks.
+Events can be triggered both from outside the system, e.g. by user input or by sensor values, and internally by the system itself.
+There are several implementations of this architectural pattern.
+In the Silicon Economy architecture, MQTT and AMQP are used.
+
+==== Application Container
+
+In the Silicon Economy, a microservice is always delivered and executed in exactly one application container.
+Containers contain not only the application or microservice itself, but also all the required dependencies.
+These include, for example, runtime environments and system libraries.
+In contrast to virtual environments or virtual machines (VM), containers use core functionalities of the underlying operating system and are thus more lightweight in comparison.
+Via the so-called container engine (podman in the Silicon Economy), the individual applications in the containers share the functionalities of the operating system of the underlying computer.
+This serves as an abstraction layer between the virtual environments and the actual hardware and allows dedicated resources, such as CPU cores and memory, to be distributed to the virtual machines.
+If an application does not need all the resources allocated to the virtual machine, they will not be available in other applications on the same machine or server.
+Between containers, such resources are shared, leading to better hardware utilization.
+
+==== Application Container Orchestration
+
+The concept of the XXX and scaling in particular is based on Kubernetes for monitoring and controlling container instances.
+See Section 8.1.6 for more information.
+
+The Kubernetes Cluster is a Application Container Orchestration solutions for containers, also has additional functions.
+While a container engine is only ever executed on one target system (host), for example on exactly one server or one computer, orchestration can be used to combine several hosts into a cluster and manage them centrally.
+There are one or more masters that only manage the cluster and its resources, while the actual containers are executed on the nodes.
+The cluster improves the possibility of making the necessary resources available to the individual containers.
+If a container requires more resources than are available on the current node, the container can be transferred to another node with correspondingly available resources and executed there.
+During the runtime of the cluster, new nodes can be integrated and thus the available resources can be increased.
+Other nodes can be removed from the cluster.
+Furthermore, containers can not only be managed, but also scaled.
+This means that several instances of the same container can be started and stopped again as needed (e.g. heavy resource use).
+If there are requirements for high availability, containers can also be run redundantly and on different nodes.
+This improves the reliability of the actual application.
+The individual nodes can be executed on different IT systems and at different locations.
+Only direct access of the master to the nodes is necessary.
+
+In summary, container orchestration performs the following tasks:
+
+. management of resources, such as memory.
+. management of nodes on which individual containers are executed
+. allocation of resources, such as memory and network
+. scaling containers based on redundancy requirements
+. monitoring containers for functionality and resource usage.
+
+==== Internal Communication
+
+All components of an XXX follow the microservices architecture and are executed in application containers.
+Communication between the components is event-based via the central XXX component.
+There is no direct communication between individual components.
+This is also called loose coupling.
+
+==== Scaling of Components
+
+In Silicon Economy, microservices running in containers and are managed by a Kubernetes cluster.
+This enables the XXX to scale individual components.
+Scaling is used to respond to component workloads: If a component is heavily utilized, another instance is started and stopped again after the utilization has decreased.
+The basis for it is the evaluation of the resources use of a component.
+For this purpose, the CPU and RAM utilization as well as the number of packets sent/received to/from the network interface of a component are evaluated to control scaling.
+
+=== Domain Model
+
+==== XXX Domain Model
+
+The XXX needs the following information from....
+
+[cols="4",options="header"]
+|===
+|Information
+|Example data
+|Optional / Mandatory
+|Comment
+
+|name
+|TODO
+|mandatory
+|TODO
+
+|Column 1, row 2
+|Column 2, row 2
+|Column 3, row 2
+|Column 4, row 2
+|===
+
+===== ...
+
+The ... TODO
+
+TODO UML-Diagram
+
+[cols="2",options="header"]
+|===
+|Class
+|Description
+
+|Column 1, row 1
+|Column 2, row 1
+
+|Column 1, row 2
+|Column 2, row 2
+
+|Column 1, row 3
+|Column 2, row 3
+|===
+
+=== Cross-cutting Solutions
+
+The following solutions are applied in all components of the XXX.
+
+==== Error Handling
+
+According to the requirements, Errors should be caught and logged in the platform's backend using the PlatformServiceLogger component. The handling of all Exceptions is being done by the GlobalExceptionHandler component. After logging the occured error, the backend should continue running, if possible.
+
+Unhandled Runtime errors or errors not being able to be handled within the eFTI backend should, wherever possible, lead to an immediate crash of the respective component whenever the error can not be resolved in a timely fashion by the component itself.
+This leads to the Kubernetes platform to, with a small delay, create a new instance of the component.
+Since all XXX components are designed to be scalable and, unless otherwise configured, deployed redundantly by default, this should in practice avoid any service downtime due to runtime errors.
+
+Other types of errors, especially those related to malformed data or communication protocols, are expected to be reported to the communication partner via the defined interfaces.
+Communication problems within the XXX must be considered runtime errors and lead to an application crash so that Kubernetes may recreate the service state by spawning a new instance.
+Otherwise crashing machines, lost network connectivity and similar classes of errors can not be meaningfully dealt with.
+
+==== Logging
+
+Logging in a Micro Services architecture is a well-known problem.
+Possible solutions are discussed in the paper Security Audit Logging In Microservice-Based Systems: Survey Of Architecture Patterns.
+
+The XXX plans to utilize a central user-application monitoring and logging solution provided by the Kubernetes-Cluster in the future.
+However, no such facility is provided yet.
+
+The platform service logs can be obtained by using the service logger endpoint.
+
+==== Testability
+
+Standard unit testing, which examine the individual classes, are named as the class itself with suffix Test.
+In addition, there are tests that examine the interaction of modules, and in extreme cases the whole system.
+The standard SE testing guidelines apply.

@@ -1,0 +1,21 @@
+[[section-deployment-view]]
+== Deployment View
+
+Software does not run without hardware.
+This view describes the deployment of XXX.
+It describes the technical infrastructure used to execute XXX, with infrastructure elements like clouds, computing nodes, and net topologies as well as other infrastructure elements and the mapping/installation of compiled software building block instances to that infrastructure elements.
+
+=== General Deployment Decisions
+
+This sections describes the ecmr backend and all components (frontend,
+database, user management, other ecmr instances) it
+is connected
+to.
+
+*eCMR components*
+
+=== Deployment of the XXX
+
+==== Component 1
+
+==== Component 2

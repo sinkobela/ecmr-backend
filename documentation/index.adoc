@@ -1,0 +1,101 @@
+= eCMR backend
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectnumlevels: 5
+:icons: font
+:copyright: Open Logistics Foundation
+
+[[section-preface]]
+== Preface
+
+=== Motivation
+
+This documentation describes an implementation of digital convention relative au contrat de transport international de marchandises par route (eCMR) and focuses on the backend application including an api / interfaces.
+This document is written to be published under the Open Logistics Foundation License 1.3 (OLFL-1.3).
+
+=== Scope
+
+The ecmr backend is the core component of the ecmr service and is intended to be used for the exchange and processing of eCMRs. An important part of the project is
+the ecmr service api for the communication with the service as well as for the
+interaction between several ecmr service instances.
+
+=== Documentation Approach
+
+The documentation of the individual projects is in English and is based on
+the link:https://docs.arc42.org/home/[arc42 template] using the AsciiDoc plan
+text markup language.
+
+https://docs.gitlab.com/ee/user/asciidoc.html[GitLab Asciidoc] gives an overview of how to use asciidoc in a GitLab project.
+
+=== Main Authors
+
+[cols="1e,2e",options="header"]
+|===
+|Name
+|E-Mail
+
+|Björn Krämer | <bjoern.kraemer@iml.fraunhofer.de>
+|Niklas Burczyk | <niklas.burczyk@iml.fraunhofer.de>
+|Lisa Gebel| <lisa.gebel@iml.fraunhofer.de>
+|Jens Leveling  |<Jens.Leveling@iml.fraunhofer.de>
+|Marcus Schröer| <Marcus.Schroeer@iml.fraunhofer.de>
+
+|===
+
+For a complete list of authors and the document history see the GitLab history being provided automatically.
+
+// Enable section numbering from here on
+:sectnums:
+
+<<<
+// 1. Introduction and Goals
+include::01_introduction_and_goals.adoc[]
+
+<<<
+// 2. Architecture Constraints
+include::02_architecture_constraints.adoc[]
+
+<<<
+// 3. System Scope and Context
+include::03_system_scope_and_context.adoc[]
+
+<<<
+// 4. Solution Strategy
+include::04_solution_strategy.adoc[]
+
+<<<
+// 5. Building Block View
+include::05_building_block_view.adoc[]
+
+<<<
+// 6. Runtime View
+include::06_runtime_view.adoc[]
+
+<<<
+// 7. Deployment View
+include::07_deployment_view.adoc[]
+
+<<<
+// 8. Concepts
+include::08_concepts.adoc[]
+
+<<<
+// 9. Design Decisions
+include::09_design_decisions.adoc[]
+
+<<<
+// 10. Quality Scenarios
+include::10_quality_scenarios.adoc[]
+
+<<<
+// 11. Technical Risks
+include::11_technical_risks.adoc[]
+
+<<<
+// 12. Tutorial
+include::12_tutorial.adoc[]
+
+<<<
+// Glossary
+include::glossary.adoc[]

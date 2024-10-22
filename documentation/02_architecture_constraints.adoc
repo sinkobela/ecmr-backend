@@ -1,0 +1,82 @@
+[[section-constraints]]
+== Architecture Constraints
+
+Various constraints are respected for the design of a *eCMR*.
+They all affect the solution.
+We list these restrictions and explain their motivations.
+Some of the constraints go beyond individual *eCMR* and are valid for whole the platform or organization.
+
+=== Technical Constraints
+
+The following technical constraints apply:
+
+.Technical constraints
+[cols="0h,3,5"]
+|===
+| Id   | Constraint                                            | Value/Description
+
+| BSD3 | Basic Stack for Development: programming langues      | Programming Languages: Java
+| BSD5 | Basic Stack for Development: other                    | All other technologies must be compatible with OKD/Kubernetes
+| BC1  | Continuous Integration Pipeline constraints           | Integrated with the GitLab CI Runner
+| BC2  | Project License                                       | Developed under an open-source license [Open Logistics Foundation License 1.3]
+| BC3  | Requirements at libraries                             | Only libraries under a Copy-Left free Open Source License can be used. Accepted open source licenses are, among others, *Apache License 2.0, MIT License, BSD License*
+| BC4  | Libraries constraints                                 | Frameworks & libraries under an open-source license (such as GPL, LGPL) are restricted by the use of the open source license [Open Logistics Foundation License 1.3]
+|===
+
+=== Organizational Constraints
+
+The following organizational constraints apply:
+
+.Organizational constraints
+[cols="0h,0h,"]
+|===
+| Id | Constraint | Background and / or Motivation
+
+| O1 | Schedule   | Milestones:
+
+04/2021 completion of Version 0.1 for eCMR
+
+| O2 | Parts         |
+| O3 | Process model | Development, agile/Scrum. To describe the architecture arc42 is used.
+| O4 | Development tools |
+
+Java source code created in IntelliJ.
+| O5 | Configuration management      | Git at GitLab hosted by Open Logistics Foundation
+| O6 | Test tools and test processes | Unit testing as part of a CI/CD Pipeline (stage test)
+
+Java based components: SpringBootTest
+
+| O7 | Other tools | Maven 3.8.6 for Build Management
+
+Spring Boot 3.2.4 as Application Framework (Java)
+
+Java 17
+
+|===
+
+=== Political Constraints
+
+The following political constraints apply:
+
+.Political constraints
+[cols="0h,1,2"]
+|===
+| Id | Constraint                       | Background and / or Motivation
+
+| P1 | Release as Open Source           | The source code of the solution is made available as open source. License: link:../LICENSE[Open Logistics FoundationLicense 1.3], Hosted by [Open Logistics Foundation]
+| P2 | All dependencies are Open Source | A complete list of (transitive) dependencies and their Open Source licences needs to be provided
+|===
+
+=== Conventions
+
+.Conventions
+[%header,cols="0h,,"]
+|===
+| Id | Convention                       | Background and / or Motivation
+
+| C1 | Architecture documentation       | Terminology and structure according to arc42, version 6.0
+| C2 | Coding guidelines for Java       | https://google.github.io/styleguide/javaguide.html[Google Java coding conventions], checked using SonarQube
+| C3 | Language                         | Documentation in English, naming of things (components, interfaces, variables) in diagrams and source code in English
+| C4 | Versioning                       | Semantic Versioning 2.0.0 (https://semver.org/lang/de/) in GitLab
+| C5 | Specific file formats            | JSON, YAML, XML
+|===

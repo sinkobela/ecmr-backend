@@ -1,0 +1,9 @@
+[[section-building-block-view]]
+== Building Block View
+
+The building block view is a static and hierarchical decomposition of the system into building blocks and their relationships.
+
+==== Overview
+
+ADD IMAGE or plantuml Class Diagram here.
+

@@ -1,0 +1,145 @@
+[[section-quality-scenarios]]
+== Quality Requirements
+
+[quote, Software Quality, 'according to link:https://en.wikipedia.org/wiki/ISO/IEC_9126[ISO/IEC 9126; ISO 25010]']
+Quality is the totality of characteristics and values of a software product that relate to its ability to meet stated or implied requirements.
+
+The most important quality goals have already been described in <<Quality Goals>>.
+This section contains all quality requirements as quality tree with scenarios.
+We also capture quality requirements with lesser priority, which will not create high risks when they are not fully achieved.
+The quality scenarios depict the fundamental quality goals as well as other required quality properties.
+They allow the evaluation of decision alternatives.
+
+=== Quality Tree
+
+We use a tabular form of the quality tree.
+The following table lists the classifications (as https://en.wikipedia.org/wiki/ISO/IEC_9126[ISO/IEC
+9126-1] characteristics and sub-characteristics with some _additional terms_) and the methods used to improve and to ensure software quality.
+
+[cols="1,1,1",options="header"]
+|===
+|Quality Goal (ISO 9126-1)
+|Requirement (for Quality Improvement)
+|Test of Requirement (Quality Assurance)
+
+a|*Maintainability*
+
+(Testability, Stability,Analyzability, Changeability)
+a|* The XXX must be connected to the ... infrastructures.
+* The XXX must be designed in such a way that the crash of one component or one infrastructure does not lead to a crash of the other components.
+* The XXX components are designed and implemented stateless.
+All states & configurations are stored in a database that is backed up regularly.
+* On restart of the XXX, the current configuration is loaded from the database.
+* The XXX respects all developer guidelines.
+a|* Integration tests
+* Test cases for putting into service and starting the application (e.g. DB available, interfaces).
+* CI/CD pipeline, automatic compliance testing, code review, merge requests
+
+a|*Efficiency*
+
+(Time behaviour, Resource utilization, _Scalability_)
+a|* All components of the XXX are designed to be scalable and redundant.
+* The XXX must be able to deal with a very large number of devices (more than 100,000).
+* If necessary, additional instances of the components can be started/stopped by the XXX to be able to react to load peaks.
+a|* Load and performance tests in the max. and min. range.
+
+a|*Portability*
+
+(Adaptability, Installability, Co-existence, Replaceability)
+a|* The XXX is tightly tied to Docker.
+* The XXX must be connected to the ... infrastructures
+* Use mirco services for components with leads to interchangeability
+a|* Integration tests
+* Portability tests (e.g. by continuous deployment)
+
+a|*Usability*
+
+(Understandability, Learnability, Operability, Attractiveness, _Simplicity_)
+a|* The XXX is an infrastructure component that runs without a human user based on the current configuration.
+* Web interfaces are only functions around the management of the XXX, its configuration, as well as for device management.
+* Web interfaces visualize the current state of the XXX, its components and connected devices.
+* The XXX management frontend needs to appeal the Administrators and for other stakeholders especially in demonstrations.
+* For Admins, the effort required to integrate new ... must be minimal by documentation, guide and a SDK.
+* The GUI Style guide is respected.
+* Complete arc42 compliant software documentation and user guides exists.
+* Detailed documentation of public interfaces with JavaDoc & OpenApi/Swagger
+a|* UI Tests
+* Automated GUI tests
+* Document review
+
+a|*Reliability*
+
+(Maturity, Fault tolerance/_Robustness_, Recoverability)
+a|* All components of the XXX are designed to be scalable and redundant.
+* If necessary, further instances of the components can be started/stopped by the XXX in order to be able to react to load peaks.
+* Appropriate unit tests exist, especially for error cases and boundary values.
+* Every device message must be processed and stored, especially all devices (100,000+) send messages simultaneously.
+* The architecture is designed such that methods depending on external services can be tested without having the external service available.
+a|* Unit tests (Junit 4/5) following code package structure and AssertJ fluent assertion tests
+* Load and performance tests (over time)
+* Using SonarCube during development and during the build process ensures a code coverage of at least 80%.
+* All external dependencies are mockable, e.g. for unit tests.
+
+a|*Functionality*
+
+(Suitability, Accuracy, Interoperability, Security, Completeness)
+a|* All functional requirements are fulfilled and implemented accurately and secure.
+* Explicit, object-oriented domain model.
+* Complete arc42 documentation, Jira tickets,
+* The code is documented completely using JavaDoc conventions.
+a|* Unit and integration tests
+* High test coverage as a safety net
+* Document Review
+* Code Review
+|===
+
+=== Quality Scenarios
+
+Scenarios make quality requirements concrete and allow to more easily measure or decide whether they are fulfilled.
+They describe what should happen when a stimulus arrives at the system, e.g.
+
+* Use Case scenarios: system’s runtime reaction to a certain stimulus.
+* Change scenarios: modification of the system or of its immediate environment.
+
+The following test scenarios are examples. Please add here real scenarios that
+aim to test the behavior of the ecmr backend.
+
+[cols="0,1,3",options="header"]
+|===
+|No.
+|Name
+|Scenario
+
+|1
+|Happy Path1
+a|
+
+
+|2
+|Happy Path 2
+a|
+
+
+|3
+|Minimal Path
+a|
+
+
+|4
+|Maximum Path
+a|
+
+|5
+|Acyclical Path
+|
+|===
+
+*Test Messages*
+
+Describe here, how Test message are created and sent.
+
+Some examples:
+* The asynchronous messages are always sent using MQTT.
+* There is a generator for test messages.
+* The test messages are sent as small JSON messages whose only two fields contain an ascending ID and a timestamp.
+In this way, a possible loss of messages can be detected.

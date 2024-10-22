@@ -1,0 +1,23 @@
+[[section-solution-strategy]]
+== Solution Strategy
+
+This chapter gives a short summary and explanation of the fundamental decisions and solution strategies, that shape the architecture of an *eCMR*.
+They are based on the problem statement, the quality goals and the key constraints from Chapters <<Introduction and Goals, 1 -- Introduction and Goals>> and <<Architecture Constraints, 2 -- Architecture Constraints>>.
+
+=== Quality
+
+The quality goals, as summarized in <<Introduction, Chapter 1 -- Introduction>>, and their matching architecture approaches and means for quality assurance are described in detail in <<Quality Requirements, Chapter 10 -- Quality Requirements>>.
+The key to assure quality is to use quality assurance tools like Sonar and automated tests in the CI/CD Pipeline.
+
+=== Decomposition
+
+The fundamental decisions are to compose SE services and brokers from microservices, in accordance with the reference architecture.
+Every microservice is executed in its own application container, and loose coupling by event-based communication is used whenever appropriate.
+See <<Building Block View, Chapter 5 -- Building Block View>> for details.
+
+=== Technology
+
+=== Organizational
+
+See <<Architecture Constraints, Chapter 2 -- Architecture Constraints>> for organisational constraints and political constraints that apply.
+All third-party software used must be open source.

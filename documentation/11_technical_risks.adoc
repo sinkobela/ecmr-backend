@@ -1,0 +1,154 @@
+[[section-technical-risks]]
+== Risks and Technical Debts
+
+A systematic detection and evaluation of risks and technical debts in the architecture was done.
+It can be used by the management as part of the overall risk analysis and measurement planning.
+Partially measures were suggested to minimize, mitigate or avoid risks or reduce technical debts.
+
+=== Questions on the Delimitation of Risks
+
+==== Planned Use
+
+The outcome of the project is planned to be used as
+
+* [x] industrial use
+* [ ] proof-of-concept
+* [ ] prototype
+* [ ] demonstrator
+
+==== Effects of a Failure (Availability Risks)
+
+If the service fails in the field, ...
+
+* [ ] the service is not available
+* [ ] other services or IT systems can also no longer be used (information is missing)
+* [ ] consequential damage due to missing or wrong information/decisions
+* [ ] personal injury due to missing or wrong information/decisions
+
+==== Data Processing
+
+The following kind of data is processed:
+
+* TODO,
+
+Personal data is
+
+* [ ] processed
+* [ ] stored
+
+The data is stored in
+
+* [ ] files
+* [ ] databases
+
+The following regulations or guidelines must be observed:
+
+* [ ] GDPR / DS-GVO
+
+==== Confidentiality
+
+*NOT YET EVALUATED*
+
+The implications of disclosures of protected information are:
+
+==== Potential Threats and Risks
+
+*NOT YET EVALUATED*
+
+* The following events might trigger damage:
+* Possible threats (e.g. sabotage) are:
+* The vulnerability to threats is:
+* The probability that this event will also lead to damage is:
+
+==== Values
+
+The following valuable devices/hardware are managed and/or used:
+
+* TODO
+
+=== Further Risks
+
+==== Authentication
+
+The service is used directly by end users: yes (Management-Frontend, authentication planned, not yet implemented)
+
+Users are authenticated by:
+
+* [ ] No authentication
+* [ ] Username and password without password quality assurance
+* [ ] Username and password with password quality assurance
+* [ ] Two-factor authentication
+* [ ] Certificates required (identity provider)
+
+Which technical users (e.g. administrators, DB admin, ...) should have full access to the components?
+
+* Kubernetes cluster administrators have full access
+* Maintainers have full access
+
+==== State-of-the-Art
+
+* Technologies used: (e.g. Java, certain web servers):
+** Java
+** JavaScript
+** CouchDB
+** AMQP (RabbitMQ)
+** nginx
+** REST
+* Frameworks / libraries used:
+** Spring
+** Angular
+** RabbitMQ (client library)
+** CouchDB(client library)
+
+==== Communication
+
+External systems may influence the availability of the system.
+Receiving/sending sensible data from/to external systems could make these interfaces particularly interesting for potential attackers.
+If interfaces of external systems often changes, the syntax and semantics of the transmitted data could change on short notice, resulting in high adapting efforts.
+
+* External systems connected:
+* Other partners / companies involved:
+* Legal contracts need to be signed:
+
+==== Accessibility
+
+How can the system / component be reached?
+
+* [ ] accessible by graphical user interface (GUI)
+* [ ] accessible via the IDS
+* [ ] accessible via REST
+* [ ] accessible via other ways: device specific protocols and data formats
+
+=== Risk Minimization
+
+There are the following plans for reducing some risks.
+
+==== Complexity / Effort of Implementation
+
+The programming of the XXX and its components is non-trivial.
+Programming errors can and will happen and software testing can never guarantee the absence of errors in general.
+
+*Eventuality Planning*: If an upgrade introduces errors not detected by unit tests that lead to a non-runnable version deployed to the runtime environment, this could lead to a widespread service downtime with potentially damaging consequences, such as:
+
+* Loss of data from ...
+* Loss of control over ...
+* Loss of access to past ...
+* Live demonstrations may fail or might need to be canceled
+* Hindered or delayed SE project development
+
+*Risk Minimization*: The XXX component deployments make extensive use of deployment schemes which can be rolled back either automatically by Kubernetes itself (if a component fails to start up properly after an upgrade) or manually (if a programming error leads to a delayed failure state which can not be detected by Kubernetes right away).
+The scheme of choice is a "Rolling upgrade" which replaces a single instance of a component (which by default are deployed redundantly) with an upgraded version and only replaces other instances if the preceding replacement works.
+Future plans intend to improve this further with more Readiness and Liveness probes which enable Kubernetes to monitor service health on its own (currently implemented for database and AMQP broker only).
+
+However, since old releases are retained on a per-commit-on-master level, a rollback is possible by any developer at any time simply by deploying manually from a component's known working repository state semi-automatically by script.
+
+==== Data Consistency
+
+Data is stored in the database.
+This data may become corrupted due to hardware failure, unexpected shutdowns, etc.
+
+*Eventuality Planning:* Corrupted data may lead to false results during client side processing and could therefore negatively affect decisions being made based on this data processing.
+
+*Risk Minimization*: The MongoDB used is provisioned in a highly redundant fashion, being distributed across three nodes in the K8s cluster with each instance containing the whole set of data at all times.
+Failure of less than three nodes is expected to have minimal to no operational impact at all.
+Backing storage is redundant with high availability and provisioned externally (i.e. outside the K8s cluster).
