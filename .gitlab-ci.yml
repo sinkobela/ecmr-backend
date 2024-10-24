@@ -1,7 +1,8 @@
 include:
   - template: Code-Quality.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
 
-stages:
+stages: 
   - build
   - test
   - visualize
@@ -53,7 +54,6 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-
 # Run unit tests and generate reports
 test:
   stage: test
@@ -87,7 +87,7 @@ coverage:
   stage: visualize
   tags:
     - ecmr
-  image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.9
+  image: registry.gitlab.com/haynes/jacoco2cobertura
   script:
     # convert report from jacoco to cobertura, using relative project path
     - python /opt/cover2cover.py $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml $CI_PROJECT_DIR/src/main/java/ > $CI_PROJECT_DIR/cobertura.xml
