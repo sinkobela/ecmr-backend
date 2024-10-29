@@ -1,6 +1,7 @@
 include:
   - template: Code-Quality.gitlab-ci.yml
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml
 
 stages: 
   - build
@@ -24,6 +25,9 @@ variables:
   # DOCKER_SOCKET_PATH: /var/run/docker.sock
   # DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   # DOCKER_BUILDKIT: "1"
+  # Enable Advanced SAST - this is required for JAVA 21
+  GITLAB_ADVANCED_SAST_ENABLED: 'true'
+  SAST_JAVA_VERSION: 21
 
   MAVEN_OPTS: >-
     -Dhttps.protocols=TLSv1.2
