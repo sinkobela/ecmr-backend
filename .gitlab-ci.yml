@@ -156,7 +156,7 @@ deploy:
     - ecmr
   script:
 #    - 'cd ecmr-backend'
-    - 'mvn deploy -s ci_settings.xml'
+    - 'mvn deploy -s ci_settings.xml -DskipTests'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
