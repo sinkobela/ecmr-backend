@@ -32,6 +32,9 @@ application.properties:
 
     docker compose up
 
+### Run Tests
+Docker must be available to run the integration tests (src/test/e2e) as it is used to start the keycloak testcontainer.
+
 ## Documentation
 
 For more details, please refer to the `documentation` directory.

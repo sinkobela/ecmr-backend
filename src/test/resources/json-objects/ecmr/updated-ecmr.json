@@ -1,0 +1,170 @@
+{
+  "ecmrId": null,
+  "ecmrConsignment": {
+    "senderInformation": {
+      "senderNameCompany": null,
+      "senderNamePerson": "sender",
+      "senderStreet": null,
+      "senderPostcode": null,
+      "senderCity": null,
+      "senderCountryCode": {
+        "region": null,
+        "value": null
+      },
+      "senderContactInformation": {
+        "email": null,
+        "phone": null
+      }
+    },
+    "consigneeInformation": {
+      "consigneeNameCompany": null,
+      "consigneeNamePerson": null,
+      "consigneePostcode": null,
+      "consigneeCity": null,
+      "consigneeCountryCode": {
+        "region": null,
+        "value": null
+      },
+      "consigneeStreet": null,
+      "consigneeContactInformation": {
+        "email": null,
+        "phone": null
+      }
+    },
+    "takingOverTheGoods": {
+      "takingOverTheGoodsPlace": null,
+      "logisticsTimeOfArrivalDateTime": null,
+      "logisticsTimeOfDepartureDateTime": null
+    },
+    "deliveryOfTheGoods": {
+      "logisticsLocationCity": null,
+      "logisticsLocationOpeningHours": null
+    },
+    "sendersInstructions": {
+      "transportInstructionsDescription": null
+    },
+    "carrierInformation": {
+      "carrierNameCompany": null,
+      "carrierNamePerson": null,
+      "carrierStreet": null,
+      "carrierPostcode": null,
+      "carrierCity": null,
+      "carrierCountryCode": {
+        "region": null,
+        "value": null
+      },
+      "carrierLicensePlate": null,
+      "carrierContactInformation": {
+        "email": null,
+        "phone": null
+      }
+    },
+    "successiveCarrierInformation": {
+      "successiveCarrierCity": null,
+      "successiveCarrierCountryCode": {
+        "region": null,
+        "value": null
+      },
+      "successiveCarrierNameCompany": null,
+      "successiveCarrierNamePerson": null,
+      "successiveCarrierPostcode": null,
+      "successiveCarrierSignature": null,
+      "successiveCarrierSignatureDate": null,
+      "successiveCarrierStreet": null,
+      "successiveCarrierContactInformation": {
+        "email": null,
+        "phone": null
+      }
+    },
+    "carriersReservationsAndObservationsOnTakingOverTheGoods": {
+      "carrierReservationsObservations": null,
+      "senderReservationsObservationsSignature": null
+    },
+    "documentsHandedToCarrier": {
+      "documentsRemarks": null
+    },
+    "itemList": [
+      {
+        "marksAndNos": {
+          "logisticsShippingMarksMarking": null,
+          "logisticsShippingMarksCustomBarcode": null
+        },
+        "numberOfPackages": {
+          "logisticsPackageItemQuantity": null
+        },
+        "methodOfPacking": {
+          "logisticsPackageType": null
+        },
+        "natureOfTheGoods": {
+          "transportCargoIdentification": null
+        },
+        "grossWeightInKg": {
+          "supplyChainConsignmentItemGrossWeight": null
+        },
+        "volumeInM3": {
+          "supplyChainConsignmentItemGrossVolume": null
+        }
+      }
+    ],
+    "specialAgreementsSenderCarrier": {
+      "customSpecialAgreement": null
+    },
+    "toBePaidBy": {
+      "customChargeCarriage": {
+        "value": null,
+        "currency": null,
+        "payer": null
+      },
+      "customChargeSupplementary": {
+        "value": null,
+        "currency": null,
+        "payer": null
+      },
+      "customChargeCustomsDuties": {
+        "value": null,
+        "currency": null,
+        "payer": null
+      },
+      "customChargeOther": {
+        "value": null,
+        "currency": null,
+        "payer": null
+      }
+    },
+    "otherUsefulParticulars": {
+      "customParticulars": null
+    },
+    "cashOnDelivery": {
+      "customCashOnDelivery": null
+    },
+    "established": {
+      "customEstablishedDate": null,
+      "customEstablishedIn": null
+    },
+    "signatureOrStampOfTheSender": {
+      "senderSignature": null
+    },
+    "signatureOrStampOfTheCarrier": {
+      "carrierSignature": null
+    },
+    "goodsReceived": {
+      "confirmedLogisticsLocationName": null,
+      "consigneeReservationsObservations": null,
+      "consigneeSignature": null,
+      "consigneeSignatureDate": null,
+      "consigneeTimeOfArrival": null,
+      "consigneeTimeOfDeparture": null
+    },
+    "nonContractualPartReservedForTheCarrier": {
+      "nonContractualCarrierRemarks": null
+    },
+    "referenceIdentificationNumber": {
+      "value": "1"
+    }
+  },
+  "ecmrStatus": null,
+  "createdAt": null,
+  "createdBy": null,
+  "editedAt": null,
+  "editedBy": null
+}

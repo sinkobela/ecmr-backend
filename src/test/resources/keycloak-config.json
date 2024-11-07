@@ -1,0 +1,52 @@
+{
+  "realm": "test",
+  "enabled": true,
+  "displayName": "Test Realm",
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Standard user role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "testClient",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "test-admin",
+      "enabled": true,
+      "firstName": "Test",
+      "lastName": "Admin",
+      "email": "admin@test.de",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "test-user",
+      "enabled": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "user@test.de",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "identityProviders": []
+}

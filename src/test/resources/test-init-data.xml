@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="root-group" author="artur.blek@rhenus.com">
+        <insert tableName="ecmr_group">
+            <column name="name">Root</column>
+            <column name="description">Root Group</column>
+            <column name="parent_id">null</column>
+        </insert>
+        <insert tableName="ecmr_group">
+            <column name="name">Group2</column>
+            <column name="description">Second Group</column>
+            <column name="parent_id">1</column>
+        </insert>
+    </changeSet>
+    <changeSet id="initial-users" author="artur.blek@rhenus.com">
+        <sql>
+            INSERT INTO ecmr_user (first_name, last_name, country, email, phone, role, default_group_id)
+            VALUES
+                   ('Test', 'Admin', 'DE', 'admin@test.de', '12345', 'Admin', 1),
+                   ('Test', 'User', 'DE', 'user@test.de', '54321', 'User', 1);
+
+            INSERT INTO user_to_group (user_id, group_id)
+            SELECT u.id as user_id, 1 as group_id
+            FROM ecmr_user u;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

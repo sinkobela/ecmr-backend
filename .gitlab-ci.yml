@@ -3,7 +3,7 @@ include:
   - template: Jobs/Dependency-Scanning.gitlab-ci.yml
   - template: Jobs/SAST.gitlab-ci.yml
 
-stages: 
+stages:
   - build
   - test
   - visualize
@@ -25,6 +25,8 @@ variables:
   # DOCKER_SOCKET_PATH: /var/run/docker.sock
   # DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   # DOCKER_BUILDKIT: "1"
+  # Instruct Testcontainers to use the daemon of DinD, use port 2375 for non-tls connections.
+  DOCKER_HOST: "tcp://docker:2375"
   # Enable Advanced SAST - this is required for JAVA 21
   GITLAB_ADVANCED_SAST_ENABLED: 'true'
   SAST_JAVA_VERSION: 21
@@ -61,6 +63,9 @@ workflow:
 # Run unit tests and generate reports
 test:
   stage: test
+  services:
+    - name: docker:dind
+      alias: docker
   tags:
     - ecmr
   script:

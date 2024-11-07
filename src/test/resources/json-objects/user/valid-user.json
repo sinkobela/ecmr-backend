@@ -1,0 +1,10 @@
+{
+  "role": "Admin",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "country": "DE",
+  "email": "max.mustermann@example.com",
+  "phone": "+49 123 456789",
+  "groupIds": [1],
+  "defaultGroupId": 1
+}
