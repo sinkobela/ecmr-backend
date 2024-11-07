@@ -13,9 +13,11 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 @AllArgsConstructor
 @Getter
+@Setter
 public class ExternalUserRegistrationModel {
     @NotNull
     private UUID ecmrId;

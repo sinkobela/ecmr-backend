@@ -11,6 +11,11 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.HistoryLog;
@@ -37,8 +42,28 @@ public class HistoryController {
     private final AuthenticationService authenticationService;
     private final HistoryLogService historyLogService;
 
+    /**
+     * Retrieves history logs for a given ECMR ID.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @return A list of history logs associated with the ECMR.
+     */
     @GetMapping(path = { "{ecmrId}" })
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        tags = "History",
+        summary = "Get History Logs by ECMR ID",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid"))
+        },
+        responses = {
+            @ApiResponse(description = "List of history logs",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = HistoryLog.class))),
+            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+            @ApiResponse(description = "Forbidden access", responseCode = "403")
+        })
     public ResponseEntity<List<HistoryLog>> getHistoryLogs(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();

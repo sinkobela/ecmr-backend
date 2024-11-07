@@ -14,6 +14,11 @@ import static org.openlogisticsfoundation.ecmr.web.controllers.PdfHelper.createP
 import java.util.List;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
@@ -45,15 +50,7 @@ import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -74,7 +71,26 @@ public class AnonymousController {
     private final EcmrUpdateService ecmrUpdateService;
     private final EcmrSignService ecmrSignService;
 
+    /**
+     * Checks if the provided TAN is valid for a given ECMR ID.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN to validate.
+     * @return True if the TAN is valid, otherwise false.
+     */
     @GetMapping("/is-tan-valid")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Check TAN Validity",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN to validate", required = true, schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "Validity of the TAN",
+                content = @Content(mediaType = "application/json", schema = @Schema(type = "boolean"))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+        })
     public ResponseEntity<Boolean> isTanValid(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId,
             @RequestParam(name = "tan") @NotNull @Valid String tan) {
         try {
@@ -84,7 +100,24 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Registers an external user.
+     *
+     * @param externalUserRegistrationModel The registration details of the external user.
+     */
     @PostMapping("/registration")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Register External User",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = ExternalUserRegistrationModel.class))),
+        responses = {
+            @ApiResponse(description = "User registered successfully", responseCode = "200"),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "Validation error", responseCode = "400"),
+            @ApiResponse(description = "Internal server error", responseCode = "500")
+        })
     public void registerExternalUser(@Valid @RequestBody ExternalUserRegistrationModel externalUserRegistrationModel) {
         try {
             ExternalUserRegistrationCommand command = externalUserWebMapper.map(externalUserRegistrationModel);
@@ -98,7 +131,28 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Retrieves ECMR details for a given ECMR ID.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @return The ECMR model.
+     */
     @GetMapping(path = { "/ecmr/{ecmrId}" })
+    @Operation(
+        tags = "Anonymous",
+        summary = "Get ECMR Details",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "ECMR details",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = EcmrModel.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<EcmrModel> getEcmrWith(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
@@ -114,7 +168,30 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Updates an ECMR.
+     *
+     * @param tan The TAN for validation.
+     * @param ecmrModel The ECMR model to update.
+     * @return The updated ECMR model.
+     */
     @PutMapping("/ecmr")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Update ECMR",
+        parameters = {
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = EcmrModel.class))),
+        responses = {
+            @ApiResponse(description = "Updated ECMR model",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = EcmrModel.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<EcmrModel> updateEcmr(@RequestParam(name = "tan") @Valid @NotNull String tan,
             @RequestBody EcmrModel ecmrModel) {
         try {
@@ -132,7 +209,34 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Signs an ECMR on glass.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @param signModel The sign model containing signature data.
+     * @return The signature result.
+     */
     @PostMapping("/ecmr/{ecmrId}/sign-on-glass")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Sign ECMR On Glass",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = SignModel.class))),
+        responses = {
+            @ApiResponse(description = "Signature result",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = Signature.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "Validation error", responseCode = "400"),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "External user not found", responseCode = "401"),
+            @ApiResponse(description = "Signature already present", responseCode = "400")
+        })
     public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid @NotNull SignModel signModel) {
         try {
@@ -150,7 +254,30 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Retrieves a share token for an ECMR.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @param ecmrRole The role for the ECMR.
+     * @return The share token.
+     */
     @GetMapping("/ecmr/{ecmrId}/share-token")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Get Share Token for ECMR",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string")),
+            @Parameter(name = "ecmrRole", description = "Role for the ECMR", required = true, schema = @Schema(implementation = EcmrRole.class))
+        },
+        responses = {
+            @ApiResponse(description = "Share token",
+                content = @Content(mediaType = "application/json", schema = @Schema(type = "string"))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan") @Valid @NotNull String tan,
             @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
         try {
@@ -165,7 +292,34 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Shares an ECMR.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @param ecmrShareModel The share model containing email and role.
+     * @return The share response.
+     */
     @PatchMapping(path = { "/ecmr/{ecmrId}/share" })
+    @Operation(
+        tags = "Anonymous",
+        summary = "Share ECMR",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = EcmrShareModel.class))),
+        responses = {
+            @ApiResponse(description = "Share response",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = EcmrShareResponse.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "Not implemented", responseCode = "501"),
+            @ApiResponse(description = "Validation error", responseCode = "400"),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid EcmrShareModel ecmrShareModel) {
         try {
@@ -186,7 +340,29 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Downloads the ECMR PDF file.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @return The ECMR PDF file as a StreamingResponseBody.
+     */
     @GetMapping("/ecmr/{ecmrId}/pdf")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Download ECMR PDF",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "ECMR PDF file",
+                content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "PDF creation error", responseCode = "500"),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID ecmrId,
             @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
@@ -204,7 +380,28 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Downloads the ECMR PDF file using a share token.
+     *
+     * @param id The UUID of the ECMR.
+     * @param shareToken The token used for sharing the ECMR.
+     * @return The ECMR PDF file as a StreamingResponseBody.
+     */
     @GetMapping("/ecmr/{ecmrId}/share-pdf")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Download ECMR PDF with Share Token",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "shareToken", description = "Share token for accessing the ECMR", required = true, schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "ECMR PDF file",
+                content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(description = "No permission", responseCode = "403"),
+            @ApiResponse(description = "PDF creation error", responseCode = "500"),
+            @ApiResponse(description = "ECMR not found", responseCode = "404")
+        })
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFileShare(@PathVariable("ecmrId") UUID id,
             @RequestParam @Valid @NotNull String shareToken) {
         try {
@@ -219,7 +416,27 @@ public class AnonymousController {
         }
     }
 
+    /**
+     * Retrieves the ECMR roles for an external user.
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param tan The TAN for validation.
+     * @return A list of ECMR roles.
+     */
     @GetMapping("/ecmr-role")
+    @Operation(
+        tags = "Anonymous",
+        summary = "Get External User ECMR Roles",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "List of ECMR roles",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = EcmrRole.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "External user not found", responseCode = "401")
+        })
     public ResponseEntity<List<EcmrRole>> getExternalUserEcmrRoles(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId,
             @RequestParam(name = "tan") @NotNull @Valid String tan) {
         try {

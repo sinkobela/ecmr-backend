@@ -1,40 +1,330 @@
 [[section-runtime-view]]
 == Runtime View
 
-In contrast to the static building block view, this section visualizes dynamic aspects of an XXX.
-The runtime view describes concrete behavior and interactions of the system’s building blocks across the architecture, i.e., how instances of building blocks of an XXX perform their job and communicate at runtime.
+In contrast to the static building block view, this section visualizes dynamic aspects of an application.
+The runtime view describes concrete behavior and interactions of the application’s building blocks across the architecture, i.e., how instances of building blocks of an application perform their job and communicate at runtime.
 Important usage scenarios with architectural relevance are e.g. interactions at critical external interfaces, operation and administration (launch, start-up, stop), and error and exception scenarios.
 
 === General Component Communication
 
-All inter component communication in the XXX relies on passing JSON messages via REST or via accessing a Postgres database.
+All inter-component communication in the application relies on passing JSON messages via REST or via accessing a Postgres database.
 
-To achieve a common understanding of all XXX components, specific communication schemes must be adhered to so that:
+To achieve a common understanding of all application components, specific communication schemes must be adhered to so that:
 
-This common communication scheme is a key motivation for the SDK which is intended to be the canonical implementation of high level access functions which enforce those.
+This common communication scheme is a key motivation for the SDK which is intended to be the canonical implementation of high-level access functions which enforce those.
 
 A description of key elements of this communication scheme is described in the following chapters.
 
+==== Cross Site Request Forgery (CSRF)
+Because of the CSRF it is only possible to use the GET Methods after authentication. If you want to use the other HTTP methods (PUT, POST, DELETE) you have to be aware of CSRF. To avoid CSRF issues it is necessary to send the Bearer Token in the request header. In order to use those methods (PUT, POST, DELETE) you must use the Authorize button in the Swagger-UI and enter a valid Bearer Token.
+
+Exemplary, Keycloak can be used for securing the application. To interact with the application’s secured endpoints, you need to obtain a Bearer Token. Here’s how you could obtain a Bearer Token:
+
+WSL/Cmd:
+[Source,Shell]
+----
+curl -k -H "Content-Type: application/x-www-form-urlencoded" -d "client_id={{your-client-id}}" -d "username={{your-username}}" -d "password={{your-password}}" -d "grant_type=password" -X POST {{your-keycloak-url}}/realms/{{your-realm}}/protocol/openid-connect/token
+----
+PowerShell:
+[Source,Shell]
+----
+(Invoke-RestMethod -Uri "{{your-keycloak-url}}/realms/{{your-realm}}/protocol/openid-connect/token" -Method Post -Body @{client_id="{{your-client-id}}"; username="{{your-username}}"; password="{{your-password}}"; grant_type="password"} -ContentType "application/x-www-form-urlencoded").access_token
+----
+Fill the values set in double curly braces ({+{fill-here}+}) with correct values.
+
 ==== API
 
-Give some description regarding technologie, protocol etc.
-Add a link to data model.
-Add a  here to Swagger file
+The APIs in this project use RESTful communication, typically involving JSON payloads for both requests and responses. The project also leverages Swagger for API documentation and testing.
 
-==== Database schemes and definitions
+To access the Swagger UI for interactive API documentation and testing, use the following local link:
+`http://localhost:8080/api/swagger-ui/`
+
+Below, you will find a list of controllers and their respective APIs, including descriptions, endpoints to the corresponding controller files:
+
+===== AnonymousController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Check TAN Validity
+| This API checks if the provided TAN is valid for a given ECMR ID.
+| `/anonymous/is-tan-valid`
+
+
+| Register External User
+| This API registers an external user.
+| `/anonymous/registration`
+
+
+| Get ECMR Details
+| This API retrieves ECMR details for a given ECMR ID.
+| `/anonymous/ecmr/+{ecmrId}+`
+
+
+| Update ECMR
+| This API updates an ECMR.
+| `/anonymous/ecmr`
+
+
+| Sign ECMR On Glass
+| This API signs an ECMR on glass.
+| `/anonymous/ecmr/+{ecmrId}+/sign-on-glass`
+
+
+| Get Share Token for ECMR
+| This API retrieves a share token for an ECMR.
+| `/anonymous/ecmr/+{ecmrId}+/share-token`
+
+
+| Share ECMR
+| This API shares an ECMR.
+| `/anonymous/ecmr/+{ecmrId}+/share`
+
+
+| Download ECMR PDF
+| This API downloads the ECMR PDF file.
+| `/anonymous/ecmr/+{ecmrId}+/pdf`
+
+
+| Download ECMR PDF with Share Token
+| This API downloads the ECMR PDF file using a share token.
+| `/anonymous/ecmr/+{ecmrId}+/share-pdf`
+
+
+| Get External User ECMR Roles
+| This API retrieves the ECMR roles for an external user.
+| `/anonymous/ecmr-role`
+
+|===
+
+===== EcmrController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Retrieve My eCMRs
+| Retrieves a paginated list of eCMRs for the authenticated user.
+| `/ecmr/my-ecmrs`
+
+
+| Retrieve eCMR by ID
+| Retrieves a specific eCMR by ID.
+| `/ecmr/+{ecmrId}+`
+
+
+| Create a new eCMR
+| Creates a new eCMR.
+| `/ecmr`
+
+
+| Delete an eCMR
+| Deletes an eCMR by ID.
+| `/ecmr/+{ecmrId}+`
+
+
+| Archive an eCMR
+| Archives an eCMR.
+| `/ecmr/+{ecmrId}+/archive`
+
+
+| Reactivate an eCMR
+| Reactivates an archived eCMR.
+| `/ecmr/+{ecmrId}+/reactivate`
+
+
+| Share an eCMR
+| Shares an eCMR with a user.
+| `/ecmr/+{ecmrId}+/share`
+
+
+| Import an eCMR
+| Imports an eCMR using a share token.
+| `/ecmr/+{ecmrId}+/import`
+
+
+| Download eCMR PDF
+| Downloads the PDF file of the eCMR.
+| `/ecmr/+{ecmrId}+/pdf`
+
+
+| Update an existing eCMR
+| Updates an existing eCMR.
+| `/ecmr`
+
+
+| Sign eCMR on glass
+| Signs the eCMR on glass.
+| `/ecmr/+{ecmrId}+/sign-on-glass`
+
+
+| Get share token for eCMR
+| Retrieves the share token for an eCMR.
+| `/ecmr/+{ecmrId}+/share-token`
+
+
+| Get current eCMR roles
+| Retrieves the current roles for an eCMR.
+| `/ecmr/+{ecmrId}+/role`
+
+|===
+
+===== GroupController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Retrieve All Groups
+| Retrieves all groups for the authenticated user or all groups if specified.
+| `/group`
+
+
+| Retrieve All Groups as Flat List
+| Retrieves all groups as a flat list for the authenticated user or all groups if specified.
+| `/group/flat-list`
+
+
+| Retrieve Group by ID
+| Retrieves a specific group by ID.
+| `/group/+{id}+`
+
+
+| Create a New Group
+| Creates a new group.
+| `/group`
+
+
+| Update Existing Group
+| Updates an existing group.
+| `/group/+{id}+`
+
+
+| Delete Group
+| Deletes a group by ID.
+| `/group/+{id}+`
+
+
+| Update Group Parent
+| Updates the parent of a group.
+| `/group/+{id}+/update-parent`
+
+
+| Get Users for Group
+| Retrieves users belonging to a specific group.
+| `/group/+{id}+/users`
+
+|===
+
+===== HistoryController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Get History Logs by ECMR ID
+| Retrieves history logs for a given ECMR ID.
+| `/history/+{ecmrId}+`
+
+|===
+
+===== TemplateUserController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Retrieve All Templates
+| Retrieves all templates for the authenticated user.
+| `/template`
+
+
+| Retrieve Template by ID
+| Retrieves a specific template by ID for the authenticated user.
+| `/template/+{id}+`
+
+
+| Create a New Template
+| Creates a new template for the authenticated user.
+| `/template`
+
+
+| Update Existing Template
+| Updates an existing template.
+| `/template`
+
+
+| Share Template
+| Shares a template with specified user IDs.
+| `/template/share/+{id}+`
+
+
+| Delete Template
+| Deletes a template by ID.
+| `/template/+{id}+`
+
+|===
+
+===== UserController
+
+[cols="1,4,6", options="header"]
+|===
+| API Name | Description | Endpoint
+
+| Get Current User
+| Retrieves the currently authenticated user.
+| `/user/current`
+
+
+| Get All User Emails
+| Retrieves all user emails.
+| `/user/mail`
+
+
+| Get All Users
+| Retrieves all users.
+| `/user`
+
+
+| Create User
+| Creates a new user.
+| `/user`
+
+
+| Update User
+| Updates an existing user.
+| `/user/+{id}+`
+
+
+| Get Groups for User
+| Retrieves groups for a specific user.
+| `/user/+{id}+/groups`
+
+
+| Activate User
+| Activates a user by ID.
+| `/user/+{id}+/activate`
+
+
+| Deactivate User
+| Deactivates a user by ID.
+| `/user/+{id}+/deactivate`
+
+|===
+
+==== Database Schemes and Definitions
 
 === Use Case 1
-This use case shows how ecmr backend is used in its default way.
+This use case shows how the ecmr backend is used in its default way.
 
 [Note]
 ====
 This process is currently being worked on and will undergo major changes.
 ====
 
-The following communication steps are executed
-when the application starts and the PlatformGateConfiguration is set for the platform.
+The following communication steps are executed when the application starts and the PlatformGateConfiguration is set for the platform.
 The PlatformGateConfigurationService checks whether the PlatformGateConfiguration has been set.
-If not, the platform is registered to an eFTI-Gate. This use case also shows how the
-application accesses PlatformGateConfiguration data at a later time.
+If not, the platform is registered to an eFTI-Gate. This use case also shows how the application accesses PlatformGateConfiguration data at a later time.
 
 [plantuml]
