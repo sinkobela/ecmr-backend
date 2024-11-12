@@ -37,6 +37,7 @@ import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentR
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,26 +50,31 @@ public class AuthorisationService {
         return assignmentRepository.existsByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan);
     }
 
+    @Transactional
     public boolean doesNotHaveRole(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, EcmrRole role) {
         List<EcmrRole> rolesOfUser = this.getRolesOfUser(internalOrExternalUser, ecmrId);
         return !rolesOfUser.contains(role);
     }
 
+    @Transactional
     public boolean hasNoRole(InternalOrExternalUser internalOrExternalUser, UUID ecmrId) {
         List<EcmrRole> rolesOfUser = this.getRolesOfUser(internalOrExternalUser, ecmrId);
         return rolesOfUser.isEmpty();
     }
 
+    @Transactional
     public boolean validateSaveCommand(EcmrCommand ecmrCommandToSave) {
         return StringUtils.isBlank(ecmrCommandToSave.getNonContractualCarrierRemarks()) && StringUtils.isBlank(
                 ecmrCommandToSave.getCarrierReservationsObservations());
     }
 
+    @Transactional
     public boolean validateUpdateCommand(EcmrCommand ecmrToChange, EcmrEntity ecmrEntity, InternalOrExternalUser internalOrExternalUser) {
         List<EcmrRole> rolesOfUser = this.getRolesOfUser(internalOrExternalUser, ecmrEntity.getEcmrId());
         return validateUpdateCommand(ecmrToChange, ecmrEntity, rolesOfUser);
     }
 
+    @Transactional
     public List<EcmrRole> getRolesOfUser(InternalOrExternalUser internalOrExternalUser, UUID ecmrId) {
         if (internalOrExternalUser.isInternalUser()) {
             return getRolesOfInternalUser(internalOrExternalUser.getInternalUser().getId(), ecmrId);
@@ -77,6 +83,7 @@ public class AuthorisationService {
         }
     }
 
+    @Transactional
     private List<EcmrRole> getRolesOfInternalUser(long userId, UUID ecmrId) {
         List<Group> usersGroups = groupService.getGroupsForUser(userId);
         List<Long> groupIds = groupService.flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
@@ -84,12 +91,14 @@ public class AuthorisationService {
                 .map(EcmrAssignmentEntity::getRole).toList();
     }
 
+    @Transactional
     private List<EcmrRole> getRolesOfExternalUser(String tan, UUID ecmrId) {
         return this.assignmentRepository.findByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan)
                 .stream()
                 .map(EcmrAssignmentEntity::getRole).toList();
     }
 
+    @Transactional
     private boolean validateUpdateCommand(EcmrCommand ecmrToChange, EcmrEntity ecmrEntity, List<EcmrRole> rolesOfUser) {
         if(ecmrEntity.getEcmrStatus() != EcmrStatus.NEW &&
                 !ecmrEntity.getReferenceIdentificationNumber().equals(ecmrToChange.getReferenceIdentificationNumber())) {

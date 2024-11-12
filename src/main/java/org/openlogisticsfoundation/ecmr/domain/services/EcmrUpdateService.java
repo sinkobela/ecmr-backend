@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -75,6 +76,7 @@ public class EcmrUpdateService {
         }
     }
 
+    @Transactional
     public EcmrModel updateEcmr(EcmrCommand ecmrCommand, UUID ecmrId, InternalOrExternalUser internalOrExternalUser)
             throws EcmrNotFoundException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId)

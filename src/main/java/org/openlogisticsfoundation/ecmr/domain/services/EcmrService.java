@@ -57,6 +57,7 @@ public class EcmrService {
     private final EcmrStatusChangedService ecmrStatusChangedService;
     private final EcmrPdfService ecmrPdfService;
 
+    @Transactional
     public EcmrModel getEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, NoPermissionException {
         if (authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
             throw new NoPermissionException("No permission to load ecmr");
@@ -65,10 +66,12 @@ public class EcmrService {
         return ecmrPersistenceMapper.toModel(ecmrEntity);
     }
 
+    @Transactional
     public EcmrEntity getEcmrEntity(UUID ecmrId) throws EcmrNotFoundException {
         return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
     }
 
+    @Transactional
     public EcmrPageModel getEcmrsForUser(AuthenticatedUser authenticatedUser, EcmrType ecmrType, int page, int size, SortingField sortBy,
             SortingOrder sortingOrder, FilterRequestCommand filterRequestCommand) {
         Sort.Direction sortDirection = Sort.Direction.fromString(sortingOrder.name());
@@ -125,6 +128,7 @@ public class EcmrService {
         return ecmrEntity;
     }
 
+    @Transactional
     public List<EcmrRole> getCurrentEcmrRoles(@Valid @NotNull UUID ecmrId, @Valid @NotNull InternalOrExternalUser internalOrExternalUser)
             throws EcmrNotFoundException {
         if (!ecmrRepository.existsByEcmrId(ecmrId)) {

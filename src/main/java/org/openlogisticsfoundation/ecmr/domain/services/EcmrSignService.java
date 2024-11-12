@@ -35,6 +35,7 @@ import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,7 @@ public class EcmrSignService {
     private final EcmrService ecmrService;
     private final AuthorisationService authorisationService;
 
+    @Transactional
     public Signature signEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
             throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
