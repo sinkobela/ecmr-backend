@@ -37,7 +37,7 @@
         <repository>
             <!-- This is the repository of the ecmr-datamodel -->
             <id>ecmr-datamodel-maven</id>
-            <url>https://git.openlogisticsfoundation.org/projects/125/packages/maven</url>
+            <url>https://git.openlogisticsfoundation.org/api/v4/projects/125/packages/maven</url>
         </repository>
 	</repositories>
 
