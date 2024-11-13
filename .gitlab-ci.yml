@@ -70,25 +70,26 @@ test:
     - ecmr
   script:
     # -  mvn $MAVEN_CLI_OPTS verify
-    -  mvn $MAVEN_CLI_OPTS clean org.jacoco:jacoco-maven-plugin:prepare-agent verify jacoco:report
+    -  mvn $MAVEN_CLI_OPTS clean org.jacoco:jacoco-maven-plugin:prepare-agent
+      verify jacoco:report
   artifacts:
     when: always
     reports:
       junit:
         - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
-      #  - $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
+        - $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
       #  - $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
     paths:
       - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
-      #- $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
+      - $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
       #- $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
   rules:
-    # Make this job available in branch pipelines (variable CI_COMMIT_BRANCH exists) and merge request pipelines (variable CI_MERGE_REQUEST_IID exists)
-    # Job is not allowed to fail in MRs
-    # - if: $CI_COMMIT_BRANCH
-    #  allow_failure: true
-    # - if: $CI_MERGE_REQUEST_IID
-    #  allow_failure: false
+  # Make this job available in branch pipelines (variable CI_COMMIT_BRANCH exists) and merge request pipelines (variable CI_MERGE_REQUEST_IID exists)
+  # Job is not allowed to fail in MRs
+  # - if: $CI_COMMIT_BRANCH
+  #  allow_failure: true
+  # - if: $CI_MERGE_REQUEST_IID
+  #  allow_failure: false
 
 coverage:
   # Must be in a stage later than test stage.
@@ -155,7 +156,7 @@ deploy:
   tags:
     - ecmr
   script:
-#    - 'cd ecmr-backend'
+    #    - 'cd ecmr-backend'
     - 'mvn deploy -s ci_settings.xml -DskipTests'
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -169,23 +170,23 @@ docker-build-ecmr-backend:
   cache: {}
   image: docker:dind
   services:
-  - name: docker:dind
-    command: ['--host=0.0.0.0:2375']
-    alias: docker
+    - name: docker:dind
+      command: ['--host=0.0.0.0:2375']
+      alias: docker
   before_script:
-  - echo "CI_REGISTRY=$CI_REGISTRY"
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker info
-  - rm -rf ~/.docker/manifests || true
+    - echo "CI_REGISTRY=$CI_REGISTRY"
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker info
+    - rm -rf ~/.docker/manifests || true
   script:
-  - echo "DOCKER_HOST=$DOCKER_HOST"
-  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
-  - echo "$IMAGE_TAG={$IMAGE_TAG}"
-  - docker pull $IMAGE_TAG:latest || true
-  - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest -f Dockerfile-for-compose .
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker push $IMAGE_TAG:latest
+    - echo "DOCKER_HOST=$DOCKER_HOST"
+    - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+    - echo "$IMAGE_TAG={$IMAGE_TAG}"
+    - docker pull $IMAGE_TAG:latest || true
+    - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest -f Dockerfile-for-compose .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker push $IMAGE_TAG:latest
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
-      - ecmr-backend/**/*
+        - ecmr-backend/**/*
