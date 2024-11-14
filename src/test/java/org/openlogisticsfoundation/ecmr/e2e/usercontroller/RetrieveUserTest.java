@@ -113,7 +113,7 @@ public class RetrieveUserTest extends E2EBaseTest {
     }
 
     @Test
-    void getGroups_wrongRole() {
+    void getGroups_user() {
         given()
             .accept(String.valueOf(MediaType.APPLICATION_JSON))
             .header("Authorization", "Bearer " + userToken)
@@ -123,7 +123,9 @@ public class RetrieveUserTest extends E2EBaseTest {
             .get("/api/user/" + validUserId + "/groups")
 
             .then()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.OK.value())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("size()", is(1));
     }
 
     @Test

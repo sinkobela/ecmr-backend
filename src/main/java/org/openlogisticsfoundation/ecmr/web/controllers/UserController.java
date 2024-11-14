@@ -204,7 +204,7 @@ public class UserController {
      * @return List of groups for the user.
      */
     @GetMapping("/{id}/groups")
-    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
         tags = "User",
         summary = "Get Groups for User",
