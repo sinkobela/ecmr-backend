@@ -147,8 +147,6 @@ public class EcmrSignService {
                 || StringUtils.isBlank(memberEntity.getPostcode())
                 || StringUtils.isBlank(memberEntity.getCity())
                 || StringUtils.isBlank(memberEntity.getCountryCode())
-                || StringUtils.isBlank(memberEntity.getEmail())
-                || StringUtils.isBlank(memberEntity.getPhone())
         ) {
             throw new ValidationException("Field in " + fieldName + " is missing");
         }
