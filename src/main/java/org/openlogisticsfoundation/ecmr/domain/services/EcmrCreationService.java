@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
@@ -39,7 +40,7 @@ public class EcmrCreationService {
     private final EcmrService ecmrService;
     private final HistoryLogService historyLogService;
 
-    public void createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
+    public EcmrModel createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
             throws NoPermissionException {
         if (!groupService.areAllGroupIdsPartOfUsersGroup(authenticatedUser, groupIds)) {
             throw new NoPermissionException("No permission for at least one group id");
@@ -56,7 +57,8 @@ public class EcmrCreationService {
             ecmrAssignmentEntity.setRole(EcmrRole.Sender);
             ecmrAssignmentRepository.save(ecmrAssignmentEntity);
         }
-        this.ecmrService.setEcmrStatus(ecmrEntity);
+        EcmrEntity entity = this.ecmrService.setEcmrStatus(ecmrEntity);
+        return persistenceMapper.toModel(entity);
     }
 
     public EcmrEntity createTemplate(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser) {

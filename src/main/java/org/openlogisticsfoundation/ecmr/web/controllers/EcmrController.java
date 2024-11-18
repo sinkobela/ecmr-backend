@@ -176,15 +176,16 @@ public class EcmrController {
         })
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody @Valid EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
+        EcmrModel createdEcmr;
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser(true);
-            this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser, groupIds);
+            createdEcmr = this.ecmrCreationService.createEcmr(ecmrCommand, authenticatedUser, groupIds);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
-        return ResponseEntity.ok(ecmrModel);
+        return ResponseEntity.ok(createdEcmr);
     }
 
     /**
@@ -492,7 +493,8 @@ public class EcmrController {
             @ApiResponse(description = "Unauthorized access", responseCode = "401"),
             @ApiResponse(description = "eCMR not found", responseCode = "404"),
             @ApiResponse(description = "Validation error or signature already present", responseCode = "400"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
+            @ApiResponse(description = "Forbidden access", responseCode =
+                "403")
         })
     public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SignModel signModel) {
         try {
