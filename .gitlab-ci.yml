@@ -167,28 +167,26 @@ docker-build-ecmr-backend:
   tags:
     - ecmr
   variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE
+    IMAGE_TAG: "latest"
+    IMAGE_NAME: $CI_COMMIT_REF_SLUG 
   stage: archive
   cache: {}
-  image: docker:dind
-  services:
-    - name: docker:dind
-      command: ['--host=0.0.0.0:2375']
-      alias: docker
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
   before_script:
-    - echo "CI_REGISTRY=$CI_REGISTRY"
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker info
-    - rm -rf ~/.docker/manifests || true
+  - rm -rf ~/.docker/manifests || true
   script:
-    - echo "DOCKER_HOST=$DOCKER_HOST"
-    - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
-    - echo "$IMAGE_TAG={$IMAGE_TAG}"
-    - docker pull $IMAGE_TAG:latest || true
-    - docker build --cache-from $IMAGE_TAG:latest -t $IMAGE_TAG:latest -f Dockerfile-for-compose .
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker push $IMAGE_TAG:latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - ecmr-backend/**/*
+  - echo "CI_REGISTRY=$CI_REGISTRY"
+  - echo "DOCKER_HOST=$DOCKER_HOST"
+  - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+  - echo "$IMAGE_TAG={$IMAGE_TAG}"
+  - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile-for-compose"
+      --destination "${CI_REGISTRY_IMAGE}:$IMAGE_TAG"
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#      changes:
+#        - ecmr-backend/**/*
