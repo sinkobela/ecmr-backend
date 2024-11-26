@@ -180,7 +180,13 @@
 
         <dependency>
             <groupId>org.openlogisticsfoundation.ecmr</groupId>
-            <artifactId>ecmr-seal</artifactId>
+            <artifactId>verifier</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openlogisticsfoundation.ecmr</groupId>
+            <artifactId>signer</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
