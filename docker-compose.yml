@@ -3,23 +3,54 @@ services:
   # Frontend
   ecmr-frontend:
     build: ../ecmr-frontend/
+    env_file:
+      - config/frontend-params.env
     ports:
-      - "8081:8080"
+      - "8082:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
 
   # Backend
   ecmr-backend:
     build:
       context: .
       dockerfile: Dockerfile-for-compose
-    ports:
-      - "8080:8080"
     env_file:
       - config/backend-params.env
+    network_mode: "service:localhost"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
 
   # Postgres-Database
   postgres:
     image: postgres
     env_file:
       - config/postgres-params.env
+
+  keycloak:
+    image: keycloak/keycloak
+    volumes:
+      - ./config/keycloak/:/opt/keycloak/data/import/
+    command: start-dev --import-realm
+    env_file:
+      - config/keycloak/keycloak-params.env
+    network_mode: "service:localhost"
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost:9000\r\nConnection: close\r\n\r\n' >&3;cat <&3 | grep -q '\"status\": \"UP\"' && exit 0 || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - postgres
+      - localhost
+
+  localhost:
+    image: alpine:latest
+    command: sleep infinity
+    ports:
+      - "8080:8080" # Keycloak port
+      - "8081:8081" # Backend port

@@ -1,0 +1,45 @@
+{
+  "realm": "ecmr",
+  "enabled": true,
+  "displayName": "eCMR Realm",
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Standard user role"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "testClient",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:8082/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8081",
+        "http://localhost:8082"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "test-user",
+      "enabled": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test@iml.de",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "youruserpassword",
+          "temporary": false
+        }
+      ]
+    }
+  ],
+  "identityProviders": []
+}

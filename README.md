@@ -17,22 +17,36 @@ The versions of the runtime environment and the most relevant frameworks used ar
 ## Run with docker compose
 
 ### Preparation
+The docker compose setup starts all necessary components: the front-and backend, a postgres database and a keycloak instance.
 To start the project with docker compose, the ecmr-frontend and the ecmr-backend have to be in the same directory.
+All config files can be found in the config folder.
 
-Prepare your ecmr-backend for using via docker compose. Add the next line to
-application.properties:
+Note to the docker compose setup: When creating a token through the frontend (and therefore through the browser), the keycloak host is set as the issuer in the token.
+When the backend validates the token the issuer must match the host in the
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI, which tells the backend how to reach keycloak.
+Since the backend runs in a container and the browser runs on the local machine the url to keycloak is different (
+localhost vs container name), which then leads to an error in the backend because the issuer is different.
+As a solution a localhost service is used, which ensures that the host name is identical.
 
-    spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/issuer
+### Configuration
+To start the applications these changes must be made first:
 
-### Build
+1. Edit the files config/postgres-params.env and config/backend-params.env to add usernames and passwords.
+2. Change the user password in the realm configuration files.
+3. To add other users you must add them to realm config file and to the backend project (resources/db/init-data.xml). Please verify that the email addresses are identical.
 
-    docker compose build
+### Build & Run
+Build the application with: ```docker compose build```
 
-### Run
+Run the application with: ```docker compose up```
 
-    docker compose up
+The backend is available at http://localhost:8081.
 
-### Run Tests
+The frontend is available at http://localhost:8082.
+
+Note: this docker compose is for developing purposes only!
+
+## Run Tests
 Docker must be available to run the integration tests (src/test/e2e) as it is used to start the keycloak testcontainer.
 
 ## Documentation
