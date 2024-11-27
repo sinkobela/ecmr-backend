@@ -186,7 +186,7 @@ docker-build-ecmr-backend:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile-for-compose"
       --destination "${CI_REGISTRY_IMAGE}:$IMAGE_TAG"
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-#      changes:
-#        - ecmr-backend/**/*
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - ecmr-backend/**/*
