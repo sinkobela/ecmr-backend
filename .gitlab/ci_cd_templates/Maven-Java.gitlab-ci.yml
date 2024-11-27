@@ -109,37 +109,6 @@ variables:
     - when: on_success
       allow_failure: false
 
-# Job template for performing static code analysis via SonarQube.
-.maven-java-sonarqube-check:
-  variables:
-    # This tells git to fetch all branches of the project, which is required for the analysis task.
-    GIT_DEPTH: "0"
-  image: ${MAVEN_JAVA_DOCKER_IMAGE}
-  cache:
-    key: ${MAVEN_CACHE_KEY}
-    paths:
-      - "${MAVEN_CACHE_PATH}"
-  before_script:
-    # Workaround for `GIT_DEPTH: "0"` not being enough in some situations: SonarQube requires an
-    # unshallow clone, otherwise some files will miss SCM information. This would e.g. affect
-    # features like auto-assignment of issues.
-    - git fetch --unshallow || true
-  script:
-    # Output environment variables used in this job. (Can be useful for debugging.)
-    - echo "MAVEN_CLI_OPTS=${MAVEN_CLI_OPTS}"
-    - echo "POM_PATH=${POM_PATH}"
-    - echo "SONAR_PROJECT_NAME=${SONAR_PROJECT_NAME}"
-    - mvn ${MAVEN_CLI_OPTS} -f "${POM_PATH}" sonar:sonar -Dsonar.qualitygate.wait=true -Dsonar.projectName=${SONAR_PROJECT_NAME}
-  rules:
-    # Sonar analysis must succeed (i.e. the quality gate must be passed) in MRs. However, on the
-    # default branch, sonar analysis is allowed to fail by default. This allows merges into the
-    # default branch and thus the deployment of new versions even if the sonar analysis fails.
-    - if: (($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && ($ENFORCE_QA_ON_DEFAULT_BRANCH == "true")) || $CI_MERGE_REQUEST_IID
-      allow_failure: false
-    # In all other cases, failure is permitted.
-    - when: on_success
-      allow_failure: true
-
 # Job template for checking for changed licenses of third-party dependencies.
 # Note: This job requires the `org.codehaus.mojo:license-maven-plugin` plugin to be included in the
 # Maven project.

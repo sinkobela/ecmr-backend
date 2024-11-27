@@ -84,6 +84,7 @@ test:
       - $CI_PROJECT_DIR/target/site/jacoco/jacoco.xml
       - $CI_PROJECT_DIR/target/surefire-reports/TEST-*.xml
       #- $CI_PROJECT_DIR/target/failsafe-reports/TEST-*.xml
+    expire_in: 1 week
  
   rules:
   # Make this job available in branch pipelines (variable CI_COMMIT_BRANCH exists) and merge request pipelines (variable CI_MERGE_REQUEST_IID exists)
@@ -111,6 +112,7 @@ coverage:
       coverage_report:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/cobertura.xml
+    expire_in: 1 week
 
 code_quality:
   stage: test
