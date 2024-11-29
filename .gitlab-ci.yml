@@ -67,7 +67,7 @@ test:
     - name: docker:dind
       alias: docker
   tags:
-    - ecmr
+    - active
   script:
     # -  mvn $MAVEN_CLI_OPTS verify
     -  mvn $MAVEN_CLI_OPTS clean org.jacoco:jacoco-maven-plugin:prepare-agent
@@ -99,7 +99,7 @@ coverage:
   # The `visualize` stage does not exist by default.
   stage: visualize
   tags:
-    - ecmr
+    - active
   image: registry.gitlab.com/haynes/jacoco2cobertura
   script:
     # convert report from jacoco to cobertura, using relative project path
@@ -117,7 +117,7 @@ coverage:
 code_quality:
   stage: test
   tags:
-    - ecmr
+    - active
   variables:
     CODECLIMATE_REGISTRY_USERNAME: $CI_REGISTRY_USER
     CODECLIMATE_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
@@ -125,7 +125,7 @@ code_quality:
 third-party-license-check:
   stage: test
   tags:
-    - ecmr
+    - active
   variables:
     REFERENCE_LICENSES_FILE: $CI_PROJECT_DIR/third-party-licenses/third-party-licenses.txt
     GENERATED_LICENSES_FILE: $CI_PROJECT_DIR/target/generated-sources/license/THIRD-PARTY.txt
@@ -158,7 +158,7 @@ third-party-license-check:
 deploy:
   stage: archive
   tags:
-    - ecmr
+    - active
   script:
     #    - 'cd ecmr-backend'
     - 'mvn deploy -s ci_settings.xml -DskipTests'
@@ -167,7 +167,7 @@ deploy:
 
 docker-build-ecmr-backend:
   tags:
-    - ecmr
+    - active
   variables:
     IMAGE_TAG: "latest"
     IMAGE_NAME: $CI_COMMIT_REF_SLUG 
