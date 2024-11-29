@@ -26,7 +26,7 @@ variables:
   # DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   # DOCKER_BUILDKIT: "1"
   # Instruct Testcontainers to use the daemon of DinD, use port 2375 for non-tls connections.
-  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_HOST: "unix:///var/run/docker.sock"
   # Enable Advanced SAST - this is required for JAVA 21
   GITLAB_ADVANCED_SAST_ENABLED: 'true'
   SAST_JAVA_VERSION: 21
@@ -121,6 +121,7 @@ code_quality:
   variables:
     CODECLIMATE_REGISTRY_USERNAME: $CI_REGISTRY_USER
     CODECLIMATE_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+  rules:
 
 third-party-license-check:
   stage: test
