@@ -22,8 +22,8 @@
 
     <changeSet id="1725362715659-79" author="lisa.gebel">
         <createTable tableName="sealed_ecmr">
-            <column name="id" type="BIGINT">
-                <constraints primaryKey="true" nullable="false"/>
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKeyName="pk_sealed_ecmr" primaryKey="true" nullable="false"/>
             </column>
             <column name="ecmr_id" type="BIGINT"/>
             <column name="ecmr_sealing_metadata_entity_id" type="BIGINT"/>

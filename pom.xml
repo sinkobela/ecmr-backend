@@ -12,7 +12,7 @@
 
 	<groupId>org.openlogisticsfoundation.ecmr</groupId>
 	<artifactId>ecmr-backend</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.6-SNAPSHOT</version>
 	<name>ecmr-backend</name>
 	<description>Backend application for eCMR</description>
 
@@ -125,7 +125,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.1.0</version>
+			<version>2.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -44,10 +44,7 @@ import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
-import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
-import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
-import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
-import org.openlogisticsfoundation.ecmr.web.models.SignModel;
+import org.openlogisticsfoundation.ecmr.web.models.*;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -501,6 +498,51 @@ public class EcmrController {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
             return ResponseEntity.ok(this.ecmrSignService.signEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
                     ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (ValidationException | SignatureAlreadyPresentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
+    /**
+     * Signs the eCMR on glass
+     *
+     * @param ecmrId    The ID of the eCMR
+     * @param sealModel The seal model
+     * @return The created signature
+     */
+    @PostMapping("/{ecmrId}/seal")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        tags = "ECMR",
+        summary = "Seal eCMR",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the eCMR to seal", required = true, schema = @Schema(type = "string", format = "uuid"))
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = MediaType.APPLICATION_JSON_VALUE,
+            schema = @Schema(implementation = SealModel.class))),
+        responses = {
+            @ApiResponse(description = "The created signature",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = Signature.class))),
+            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+            @ApiResponse(description = "eCMR not found", responseCode = "404"),
+            @ApiResponse(description = "Validation error or signature already present", responseCode = "400"),
+            @ApiResponse(description = "Forbidden access", responseCode =
+                "403")
+        })
+    public ResponseEntity<Signature> seal(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SealModel sealModel) {
+        try {
+            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.ecmrSignService.sealEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
+                ecmrWebMapper.map(sealModel), SignatureType.ESeal));
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (EcmrNotFoundException e) {

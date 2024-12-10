@@ -23,14 +23,9 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.Signer;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
-import org.openlogisticsfoundation.ecmr.persistence.entities.CarrierInformationEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrMemberEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.GoodsReceivedEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.ItemEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.TakingOverTheGoodsEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.*;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.springframework.stereotype.Service;
 
@@ -44,58 +39,92 @@ public class EcmrSignService {
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final EcmrService ecmrService;
     private final AuthorisationService authorisationService;
+    private final ESealService eSealService;
 
+    // Todo: check whether the role is allowed to use the specific signature type
     @Transactional
     public Signature signEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
             throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
-        SignatureEntity signatureEntity = new SignatureEntity();
-        signatureEntity.setData(signCommand.getData());
-        signatureEntity.setTimestamp(Instant.now());
-        signatureEntity.setUserName(internalOrExternalUser.getFullName());
-        signatureEntity.setUserCountry((internalOrExternalUser.isInternalUser()) ? internalOrExternalUser.getInternalUser().getCountry().name() :
-                null);
-        signatureEntity.setSignatureType(signatureType);
-        signatureEntity.setUserCity(signCommand.getCity());
 
-        switch (signCommand.getSigner()) {
-        case Signer.Sender -> {
-            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
-                throw new NoPermissionException("Sender sign but no Sender Role");
-            }
-            if (ecmrEntity.getSenderInformation().getSignature() != null) {
-                throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
-            }
-            this.validateEcmrStatus(EcmrStatus.NEW, ecmrEntity);
-            this.validateFieldsSender(ecmrEntity);
-            ecmrEntity.getSenderInformation().setSignature(signatureEntity);
-        }
-        case Signer.Carrier -> {
-            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Carrier)) {
-                throw new NoPermissionException("Carrier sign but no Carrier Role");
-            }
-            if (ecmrEntity.getCarrierInformation().getSignature() != null) {
-                throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
-            }
-            this.validateEcmrStatus(EcmrStatus.LOADING, ecmrEntity);
-            ecmrEntity.getCarrierInformation().setSignature(signatureEntity);
-        }
-        case Signer.Consignee -> {
-            if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Consignee)) {
-                throw new NoPermissionException("Consignee sign but no Consignee Role");
-            }
-            if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
-                throw new SignatureAlreadyPresentException(ecmrId, signCommand.getSigner().name());
-            }
-            this.validateEcmrStatus(EcmrStatus.IN_TRANSPORT, ecmrEntity);
-            this.validateFieldsConsignee(ecmrEntity);
-            ecmrEntity.getConsigneeInformation().setSignature(signatureEntity);
-        }
-        default -> throw new ValidationException("Signature Type " + signCommand.getSigner().name() + " not valid");
-        }
+        SignatureEntity signatureEntity = createSignatureEntity(signCommand.getSigner(), ecmrEntity, internalOrExternalUser, signatureType, signCommand.getCity());
+        signatureEntity.setData(signCommand.getData());
 
         this.ecmrService.setEcmrStatus(ecmrEntity);
         return ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity);
+    }
+
+    // Todo: check whether the role is allowed to use the specific signature type
+    @Transactional
+    public Signature sealEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SealCommand sealCommand, SignatureType signatureType)
+        throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
+        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+
+        SignatureEntity signatureEntity = createSignatureEntity(sealCommand.getSigner(), ecmrEntity, internalOrExternalUser, signatureType, sealCommand.getCity());
+
+        SealedEcmrEntity sealedEcmr = new SealedEcmrEntity();
+        sealedEcmr.setEcmr(ecmrEntity);
+        EcmrSealingMetadataEntity metadata = new EcmrSealingMetadataEntity();
+        metadata.setSealer(sealCommand.getSigner().name());
+        metadata.setTimestamp(Instant.now());
+        sealedEcmr.setMetadata(metadata);
+
+        String seal = eSealService.sealEcmr(sealedEcmr, sealCommand.getPrecedingSeal());
+        signatureEntity.setData(seal);
+
+        this.ecmrService.setEcmrStatus(ecmrEntity);
+        return ecmrPersistenceMapper.signatureEntityToSignature(signatureEntity);
+    }
+
+    private SignatureEntity createSignatureEntity(Signer signer, EcmrEntity ecmrEntity, InternalOrExternalUser internalOrExternalUser, SignatureType signatureType, String city)
+        throws ValidationException, NoPermissionException, SignatureAlreadyPresentException {
+        UUID ecmrId = ecmrEntity.getEcmrId();
+        SignatureEntity signatureEntity = new SignatureEntity();
+
+        signatureEntity.setTimestamp(Instant.now());
+        signatureEntity.setUserName(internalOrExternalUser.getFullName());
+        signatureEntity.setUserCountry((internalOrExternalUser.isInternalUser()) ? internalOrExternalUser.getInternalUser().getCountry().name() :
+            null);
+        signatureEntity.setSignatureType(signatureType);
+        signatureEntity.setUserCity(city);
+
+        switch (signer) {
+            case Signer.Sender -> {
+                if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
+                    throw new NoPermissionException("Sender sign but no Sender Role");
+                }
+                if (ecmrEntity.getSenderInformation().getSignature() != null) {
+                    throw new SignatureAlreadyPresentException(ecmrId, signer.name());
+                }
+                this.validateEcmrStatus(EcmrStatus.NEW, ecmrEntity);
+                this.validateFieldsSender(ecmrEntity);
+                ecmrEntity.getSenderInformation().setSignature(signatureEntity);
+            }
+            case Signer.Carrier -> {
+                if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Carrier)) {
+                    throw new NoPermissionException("Carrier sign but no Carrier Role");
+                }
+                if (ecmrEntity.getCarrierInformation().getSignature() != null) {
+                    throw new SignatureAlreadyPresentException(ecmrId, signer.name());
+                }
+                this.validateEcmrStatus(EcmrStatus.LOADING, ecmrEntity);
+                ecmrEntity.getCarrierInformation().setSignature(signatureEntity);
+            }
+            case Signer.Consignee -> {
+                if(authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Consignee)) {
+                    throw new NoPermissionException("Consignee sign but no Consignee Role");
+                }
+                if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
+                    throw new SignatureAlreadyPresentException(ecmrId, signer.name());
+                }
+                this.validateEcmrStatus(EcmrStatus.IN_TRANSPORT, ecmrEntity);
+                this.validateFieldsConsignee(ecmrEntity);
+                ecmrEntity.getConsigneeInformation().setSignature(signatureEntity);
+            }
+            default -> throw new ValidationException("Signature Type " + signer.name() + " not valid");
+        }
+
+        return signatureEntity;
     }
 
     private void validateEcmrStatus(EcmrStatus requieredStatus, EcmrEntity ecmrEntity) throws ValidationException {
@@ -166,4 +195,5 @@ public class EcmrSignService {
             throw new ValidationException("Field in Item is missing");
         }
     }
+
 }

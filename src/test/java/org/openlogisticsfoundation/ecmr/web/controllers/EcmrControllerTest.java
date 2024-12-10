@@ -13,8 +13,9 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
-import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
+import org.openlogisticsfoundation.ecmr.web.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,9 +32,6 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.domain.models.*;
 import org.openlogisticsfoundation.ecmr.domain.services.*;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
-import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
-import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
-import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -78,6 +76,7 @@ public class EcmrControllerTest {
     private UUID ecmrId;
     private EcmrModel ecmrModel;
     private SignModel signModel;
+    private SealModel sealModel;
     private EcmrCommand ecmrCommand;
     private List<Long> groupIds;
     private String jsonRequest;
@@ -101,6 +100,7 @@ public class EcmrControllerTest {
         ecmrModel.setEcmrId(ecmrId.toString());
         ecmrModel.setEcmrConsignment(new EcmrConsignment());
         signModel = new SignModel(Signer.Consignee, "signatureData", "Sample City");
+        sealModel = new SealModel(Signer.Consignee, null, "Sample City");
         ecmrCommand = mock(EcmrCommand.class);
         groupIds = List.of(1L, 2L);
         jsonRequest = new ObjectMapper().writeValueAsString(ecmrModel);
@@ -307,6 +307,27 @@ public class EcmrControllerTest {
         verify(authenticationService, times(1)).getAuthenticatedUser();
         verify(ecmrWebMapper, times(1)).map(any(SignModel.class));
         verify(ecmrSignService, times(1)).signEcmr(any(), eq(ecmrId), eq(signCommand), eq(SignatureType.SignOnGlass));
+    }
+
+    @Test
+    @WithMockUser
+    public void testESeal_Success() throws Exception {
+        // Arrange
+        Signature signature = new Signature();
+        SealCommand sealCommand = new SealCommand(Signer.Sender, null, "Sample City");
+
+        when(ecmrWebMapper.map(any(SealModel.class))).thenReturn(sealCommand);
+        when(ecmrSignService.sealEcmr(any(), eq(ecmrId), eq(sealCommand), eq(SignatureType.ESeal))).thenReturn(signature);
+
+        String signJsonRequest = new ObjectMapper().writeValueAsString(sealModel);
+
+        // Act
+        mockMvc.perform(post("/ecmr/{ecmrId}/seal", ecmrId).contentType(MediaType.APPLICATION_JSON).content(signJsonRequest)).andExpect(status().isOk());
+
+        // Assert
+        verify(authenticationService, times(1)).getAuthenticatedUser();
+        verify(ecmrWebMapper, times(1)).map(any(SealModel.class));
+        verify(ecmrSignService, times(1)).sealEcmr(any(), eq(ecmrId), eq(sealCommand), eq(SignatureType.ESeal));
     }
 
     @Test

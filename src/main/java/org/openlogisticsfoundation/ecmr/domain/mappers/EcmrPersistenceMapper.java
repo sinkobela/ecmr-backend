@@ -13,6 +13,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.api.model.SealedEcmr;
 import org.openlogisticsfoundation.ecmr.api.model.areas.one.SenderInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.seven.SuccessiveCarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
@@ -24,14 +25,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.CustomChargeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
-import org.openlogisticsfoundation.ecmr.persistence.entities.CarrierInformationEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.ConsigneeInformationEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.CustomChargeEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.ItemEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SenderInformationEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SuccessiveCarrierInformationEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.*;
 
 @Mapper(componentModel = "spring")
 public interface EcmrPersistenceMapper {
@@ -162,4 +156,8 @@ public interface EcmrPersistenceMapper {
 
     @Mapping(target = "type", ignore = true)
     Signature signatureEntityToSignature(SignatureEntity signatureEntity);
+
+    SealedEcmrEntity toEntity(SealedEcmr sealedEcmr);
+
+    EcmrSealingMetadataEntity toEntity(SealedEcmr.Metadata sealedEcmrMetadata);
 }
