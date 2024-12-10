@@ -5,6 +5,7 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
+
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.*;
@@ -12,34 +13,23 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.Instant;
 
 @Entity
-@Table(name = "SEALED_DOCUMENT")
+@Table(name = "ECMR_SEALING_METADATA")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SealedDocumentEntity {
+public class EcmrSealingMetadataEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @CreationTimestamp
-    private Instant created;
-    @UpdateTimestamp
-    private Instant last_updated;
-    @Version
-    private Integer version;
-    @Lob
-    private String seal;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "sealed_ecmr_id")
-    private SealedEcmrEntity sealedEcmr;
+
+    @Column(name = "sealer", nullable = false)
+    private String sealer;
+
+    @Column(name = "timestamp", nullable = false)
+    private Instant timestamp;
 }
-
-
-
-

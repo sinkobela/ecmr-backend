@@ -12,34 +12,22 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
-@Table(name = "SEALED_DOCUMENT")
+@Table(name = "SEALED_ECMR")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SealedDocumentEntity {
+public class SealedEcmrEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @CreationTimestamp
-    private Instant created;
-    @UpdateTimestamp
-    private Instant last_updated;
-    @Version
-    private Integer version;
-    @Lob
-    private String seal;
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "sealed_ecmr_id")
-    private SealedEcmrEntity sealedEcmr;
+    @JoinColumn(name = "ecmr_id")
+    private EcmrEntity ecmr;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ecmr_sealing_metadata_entity_id")
+    private EcmrSealingMetadataEntity metadata;
 }
-
-
-
-

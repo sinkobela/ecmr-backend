@@ -12,7 +12,7 @@
 
 	<groupId>org.openlogisticsfoundation.ecmr</groupId>
 	<artifactId>ecmr-backend</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<name>ecmr-backend</name>
 	<description>Backend application for eCMR</description>
 
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>org.openlogisticsfoundation.ecmr.data-model</groupId>
             <artifactId>data-model</artifactId>
-            <version>0.2.17</version>
+            <version>0.3.1</version>
         </dependency>
 
         <dependency>

@@ -7,4 +7,5 @@
     <include file="db/init-data.xml"/>
     <include file="db/init-sealed-documents.xml"/>
     <include file="/db/update-custom-charge-value.xml"/>
+    <include file="/db/add-sealing-metadata.xml"/>
 </databaseChangeLog>
