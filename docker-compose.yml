@@ -18,6 +18,8 @@ services:
       dockerfile: Dockerfile-for-compose
     env_file:
       - config/backend-params.env
+    volumes:
+      - ./src/main/resources/eseal/test-keystore.jks:/data/test-keystore.jks
     network_mode: "service:localhost"
     depends_on:
       postgres:
