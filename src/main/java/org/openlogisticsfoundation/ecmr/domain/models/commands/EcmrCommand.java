@@ -76,4 +76,6 @@ public class EcmrCommand {
 
     @Size(min = 1, max = 35)
     private String referenceIdentificationNumber;
+
+    private String originUrl;
 }

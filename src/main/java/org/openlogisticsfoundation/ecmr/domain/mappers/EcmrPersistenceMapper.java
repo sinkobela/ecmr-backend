@@ -13,6 +13,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
 import org.openlogisticsfoundation.ecmr.api.model.SealedEcmr;
 import org.openlogisticsfoundation.ecmr.api.model.areas.one.SenderInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.seven.SuccessiveCarrierInformation;
@@ -160,4 +161,8 @@ public interface EcmrPersistenceMapper {
     SealedEcmrEntity toEntity(SealedEcmr sealedEcmr);
 
     EcmrSealingMetadataEntity toEntity(SealedEcmr.Metadata sealedEcmrMetadata);
+
+    SealedDocument toModel(SealedDocumentEntity sealedDocumentEntity);
+
+    SealedDocumentEntity toEntity(SealedDocument sealedDocument);
 }

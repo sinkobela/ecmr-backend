@@ -27,6 +27,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.*;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,9 @@ public class EcmrSignService {
     private final EcmrService ecmrService;
     private final AuthorisationService authorisationService;
     private final ESealService eSealService;
+
+    @Value("${app.origin.url}")
+    private String originUrl;
 
     // Todo: check whether the role is allowed to use the specific signature type
     @Transactional
@@ -59,6 +63,7 @@ public class EcmrSignService {
     public Signature sealEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SealCommand sealCommand, SignatureType signatureType)
         throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+        ecmrEntity.setOriginUrl(originUrl);
 
         SignatureEntity signatureEntity = createSignatureEntity(sealCommand.getSigner(), ecmrEntity, internalOrExternalUser, signatureType, sealCommand.getCity());
 

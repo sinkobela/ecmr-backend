@@ -43,6 +43,7 @@ public interface EcmrWebMapper {
     @Mapping(source = "ecmrConsignment.itemList", target = "itemList")
     @Mapping(source = "ecmrConsignment.toBePaidBy", target = "toBePaidBy")
     @Mapping(source = "ecmrConsignment.goodsReceived", target = "goodsReceived")
+    @Mapping(source = "originUrl", target = "originUrl")
     EcmrCommand toCommand(EcmrModel ecmrModel);
 
     @Mapping(source = "senderCountryCode.value", target = "countryCode")

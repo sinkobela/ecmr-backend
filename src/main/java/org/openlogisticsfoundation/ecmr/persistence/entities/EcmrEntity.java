@@ -143,6 +143,8 @@ public class EcmrEntity extends BaseEntity {
     private String shareWithConsigneeToken;
     private String shareWithReaderToken;
 
+    private String originUrl;
+
     @OneToOne(mappedBy = "ecmr")
     @JsonManagedReference
     private TemplateUserEntity template;
