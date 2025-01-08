@@ -74,27 +74,27 @@ include::06_runtime_view.adoc[]
 
 <<<
 // 7. Deployment View
-include::07_deployment_view.adoc[]
+// include::07_deployment_view.adoc[]
 
 <<<
 // 8. Concepts
-include::08_concepts.adoc[]
+// include::08_concepts.adoc[]
 
 <<<
 // 9. Design Decisions
-include::09_design_decisions.adoc[]
+// include::09_design_decisions.adoc[]
 
 <<<
 // 10. Quality Scenarios
-include::10_quality_scenarios.adoc[]
+// include::10_quality_scenarios.adoc[]
 
 <<<
 // 11. Technical Risks
-include::11_technical_risks.adoc[]
+// include::11_technical_risks.adoc[]
 
 <<<
 // 12. Tutorial
-include::12_tutorial.adoc[]
+// include::12_tutorial.adoc[]
 
 <<<
 // Glossary
