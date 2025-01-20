@@ -155,7 +155,7 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "shareWithConsigneeToken", ignore = true)
     EcmrEntity toEntity(@MappingTarget EcmrEntity ecmrEntity, EcmrCommand ecmrCommand, EcmrType ecmrType);
 
-    @Mapping(target = "type", ignore = true)
+    @Mapping(target = "type", source = "signatureType", ignore = false)
     Signature signatureEntityToSignature(SignatureEntity signatureEntity);
 
     SealedEcmrEntity toEntity(SealedEcmr sealedEcmr);
