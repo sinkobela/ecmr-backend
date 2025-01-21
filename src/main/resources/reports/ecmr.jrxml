@@ -1914,17 +1914,17 @@
 	<pageFooter>
 		<band height="36">
 			<textField>
-				<reportElement x="454" y="16" width="100" height="20" uuid="fa4f3aed-a86f-4925-a044-51b63b098b18"/>
+				<reportElement x="454" y="20" width="100" height="16" uuid="fa4f3aed-a86f-4925-a044-51b63b098b18"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="70" y="16" width="95" height="20" uuid="c38975c1-b182-4ff4-a631-8a0f19d94532"/>
+				<reportElement x="75" y="6" width="375" height="20" uuid="c38975c1-b182-4ff4-a631-8a0f19d94532"/>
 				<textElement verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{referenceId}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="16" width="70" height="20" uuid="c52dae29-1e15-414d-88eb-14fbff33aa13">
+				<reportElement x="0" y="6" width="70" height="20" uuid="c52dae29-1e15-414d-88eb-14fbff33aa13">
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -1941,7 +1941,7 @@
 				<text><![CDATA[Reference ID:]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="180" y="16" width="200" height="20" uuid="0e10c361-d58a-490c-9a55-28c1c3416db3"/>
+				<reportElement x="180" y="20" width="200" height="16" uuid="0e10c361-d58a-490c-9a55-28c1c3416db3"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="8"/>
 				</textElement>
