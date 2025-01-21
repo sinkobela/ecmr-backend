@@ -175,10 +175,16 @@ public class EcmrPdfService {
             Renderable renderableSignature =
                     this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
             parameters.put("carrierSignature", renderableSignature);
+
+            //Fields filled by the Consignee
             parameters.put("consigneeSigningLocation",
-                    ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getUserCity());
-            parameters.put("consigneeTimeOfArrival",
-                    Date.from(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getTimestamp()));
+                ecmrModel.getEcmrConsignment().getGoodsReceived().getConfirmedLogisticsLocationName());
+            if(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate() != null){
+                parameters.put("consigneeSignatureDate",
+                    Date.from(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate()));
+            }
+            parameters.put("consigneeReservationsObservations",
+                ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeReservationsObservations());
         }
 
         //Consignee Signature

@@ -96,6 +96,8 @@
 	<parameter name="carrierSignature" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSignature" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSigningLocation" class="java.lang.String"/>
+	<parameter name="consigneeSignatureDate" class="java.util.Date"/>
+	<parameter name="consigneeReservationsObservations" class="java.lang.String"/>
 	<parameter name="nonContractualCarrierRemarks" class="java.lang.String"/>
 	<parameter name="referenceId" class="java.lang.String"/>
 	<parameter name="ecmrId" class="java.lang.String"/>
@@ -1718,7 +1720,7 @@
 				</textField>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="650" width="184" height="75" uuid="4687e4f2-fa3e-4729-b435-084da6490c51">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="650" width="139" height="75" uuid="4687e4f2-fa3e-4729-b435-084da6490c51">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				</reportElement>
@@ -1730,7 +1732,7 @@
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<staticText>
-					<reportElement x="0" y="-15" width="184" height="15" uuid="84ebc0dd-6be8-4598-a29e-130003c28f88">
+					<reportElement x="0" y="-15" width="139" height="15" uuid="84ebc0dd-6be8-4598-a29e-130003c28f88">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -1748,12 +1750,12 @@
 					<text><![CDATA[22. Sender Signature]]></text>
 				</staticText>
 				<image>
-					<reportElement x="1" y="1" width="183" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
+					<reportElement x="1" y="1" width="138" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
 					<imageExpression><![CDATA[$P{senderSignature}]]></imageExpression>
 				</image>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="184" y="650" width="184" height="75" uuid="8397c233-4be7-43ad-8624-b1656a067659">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="139" y="650" width="139" height="75" uuid="8397c233-4be7-43ad-8624-b1656a067659">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1766,7 +1768,7 @@
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<staticText>
-					<reportElement x="0" y="-15" width="184" height="15" uuid="bd9bb8be-64fe-4157-b70b-e944ba463a3f">
+					<reportElement x="0" y="-15" width="139" height="15" uuid="bd9bb8be-64fe-4157-b70b-e944ba463a3f">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -1784,12 +1786,12 @@
 					<text><![CDATA[23. Carrier Signature]]></text>
 				</staticText>
 				<image>
-					<reportElement x="1" y="1" width="183" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
+					<reportElement x="1" y="1" width="138" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
 					<imageExpression><![CDATA[$P{carrierSignature}]]></imageExpression>
 				</image>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="368" y="650" width="186" height="110" uuid="384f651e-2009-4069-b49d-4c7ae7fe069e">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="278" y="650" width="276" height="110" uuid="384f651e-2009-4069-b49d-4c7ae7fe069e">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1802,7 +1804,7 @@
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<staticText>
-					<reportElement x="0" y="-15" width="186" height="15" uuid="b8a150ec-7ca7-42ec-afe6-8b067fadaa91">
+					<reportElement x="0" y="-15" width="276" height="15" uuid="b8a150ec-7ca7-42ec-afe6-8b067fadaa91">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -1852,7 +1854,7 @@
 					<text><![CDATA[On]]></text>
 				</staticText>
 				<textField isBlankWhenNull="true">
-					<reportElement x="30" y="15" width="156" height="15" uuid="332c6c74-882c-4e51-87fe-d8135d272ac7">
+					<reportElement x="30" y="15" width="246" height="15" uuid="332c6c74-882c-4e51-87fe-d8135d272ac7">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -1865,14 +1867,14 @@
 						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{consigneeTimeOfArrival}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{consigneeSignatureDate}]]></textFieldExpression>
 				</textField>
 				<image>
-					<reportElement x="1" y="37" width="183" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
+					<reportElement x="1" y="37" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
 					<imageExpression><![CDATA[$P{consigneeSignature}]]></imageExpression>
 				</image>
 				<textField isBlankWhenNull="true">
-					<reportElement x="30" y="0" width="156" height="15" uuid="35409fc2-d24d-4a22-a239-cf81b7abaf91">
+					<reportElement x="30" y="0" width="246" height="15" uuid="35409fc2-d24d-4a22-a239-cf81b7abaf91">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
@@ -1887,9 +1889,16 @@
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$P{consigneeSigningLocation}]]></textFieldExpression>
 				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="138" y="30" width="138" height="80" >
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$P{consigneeReservationsObservations}]]></textFieldExpression>
+				</textField>
 			</frame>
 			<frame>
-				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="725" width="368" height="35" uuid="1ce2519a-3b79-4072-b49a-e11b788de101">
+				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="0" y="725" width="278" height="35" uuid="1ce2519a-3b79-4072-b49a-e11b788de101">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1902,7 +1911,7 @@
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textField isBlankWhenNull="true">
-					<reportElement x="0" y="0" width="368" height="34" uuid="d811fbf3-35f4-4676-be72-478bb66256fa">
+					<reportElement x="0" y="0" width="278" height="34" uuid="d811fbf3-35f4-4676-be72-478bb66256fa">
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>
