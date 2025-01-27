@@ -19,6 +19,7 @@ import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.*;
 import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
 import org.openlogisticsfoundation.ecmr.web.models.SealModel;
+import org.openlogisticsfoundation.ecmr.web.models.SharedCarrierInformationModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 
 @Mapper(componentModel = "spring")
@@ -103,4 +104,8 @@ public interface EcmrWebMapper {
     SealCommand map(SealModel model);
 
     FilterRequestCommand map(FilterRequestModel model);
+
+    @Mapping(source = "carrierNameCompany", target = "carrierNameCompany")
+    @Mapping(source = "carrierNamePerson", target = "carrierNamePerson")
+    SharedCarrierInformationModel toSharedCarrierInformation(CarrierInformation value);
 }

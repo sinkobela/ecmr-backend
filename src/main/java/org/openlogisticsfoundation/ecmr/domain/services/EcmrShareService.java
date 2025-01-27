@@ -19,6 +19,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
@@ -85,6 +86,14 @@ public class EcmrShareService {
 
     @Value("${app.origin.url}")
     private String originUrl;
+
+    public CarrierInformation getEcmrCarrierInformation(UUID ecmrId, String ecmrToken) throws EcmrNotFoundException, ValidationException {
+        EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
+        if(!ecmrToken.equals(ecmrEntity.getShareWithCarrierToken())){
+            throw new ValidationException("Only carriers can register external users");
+        }
+        return ecmrPersistenceMapper.map(ecmrEntity.getCarrierInformation());
+    }
 
     public void registerExternalUser(@Valid ExternalUserRegistrationCommand command)
             throws EcmrNotFoundException, ValidationException, MessageProviderException, RateLimitException {

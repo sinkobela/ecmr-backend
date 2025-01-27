@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundException;
@@ -47,6 +48,7 @@ import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.mappers.ExternalUserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.ExternalUserRegistrationModel;
+import org.openlogisticsfoundation.ecmr.web.models.SharedCarrierInformationModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
@@ -131,6 +133,43 @@ public class AnonymousController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (RateLimitException e) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+        }
+    }
+
+    /**
+     * Retrieves ECMR carrier details for a given ECMR ID
+     *
+     * @param ecmrId The UUID of the ECMR.
+     * @param ecmrToken The carrier's share token of the ECMR.
+     * @return the ECMR carrier information.
+     */
+    @GetMapping(path = { "/ecmr-carrier/{ecmrId}/{ecmrToken}" })
+    @Operation(
+        tags = "Anonymous",
+        summary = "Get ECMR carrier information",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true,
+                schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "ecmrToken", description = "shareToken of the ECMR", required = true,
+                schema = @Schema(type = "string"))
+        },
+        responses = {
+            @ApiResponse(description = "ECMR carrier details", content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SharedCarrierInformationModel.class))),
+            @ApiResponse(description = "ECMR not found", responseCode = "404"),
+            @ApiResponse(description = "Validation error", responseCode = "400")
+        })
+    public ResponseEntity<SharedCarrierInformationModel> getEcmrCarrierInfo(@PathVariable(value = "ecmrId") UUID ecmrId,
+                                                                            @PathVariable(value = "ecmrToken") String ecmrToken) {
+        try {
+            CarrierInformation ecmrCarrierInformation = ecmrShareService.getEcmrCarrierInformation(ecmrId, ecmrToken);
+            SharedCarrierInformationModel sharedCarrierInformation =
+                ecmrWebMapper.toSharedCarrierInformation(ecmrCarrierInformation);
+            return ResponseEntity.ok(sharedCarrierInformation);
+        } catch (EcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
