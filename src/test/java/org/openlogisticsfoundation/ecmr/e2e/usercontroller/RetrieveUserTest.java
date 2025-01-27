@@ -62,6 +62,22 @@ public class RetrieveUserTest extends E2EBaseTest {
             .contentType(MediaType.APPLICATION_JSON_VALUE);
     }
 
+    // Get current user groups
+    @Test
+    void getCurrentGroups() {
+        given()
+                .accept(String.valueOf(MediaType.APPLICATION_JSON))
+                .header("Authorization", "Bearer " + userToken)
+                .port(randomServerPort)
+
+                .when()
+                .get("/api/user/current/groups")
+
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .contentType(MediaType.APPLICATION_JSON_VALUE);
+    }
+
     // Get all mails
     @Test
     void getAllMails() {
@@ -116,7 +132,7 @@ public class RetrieveUserTest extends E2EBaseTest {
     void getGroups_user() {
         given()
             .accept(String.valueOf(MediaType.APPLICATION_JSON))
-            .header("Authorization", "Bearer " + userToken)
+            .header("Authorization", "Bearer " + adminToken)
             .port(randomServerPort)
 
             .when()

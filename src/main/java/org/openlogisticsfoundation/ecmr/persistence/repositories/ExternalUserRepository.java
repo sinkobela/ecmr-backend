@@ -8,6 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,4 +22,6 @@ public interface ExternalUserRepository extends JpaRepository<ExternalUserEntity
     @Query("SELECT e FROM ExternalUserEntity e Inner Join EcmrAssignmentEntity a on e.id = a.externalUser.id "
             + "WHERE a.ecmr.ecmrId = :ecmrId AND e.tan = :tan ")
     Optional<ExternalUserEntity> findExtenalUserByTanAndEcmrId(String tan, UUID ecmrId);
+
+    List<ExternalUserEntity> findByPhone(String phone);
 }

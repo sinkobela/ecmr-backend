@@ -228,7 +228,7 @@ public class GroupController {
      * @return True if the group was deleted successfully
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     @Operation(
         tags = "Group",
         summary = "Delete Group",

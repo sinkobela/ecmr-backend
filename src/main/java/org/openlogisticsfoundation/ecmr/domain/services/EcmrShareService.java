@@ -14,32 +14,52 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import ecmr.seal.verify.rest.ESeal;
-import ecmr.seal.verify.rest.SealVerifyResult;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.RateLimitException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.*;
+import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.Group;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.MessageProviderException;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.PhoneMessageProvider;
-import org.openlogisticsfoundation.ecmr.persistence.entities.*;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.*;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.ExternalUserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedEcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.ExternalUserRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.SealedDocumentRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import ecmr.seal.verify.rest.ESeal;
+import ecmr.seal.verify.rest.SealVerifyResult;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +78,6 @@ public class EcmrShareService {
     private final ExternalEcmrInstanceService externalEcmrInstanceService;
     private final ESealService eSealService;
     private final EcmrWebMapper ecmrWebMapper;
-    private final EcmrRepository ecmrRepository;
     private final HistoryLogService historyLogService;
 
     @Value("${app.frontend-url}")
@@ -68,7 +87,7 @@ public class EcmrShareService {
     private String originUrl;
 
     public void registerExternalUser(@Valid ExternalUserRegistrationCommand command)
-            throws EcmrNotFoundException, ValidationException, MessageProviderException {
+            throws EcmrNotFoundException, ValidationException, MessageProviderException, RateLimitException {
         if (StringUtils.isBlank(command.getPhone())) {
             // Currently only phone is supported. Sharing an ecmr via e-mail could be a security risk
             throw new ValidationException("Phone must be filled");
@@ -78,6 +97,18 @@ public class EcmrShareService {
             // Currently this is only allowed for carriers
             throw new ValidationException("Only carriers can register external users");
         }
+
+        List<ExternalUserEntity> existingExternalUsersByPhone = this.externalUserRepository.findByPhone(command.getPhone()); //Deactivate all other tans for this phone
+        for (ExternalUserEntity externalUserEntity : existingExternalUsersByPhone) {
+            externalUserEntity.setActive(false);
+            externalUserRepository.save(externalUserEntity);
+        }
+
+        int registrationCountInLastHour = this.ecmrAssignmentRepository.countByEcmr_EcmrIdAndExternalUser_CreationTimestampGreaterThan(command.getEcmrId(), Instant.now().minusSeconds(3600));
+        if (registrationCountInLastHour > 10) {
+            throw new RateLimitException("More than 10 registrations within last hour");
+        }
+
         String tan = RandomStringUtils.randomNumeric(6);
         final ExternalUserEntity externalUserEntity = createAndSaveExternalUser(command, tan);
 
@@ -98,6 +129,8 @@ public class EcmrShareService {
         externalUserEntity.setEmail(command.getEmail());
         externalUserEntity.setTan(tan);
         externalUserEntity.setTanValidUntil(tanValidUntil);
+        externalUserEntity.setCreationTimestamp(Instant.now());
+        externalUserEntity.setActive(true);
         return externalUserRepository.save(externalUserEntity);
     }
 
@@ -161,7 +194,7 @@ public class EcmrShareService {
             userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndGroup_idInAndRole(ecmrId,
                     groupIds, roleToChange);
         } else {
-            userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndRole(
+            userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndRoleAndExternalUser_IsActiveTrue(
                     ecmrId, internalOrExternalUser.getExternalUser().getTan(), roleToChange);
         }
         userAssignments.forEach(userAssignment -> userAssignment.setRole(EcmrRole.Reader));
@@ -202,7 +235,7 @@ public class EcmrShareService {
     }
 
     public EcmrModel importEcmr(AuthenticatedUser authenticatedUser, UUID ecmrId, String shareToken)
-        throws EcmrNotFoundException, ValidationException, UserNotFoundException {
+            throws EcmrNotFoundException, ValidationException, UserNotFoundException {
         EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
 
         if (!shareToken.equals(ecmrEntity.getShareWithReaderToken())) {
@@ -210,7 +243,7 @@ public class EcmrShareService {
         }
 
         UserEntity userEntity = userRepository.findById(authenticatedUser.getUser().getId())
-            .orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
+                .orElseThrow(() -> new UserNotFoundException(authenticatedUser.getUser().getId()));
 
         if (userEntity.getDefaultGroup() == null) {
             throw new ValidationException("No Default Group");
@@ -223,7 +256,7 @@ public class EcmrShareService {
 
     @Transactional
     public SealedDocument exportEcmrToExternal(UUID ecmrId, String shareToken)
-        throws ValidationException {
+            throws ValidationException {
 
         SealedDocumentEntity sealedDocumentEntity = sealedDocumentRepository.findByEcmrId(ecmrId).orElseThrow();
 
@@ -237,13 +270,13 @@ public class EcmrShareService {
     // import existing ecmr from external instance and save it initially on this instance
     @Transactional
     public void importEcmrFromExternal(String url, UUID ecmrId, String shareToken, List<Long> groupIds, AuthenticatedUser authenticatedUser)
-        throws InvalidInputException, NoPermissionException {
+            throws InvalidInputException, NoPermissionException {
         // 1. call export endpoint from external instance
         SealedDocument sealedDocument = externalEcmrInstanceService.importEcmr(url, ecmrId, shareToken);
 
         // 2. verify sealed document before calling any internal functions
         ESeal seal = new ESeal(sealedDocument.getSeal(), null);
-        if( eSealService.verify(List.of(seal)) != SealVerifyResult.VALID) {
+        if (eSealService.verify(List.of(seal)) != SealVerifyResult.VALID) {
             throw new InvalidInputException("Invalid input data");
         }
 
@@ -270,7 +303,7 @@ public class EcmrShareService {
         entity.setShareWithReaderToken(RandomStringUtils.randomAlphanumeric(4));
 
         // create SealedDocumentEntity for storing sealed document
-        SealedDocumentEntity sealedDocumentEntity= ecmrPersistenceMapper.toEntity(sealedDocument);
+        SealedDocumentEntity sealedDocumentEntity = ecmrPersistenceMapper.toEntity(sealedDocument);
         SealedEcmrEntity sealedEcmr = sealedDocumentEntity.getSealedEcmr();
         sealedEcmr.setEcmr(entity);
         sealedDocumentEntity.setSealedEcmr(sealedEcmr);

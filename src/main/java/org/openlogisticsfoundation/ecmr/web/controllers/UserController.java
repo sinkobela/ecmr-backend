@@ -73,6 +73,33 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves the groups of the currently authenticated user.
+     *
+     * @return The authenticated user.
+     */
+    @GetMapping("/current/groups")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            tags = "User",
+            summary = "Get Groups of the current User",
+            responses = {
+                    @ApiResponse(description = "Groups of authenticated user",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = AuthenticatedUser.class))),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401")
+            })
+    public ResponseEntity<List<Group>> getCurrentUserGroups() {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            List<Group> groups = this.userService.getGroupsByUserId(authenticatedUser.getUser().getId());
+            return ResponseEntity.ok(groups);
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
 
     /**
      * Retrieves all user emails.
@@ -204,7 +231,7 @@ public class UserController {
      * @return List of groups for the user.
      */
     @GetMapping("/{id}/groups")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() && hasRole('Admin')")
     @Operation(
         tags = "User",
         summary = "Get Groups for User",

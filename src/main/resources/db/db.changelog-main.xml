@@ -9,4 +9,5 @@
     <include file="/db/update-custom-charge-value.xml"/>
     <include file="/db/add-sealing-metadata.xml"/>
     <include file="/db/add-origin-url.xml"/>
+    <include file="/db/security-fixes.xml"/>
 </databaseChangeLog>

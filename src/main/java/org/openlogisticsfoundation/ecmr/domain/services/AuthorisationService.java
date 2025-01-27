@@ -47,7 +47,7 @@ public class AuthorisationService {
     private final GroupService groupService;
 
     public boolean tanValid(UUID ecmrId, String tan) {
-        return assignmentRepository.existsByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan);
+        return assignmentRepository.existsByEcmr_EcmrIdAndExternalUser_TanAndExternalUser_IsActiveTrue(ecmrId, tan);
     }
 
     @Transactional
@@ -93,7 +93,7 @@ public class AuthorisationService {
 
     @Transactional
     private List<EcmrRole> getRolesOfExternalUser(String tan, UUID ecmrId) {
-        return this.assignmentRepository.findByEcmr_EcmrIdAndExternalUser_Tan(ecmrId, tan)
+        return this.assignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndExternalUser_IsActiveTrue(ecmrId, tan)
                 .stream()
                 .map(EcmrAssignmentEntity::getRole).toList();
     }

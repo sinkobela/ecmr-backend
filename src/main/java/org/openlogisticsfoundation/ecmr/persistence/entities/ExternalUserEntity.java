@@ -31,4 +31,6 @@ public class ExternalUserEntity extends BaseEntity {
     private String phone;
     private String tan;
     private Instant tanValidUntil;
+    private Instant creationTimestamp;
+    private boolean isActive;
 }

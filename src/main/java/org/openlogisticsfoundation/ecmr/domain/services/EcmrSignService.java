@@ -49,6 +49,10 @@ public class EcmrSignService {
     @Transactional
     public Signature signEcmr(InternalOrExternalUser internalOrExternalUser, UUID ecmrId, SignCommand signCommand, SignatureType signatureType)
             throws EcmrNotFoundException, SignatureAlreadyPresentException, ValidationException, NoPermissionException {
+        if (signCommand.getData() != null && !signCommand.getData().startsWith("data:image/png;base64,iVBORw")) { // Base64 "iVBORw" are the magic bytes of a png file
+            throw new ValidationException("Signature data has to be in base64 png format.");
+        }
+
         EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
 
         SignatureEntity signatureEntity = createSignatureEntity(signCommand.getSigner(), ecmrEntity, internalOrExternalUser, signatureType, signCommand.getCity());
