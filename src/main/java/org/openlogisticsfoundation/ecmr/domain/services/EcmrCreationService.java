@@ -67,10 +67,10 @@ public class EcmrCreationService {
 
     private EcmrEntity createEcmr(EcmrCommand ecmrCommand, EcmrType type, AuthenticatedUser authenticatedUser) {
         EcmrEntity ecmrEntity = this.persistenceMapper.toEntity(ecmrCommand, type, EcmrStatus.NEW);
-        ecmrEntity.setShareWithSenderToken(RandomStringUtils.randomAlphanumeric(4));
-        ecmrEntity.setShareWithCarrierToken(RandomStringUtils.randomAlphanumeric(4));
-        ecmrEntity.setShareWithConsigneeToken(RandomStringUtils.randomAlphanumeric(4));
-        ecmrEntity.setShareWithReaderToken(RandomStringUtils.randomAlphanumeric(4));
+        ecmrEntity.setShareWithSenderToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        ecmrEntity.setShareWithCarrierToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        ecmrEntity.setShareWithConsigneeToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        ecmrEntity.setShareWithReaderToken(RandomStringUtils.secure().nextAlphanumeric(4));
 
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmrEntity.setCreatedBy(fullName);

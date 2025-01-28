@@ -316,10 +316,10 @@ public class EcmrShareService {
         entity.setOriginUrl(sealedDocument.getSealedEcmr().getEcmr().getOriginUrl());
 
         // create shared token for received ecmr
-        entity.setShareWithSenderToken(RandomStringUtils.randomAlphanumeric(4));
-        entity.setShareWithCarrierToken(RandomStringUtils.randomAlphanumeric(4));
-        entity.setShareWithConsigneeToken(RandomStringUtils.randomAlphanumeric(4));
-        entity.setShareWithReaderToken(RandomStringUtils.randomAlphanumeric(4));
+        entity.setShareWithSenderToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        entity.setShareWithCarrierToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        entity.setShareWithConsigneeToken(RandomStringUtils.secure().nextAlphanumeric(4));
+        entity.setShareWithReaderToken(RandomStringUtils.secure().nextAlphanumeric(4));
 
         // create SealedDocumentEntity for storing sealed document
         SealedDocumentEntity sealedDocumentEntity = ecmrPersistenceMapper.toEntity(sealedDocument);
