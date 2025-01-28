@@ -8,10 +8,10 @@
 
 package org.openlogisticsfoundation.ecmr.domain.exceptions;
 
-public class ExternalUserNotFoundException extends Exception {
+public class ExternalUserInvalidTanException extends Exception {
 
-    public ExternalUserNotFoundException(String userToken) {
-        super("User with userToken " + userToken + " not found");
+    public ExternalUserInvalidTanException(String userToken) {
+        super("Tan does not match for user with user token " + userToken);
     }
 
 }

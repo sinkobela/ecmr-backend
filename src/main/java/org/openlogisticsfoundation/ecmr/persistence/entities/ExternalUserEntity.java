@@ -30,7 +30,9 @@ public class ExternalUserEntity extends BaseEntity {
     private String email;
     private String phone;
     private String tan;
+    private String userToken;
     private Instant tanValidUntil;
     private Instant creationTimestamp;
     private boolean isActive;
+    private int invalidLoginCount;
 }

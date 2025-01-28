@@ -46,8 +46,8 @@ public class AuthorisationService {
     private final EcmrAssignmentRepository assignmentRepository;
     private final GroupService groupService;
 
-    public boolean tanValid(UUID ecmrId, String tan) {
-        return assignmentRepository.existsByEcmr_EcmrIdAndExternalUser_TanAndExternalUser_IsActiveTrue(ecmrId, tan);
+    public boolean tanValid(UUID ecmrId, String userToken, String tan) {
+        return !assignmentRepository.findByExternalUser(ecmrId, userToken, tan).isEmpty();
     }
 
     @Transactional
@@ -79,7 +79,7 @@ public class AuthorisationService {
         if (internalOrExternalUser.isInternalUser()) {
             return getRolesOfInternalUser(internalOrExternalUser.getInternalUser().getId(), ecmrId);
         } else {
-            return getRolesOfExternalUser(internalOrExternalUser.getExternalUser().getTan(), ecmrId);
+            return getRolesOfExternalUser(internalOrExternalUser.getExternalUser().getUserToken(), internalOrExternalUser.getExternalUser().getTan(), ecmrId);
         }
     }
 
@@ -92,8 +92,8 @@ public class AuthorisationService {
     }
 
     @Transactional
-    private List<EcmrRole> getRolesOfExternalUser(String tan, UUID ecmrId) {
-        return this.assignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndExternalUser_IsActiveTrue(ecmrId, tan)
+    private List<EcmrRole> getRolesOfExternalUser(String userToken, String tan, UUID ecmrId) {
+        return this.assignmentRepository.findByExternalUser(ecmrId, userToken, tan)
                 .stream()
                 .map(EcmrAssignmentEntity::getRole).toList();
     }

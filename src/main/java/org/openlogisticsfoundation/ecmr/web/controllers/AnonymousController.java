@@ -24,6 +24,7 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserInvalidTanException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
@@ -48,6 +49,7 @@ import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.mappers.ExternalUserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.ExternalUserRegistrationModel;
+import org.openlogisticsfoundation.ecmr.web.models.ExternalUserRegistrationResponseModel;
 import org.openlogisticsfoundation.ecmr.web.models.SharedCarrierInformationModel;
 import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
@@ -94,10 +96,10 @@ public class AnonymousController {
                 content = @Content(mediaType = "application/json", schema = @Schema(type = "boolean"))),
             @ApiResponse(description = "ECMR not found", responseCode = "404"),
         })
-    public ResponseEntity<Boolean> isTanValid(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId,
+    public ResponseEntity<Boolean> isTanValid(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId, @RequestParam(name = "userToken") @NotNull @Valid String userToken,
             @RequestParam(name = "tan") @NotNull @Valid String tan) {
         try {
-            return ResponseEntity.ok(this.externalUserService.isTanValid(ecmrId, tan));
+            return ResponseEntity.ok(this.externalUserService.isTanValid(ecmrId, userToken, tan));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
@@ -107,6 +109,7 @@ public class AnonymousController {
      * Registers an external user.
      *
      * @param externalUserRegistrationModel The registration details of the external user.
+     * @return User token
      */
     @PostMapping("/registration")
     @Operation(
@@ -121,10 +124,11 @@ public class AnonymousController {
             @ApiResponse(description = "Validation error", responseCode = "400"),
             @ApiResponse(description = "Internal server error", responseCode = "500")
         })
-    public void registerExternalUser(@Valid @RequestBody ExternalUserRegistrationModel externalUserRegistrationModel) {
+    public ResponseEntity<ExternalUserRegistrationResponseModel> registerExternalUser(@Valid @RequestBody ExternalUserRegistrationModel externalUserRegistrationModel) {
         try {
             ExternalUserRegistrationCommand command = externalUserWebMapper.map(externalUserRegistrationModel);
-            this.ecmrShareService.registerExternalUser(command);
+            String userToken = this.ecmrShareService.registerExternalUser(command);
+            return ResponseEntity.ok(new ExternalUserRegistrationResponseModel(command.getEcmrId(), userToken));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (ValidationException e) {
@@ -177,6 +181,7 @@ public class AnonymousController {
      * Retrieves ECMR details for a given ECMR ID.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @return The ECMR model.
      */
@@ -196,16 +201,16 @@ public class AnonymousController {
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
     public ResponseEntity<EcmrModel> getEcmrWith(@PathVariable(value = "ecmrId") UUID ecmrId,
-            @RequestParam(name = "tan") @Valid @NotNull String tan) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
-            ExternalUser externalUser = authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = authenticationService.getExternalUser(ecmrId, userToken, tan);
             EcmrModel ecmrModel = this.ecmrService.getEcmr(ecmrId, new InternalOrExternalUser(externalUser));
             return ResponseEntity.ok(ecmrModel);
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -214,6 +219,7 @@ public class AnonymousController {
      * Updates an ECMR.
      *
      * @param tan The TAN for validation.
+     * @param userToken Unique token of the external user.
      * @param ecmrModel The ECMR model to update.
      * @return The updated ECMR model.
      */
@@ -222,6 +228,7 @@ public class AnonymousController {
         tags = "Anonymous",
         summary = "Update ECMR",
         parameters = {
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
         },
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
@@ -234,11 +241,11 @@ public class AnonymousController {
             @ApiResponse(description = "No permission", responseCode = "403"),
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
-    public ResponseEntity<EcmrModel> updateEcmr(@RequestParam(name = "tan") @Valid @NotNull String tan,
+    public ResponseEntity<EcmrModel> updateEcmr(@RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan,
             @RequestBody EcmrModel ecmrModel) {
         try {
             UUID ecmrId = UUID.fromString(ecmrModel.getEcmrId());
-            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
             EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
             EcmrModel result = this.ecmrUpdateService.updateEcmr(ecmrCommand, ecmrId, new InternalOrExternalUser(externalUser));
             return ResponseEntity.ok(result);
@@ -246,7 +253,7 @@ public class AnonymousController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -255,6 +262,7 @@ public class AnonymousController {
      * Signs an ECMR on glass.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @param signModel The sign model containing signature data.
      * @return The signature result.
@@ -265,6 +273,7 @@ public class AnonymousController {
         summary = "Sign ECMR On Glass",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
         },
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
@@ -280,9 +289,9 @@ public class AnonymousController {
             @ApiResponse(description = "Signature already present", responseCode = "400")
         })
     public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId,
-            @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid @NotNull SignModel signModel) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid @NotNull SignModel signModel) {
         try {
-            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
             return ResponseEntity.ok(this.ecmrSignService.signEcmr(new InternalOrExternalUser(externalUser), ecmrId,
                     ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
         } catch (EcmrNotFoundException e) {
@@ -291,7 +300,7 @@ public class AnonymousController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -300,6 +309,7 @@ public class AnonymousController {
      * Retrieves a share token for an ECMR.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @param ecmrRole The role for the ECMR.
      * @return The share token.
@@ -310,6 +320,7 @@ public class AnonymousController {
         summary = "Get Share Token for ECMR",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "ecmrRole", description = "Role for the ECMR", required = true, schema = @Schema(implementation = EcmrRole.class))
         },
@@ -321,15 +332,15 @@ public class AnonymousController {
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
     public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam(name = "tan") @Valid @NotNull String tan,
-            @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
         try {
-            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
             return ResponseEntity.ok(this.ecmrShareService.getShareToken(ecmrId, ecmrRole, new InternalOrExternalUser(externalUser)));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -338,6 +349,7 @@ public class AnonymousController {
      * Shares an ECMR.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @param ecmrShareModel The share model containing email and role.
      * @return The share response.
@@ -348,6 +360,7 @@ public class AnonymousController {
         summary = "Share ECMR",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
         },
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
@@ -363,9 +376,9 @@ public class AnonymousController {
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
     public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId,
-            @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid EcmrShareModel ecmrShareModel) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan, @RequestBody @Valid EcmrShareModel ecmrShareModel) {
         try {
-            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
             return ResponseEntity.ok(
                     this.ecmrShareService.shareEcmr(new InternalOrExternalUser(externalUser), ecmrId, ecmrShareModel.getEmail(),
                             ecmrShareModel.getRole()));
@@ -377,7 +390,7 @@ public class AnonymousController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -386,6 +399,7 @@ public class AnonymousController {
      * Downloads the ECMR PDF file.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @return The ECMR PDF file as a StreamingResponseBody.
      */
@@ -395,6 +409,7 @@ public class AnonymousController {
         summary = "Download ECMR PDF",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
         },
         responses = {
@@ -406,9 +421,9 @@ public class AnonymousController {
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID ecmrId,
-            @RequestParam(name = "tan") @Valid @NotNull String tan) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
-            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
             PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser));
             return createPdfResponse(ecmrReport);
         } catch (NoPermissionException e) {
@@ -417,7 +432,7 @@ public class AnonymousController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
@@ -462,6 +477,7 @@ public class AnonymousController {
      * Retrieves the ECMR roles for an external user.
      *
      * @param ecmrId The UUID of the ECMR.
+     * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
      * @return A list of ECMR roles.
      */
@@ -471,6 +487,7 @@ public class AnonymousController {
         summary = "Get External User ECMR Roles",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
             @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
         },
         responses = {
@@ -480,13 +497,13 @@ public class AnonymousController {
             @ApiResponse(description = "External user not found", responseCode = "401")
         })
     public ResponseEntity<List<EcmrRole>> getExternalUserEcmrRoles(@RequestParam(name = "ecmrId") @Valid @NotNull UUID ecmrId,
-            @RequestParam(name = "tan") @NotNull @Valid String tan) {
+            @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @NotNull @Valid String tan) {
         try {
-            ExternalUser externalUser = authenticationService.getExternalUser(ecmrId, tan);
+            ExternalUser externalUser = authenticationService.getExternalUser(ecmrId, userToken, tan);
             return ResponseEntity.ok(this.ecmrService.getCurrentEcmrRoles(ecmrId, new InternalOrExternalUser(externalUser)));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (ExternalUserNotFoundException e) {
+        } catch (ExternalUserNotFoundException | ExternalUserInvalidTanException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }

@@ -20,8 +20,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExternalUserRepository extends JpaRepository<ExternalUserEntity, Long> {
     @Query("SELECT e FROM ExternalUserEntity e Inner Join EcmrAssignmentEntity a on e.id = a.externalUser.id "
-            + "WHERE a.ecmr.ecmrId = :ecmrId AND e.tan = :tan ")
-    Optional<ExternalUserEntity> findExtenalUserByTanAndEcmrId(String tan, UUID ecmrId);
+            + "WHERE a.ecmr.ecmrId = :ecmrId AND e.userToken = :userToken AND e.isActive = true")
+    Optional<ExternalUserEntity> findExtenalUserByUserTokenAndEcmrId(String userToken,  UUID ecmrId);
 
     List<ExternalUserEntity> findByPhone(String phone);
 }

@@ -10,6 +10,7 @@ package org.openlogisticsfoundation.ecmr.web.services;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserInvalidTanException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -76,8 +77,8 @@ public class AuthenticationService {
         }
     }
 
-    public ExternalUser getExternalUser(UUID ecmrId, String tan) throws ExternalUserNotFoundException {
-        return this.externalUserService.findExternalUser(ecmrId, tan);
+    public ExternalUser getExternalUser(UUID ecmrId, String userToken, String tan) throws ExternalUserNotFoundException, ExternalUserInvalidTanException {
+        return this.externalUserService.findExternalUser(ecmrId, userToken, tan);
     }
 
     private Authentication getAuthentication() throws AuthenticationException {

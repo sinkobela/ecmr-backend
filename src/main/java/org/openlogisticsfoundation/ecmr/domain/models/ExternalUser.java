@@ -21,6 +21,7 @@ public class ExternalUser {
     private String company;
     private String email;
     private String phone;
+    private String userToken;
     private String tan;
     private Instant tanValidUntil;
 }

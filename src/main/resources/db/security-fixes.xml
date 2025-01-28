@@ -13,5 +13,32 @@
     <changeSet id="1736944448881-22" author="artur.blek">
         <addNotNullConstraint columnDataType="BOOLEAN" columnName="is_active" tableName="ecmr_external_user"/>
     </changeSet>
+    <changeSet id="1737969431878-20" author="Artur.Blek">
+        <addColumn tableName="ecmr_external_user">
+            <column name="user_token"
+                    type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1738058765603-20"
+               author="Artur.Blek">
+        <addColumn tableName="ecmr_external_user">
+            <column name="invalid_login_count"
+                    type="INT"
+                    defaultValue="0"
+            />
+        </addColumn>
+        <update tableName="ecmr_external_user">
+            <column name="invalid_login_count" value="0" />
+        </update>
 
+        <rollback>
+            <dropColumn tableName="ecmr_external_user" columnName="invalid_login_count" />
+        </rollback>
+    </changeSet>
+    <changeSet id="1738058765603-21"
+               author="Artur.Blek">
+        <addNotNullConstraint columnDataType="INT"
+                              columnName="invalid_login_count"
+                              tableName="ecmr_external_user"/>
+    </changeSet>
 </databaseChangeLog>

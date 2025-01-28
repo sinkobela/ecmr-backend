@@ -83,6 +83,9 @@ public class AnonymousControllerTest {
 
     private ExternalUserRegistrationModel registrationModel;
 
+    private final String validTan = "valid-tan";
+    private final String validUserToken = "user-token";
+
     @BeforeEach
     void setUp() {
         registrationModel = new ExternalUserRegistrationModel(UUID.randomUUID(), "valid_share_token", "John", "Doe", "Example Company", "john.doe@example.com", "123456789");
@@ -92,14 +95,17 @@ public class AnonymousControllerTest {
     public void testIsTanValid_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
-        String tan = "valid-tan";
-        when(externalUserService.isTanValid(ecmrId, tan)).thenReturn(true);
+        when(externalUserService.isTanValid(ecmrId, validUserToken, validTan)).thenReturn(true);
 
         // Act
-        mockMvc.perform(get("/anonymous/is-tan-valid").param("ecmrId", ecmrId.toString()).param("tan", tan)).andExpect(status().isOk());
+        mockMvc.perform(get("/anonymous/is-tan-valid")
+                .param("ecmrId", ecmrId.toString())
+                .param("userToken", validUserToken)
+                .param("tan", validTan)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(externalUserService, times(1)).isTanValid(ecmrId, tan);
+        verify(externalUserService, times(1)).isTanValid(ecmrId, validUserToken, validTan);
     }
 
     @Test
@@ -108,7 +114,7 @@ public class AnonymousControllerTest {
         ExternalUserRegistrationCommand command = new ExternalUserRegistrationCommand(registrationModel.getEcmrId(), registrationModel.getShareToken(), registrationModel.getFirstName(), registrationModel.getLastName(), registrationModel.getCompany(), registrationModel.getEmail(), registrationModel.getPhone());
 
         when(externalUserWebMapper.map(any())).thenReturn(command);
-        doNothing().when(ecmrShareService).registerExternalUser(command);
+        when(ecmrShareService.registerExternalUser(command)).thenReturn(validUserToken);
 
         String jsonRequest = new ObjectMapper().writeValueAsString(registrationModel);
 
@@ -124,19 +130,22 @@ public class AnonymousControllerTest {
     public void testGetEcmrWith_Success() throws Exception {
             // Arrange
         UUID ecmrId = UUID.randomUUID();
-        String tan = "valid-tan";
-        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", tan, Instant.now().plusSeconds(3600));
+        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
         EcmrModel ecmrModel = new EcmrModel();
 
-        when(authenticationService.getExternalUser(eq(ecmrId), eq(tan))).thenReturn(externalUser);
+        when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan))).thenReturn(externalUser);
         when(ecmrService.getEcmr(eq(ecmrId), any(InternalOrExternalUser.class))).thenReturn(ecmrModel);
 
         // Act
-        mockMvc.perform(get("/anonymous/ecmr/{ecmrId}", ecmrId).param("tan", tan).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        mockMvc.perform(get("/anonymous/ecmr/{ecmrId}", ecmrId)
+                        .param("tan", validTan)
+                        .param("userToken", validUserToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(tan));
+        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
         verify(ecmrService, times(1)).getEcmr(eq(ecmrId), any(InternalOrExternalUser.class));
     }
 
@@ -144,28 +153,33 @@ public class AnonymousControllerTest {
     public void testUpdateEcmr_Success() throws Exception {
         // Arrange
 
-        String tan = "valid-tan";
         EcmrConsignment ecmrConsignment = new EcmrConsignment();
         EcmrModel ecmrModel = new EcmrModel();
         ecmrModel.setEcmrId("7f965664-da65-41c4-b155-2481f77678ef");
         ecmrModel.setEcmrConsignment(ecmrConsignment);
 
 
-        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", tan, Instant.now().plusSeconds(3600));
+        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
         EcmrCommand ecmrCommand = mock(EcmrCommand.class);
 
-        when(authenticationService.getExternalUser(eq(UUID.fromString(ecmrModel.getEcmrId())), eq(tan))).thenReturn(externalUser);
+        when(authenticationService.getExternalUser(eq(UUID.fromString(ecmrModel.getEcmrId())), eq(validUserToken), eq(validTan))).thenReturn(externalUser);
         when(ecmrWebMapper.toCommand(ecmrModel)).thenReturn(ecmrCommand);
         when(ecmrUpdateService.updateEcmr(eq(ecmrCommand), eq(UUID.fromString(ecmrModel.getEcmrId())), any(InternalOrExternalUser.class))).thenReturn(ecmrModel);
 
         String jsonRequest = new ObjectMapper().writeValueAsString(ecmrModel);
 
         // Act
-        mockMvc.perform(put("/anonymous/ecmr").characterEncoding("UTF-8").param("tan", tan).contentType(MediaType.APPLICATION_JSON).content(jsonRequest)).andExpect(status().isOk());
+        mockMvc.perform(put("/anonymous/ecmr")
+                .characterEncoding("UTF-8")
+                .param("userToken", validUserToken)
+                .param("tan", validTan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(authenticationService, times(1)).getExternalUser(eq(UUID.fromString(ecmrModel.getEcmrId())), eq(tan));
+        verify(authenticationService, times(1)).getExternalUser(eq(UUID.fromString(ecmrModel.getEcmrId())), eq(validUserToken), eq(validTan));
         verify(ecmrWebMapper, times(1)).toCommand(ecmrModel);
         verify(ecmrUpdateService, times(1)).updateEcmr(eq(ecmrCommand), eq(UUID.fromString(ecmrModel.getEcmrId())), any(InternalOrExternalUser.class));
     }
@@ -174,26 +188,31 @@ public class AnonymousControllerTest {
     public void testSignOnGlass_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
-        String tan = "valid-tan";
         SignModel signModel = new SignModel(Signer.Consignee, "signatureData", "Sample City");
 
-        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", tan, Instant.now().plusSeconds(3600));
+        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
         SignCommand signCommand = new SignCommand(Signer.Sender, "signatureData", "Sample City");
 
         Signature signature = new Signature();
 
-        when(authenticationService.getExternalUser(eq(ecmrId), eq(tan))).thenReturn(externalUser);
+        when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken) ,eq(validTan))).thenReturn(externalUser);
         when(ecmrWebMapper.map(any(SignModel.class))).thenReturn(signCommand);
         when(ecmrSignService.signEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(signCommand), eq(SignatureType.SignOnGlass))).thenReturn(signature);
 
         String jsonRequest = new ObjectMapper().writeValueAsString(signModel);
 
         // Act
-        mockMvc.perform(post("/anonymous/ecmr/{ecmrId}/sign-on-glass", ecmrId).characterEncoding("UTF-8").param("tan", tan).contentType(MediaType.APPLICATION_JSON).content(jsonRequest)).andExpect(status().isOk());
+        mockMvc.perform(post("/anonymous/ecmr/{ecmrId}/sign-on-glass", ecmrId)
+                .characterEncoding("UTF-8")
+                .param("userToken", validUserToken)
+                .param("tan", validTan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(tan));
+        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
         verify(ecmrWebMapper, times(1)).map(any(SignModel.class));
         verify(ecmrSignService, times(1)).signEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(signCommand), eq(SignatureType.SignOnGlass));
     }
@@ -202,19 +221,23 @@ public class AnonymousControllerTest {
     public void testGetShareToken_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
-        String tan = "valid-tan";
         EcmrRole role = EcmrRole.Consignee;
-        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", tan, Instant.now().plusSeconds(3600));
+        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
         String shareToken = "share-token";
 
-        when(authenticationService.getExternalUser(eq(ecmrId), eq(tan))).thenReturn(externalUser);
+        when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan))).thenReturn(externalUser);
         when(ecmrShareService.getShareToken(eq(ecmrId), eq(role), any(InternalOrExternalUser.class))).thenReturn(shareToken);
         // Act
-        mockMvc.perform(get("/anonymous/ecmr/{ecmrId}/share-token", ecmrId).param("tan", tan).param("ecmrRole", role.name()).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+        mockMvc.perform(get("/anonymous/ecmr/{ecmrId}/share-token", ecmrId)
+                .param("userToken", validUserToken)
+                .param("tan", validTan)
+                .param("ecmrRole", role.name())
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(tan));
+        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
         verify(ecmrShareService, times(1)).getShareToken(eq(ecmrId), eq(role), any(InternalOrExternalUser.class));
     }
 
@@ -222,24 +245,29 @@ public class AnonymousControllerTest {
     public void testShareEcmr_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
-        String tan = "valid-tan";
         EcmrShareModel ecmrShareModel = new EcmrShareModel("recipient@example.com", EcmrRole.Consignee);
 
-        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", tan, Instant.now().plusSeconds(3600));
+        ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
         Group group = new Group();
         EcmrShareResponse shareResponse = new EcmrShareResponse(ShareEcmrResult.SharedInternal, group); // Verwende Group
 
-        when(authenticationService.getExternalUser(eq(ecmrId), eq(tan))).thenReturn(externalUser);
+        when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan))).thenReturn(externalUser);
         when(ecmrShareService.shareEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(ecmrShareModel.getEmail()), eq(ecmrShareModel.getRole()))).thenReturn(shareResponse);
 
         String jsonRequest = new ObjectMapper().writeValueAsString(ecmrShareModel);
 
         // Act
-        mockMvc.perform(patch("/anonymous/ecmr/{ecmrId}/share", ecmrId).characterEncoding("UTF-8").param("tan", tan).contentType(MediaType.APPLICATION_JSON).content(jsonRequest)).andExpect(status().isOk());
+        mockMvc.perform(patch("/anonymous/ecmr/{ecmrId}/share", ecmrId)
+                .characterEncoding("UTF-8")
+                .param("userToken", validUserToken)
+                .param("tan", validTan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonRequest)
+        ).andExpect(status().isOk());
 
         // Assert
-        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(tan));
+        verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
         verify(ecmrShareService, times(1)).shareEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(ecmrShareModel.getEmail()), eq(ecmrShareModel.getRole()));
     }
 }

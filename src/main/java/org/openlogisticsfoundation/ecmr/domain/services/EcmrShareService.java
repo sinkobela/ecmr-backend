@@ -87,6 +87,7 @@ public class EcmrShareService {
     @Value("${app.origin.url}")
     private String originUrl;
 
+
     public CarrierInformation getEcmrCarrierInformation(UUID ecmrId, String ecmrToken) throws EcmrNotFoundException, ValidationException {
         EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
         if(!ecmrToken.equals(ecmrEntity.getShareWithCarrierToken())){
@@ -95,7 +96,8 @@ public class EcmrShareService {
         return ecmrPersistenceMapper.map(ecmrEntity.getCarrierInformation());
     }
 
-    public void registerExternalUser(@Valid ExternalUserRegistrationCommand command)
+    ///  Return the user token
+    public String registerExternalUser(@Valid ExternalUserRegistrationCommand command)
             throws EcmrNotFoundException, ValidationException, MessageProviderException, RateLimitException {
         if (StringUtils.isBlank(command.getPhone())) {
             // Currently only phone is supported. Sharing an ecmr via e-mail could be a security risk
@@ -118,17 +120,22 @@ public class EcmrShareService {
             throw new RateLimitException("More than 10 registrations within last hour");
         }
 
-        String tan = RandomStringUtils.randomNumeric(6);
-        final ExternalUserEntity externalUserEntity = createAndSaveExternalUser(command, tan);
+        String userToken = RandomStringUtils.secure().nextAlphanumeric(4);
+        String tan = RandomStringUtils.secure().nextNumeric(6);
+        final ExternalUserEntity externalUserEntity = createAndSaveExternalUser(command, userToken, tan);
 
         createAndSaveAssigment(ecmrEntity, EcmrRole.Carrier, externalUserEntity);
 
-        String ecmrLink = this.frontendAddress + "/ecmr-tan/{ecmrId}/{tan}".replace("{ecmrId}", command.getEcmrId().toString()).replace("{tan}", tan);
+        String ecmrLink = this.frontendAddress + "/ecmr-tan/{ecmrId}/{user-token}/{tan}"
+                .replace("{ecmrId}", command.getEcmrId().toString())
+                .replace("{user-token}", userToken)
+                .replace("{tan}", tan);
         String tanMessage = "Your tan code is " + tan + " Please enter your code or click on the following link: " + ecmrLink;
         this.phoneMessageProvider.sendMessage(command.getPhone(), tanMessage);
+        return userToken;
     }
 
-    private ExternalUserEntity createAndSaveExternalUser(final ExternalUserRegistrationCommand command, final String tan) {
+    private ExternalUserEntity createAndSaveExternalUser(final ExternalUserRegistrationCommand command, final String userToken, final String tan) {
         Instant tanValidUntil = Instant.now().plus(365, ChronoUnit.DAYS);
         ExternalUserEntity externalUserEntity = new ExternalUserEntity();
         externalUserEntity.setFirstName(command.getFirstName());
@@ -136,6 +143,7 @@ public class EcmrShareService {
         externalUserEntity.setCompany(command.getCompany());
         externalUserEntity.setPhone(command.getPhone());
         externalUserEntity.setEmail(command.getEmail());
+        externalUserEntity.setUserToken(userToken);
         externalUserEntity.setTan(tan);
         externalUserEntity.setTanValidUntil(tanValidUntil);
         externalUserEntity.setCreationTimestamp(Instant.now());
@@ -203,8 +211,10 @@ public class EcmrShareService {
             userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndGroup_idInAndRole(ecmrId,
                     groupIds, roleToChange);
         } else {
-            userAssignments = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndExternalUser_TanAndRoleAndExternalUser_IsActiveTrue(
-                    ecmrId, internalOrExternalUser.getExternalUser().getTan(), roleToChange);
+            userAssignments = this.ecmrAssignmentRepository.findByExternalUser(
+                    ecmrId, internalOrExternalUser.getExternalUser().getUserToken(), internalOrExternalUser.getExternalUser().getTan())
+                    .stream().filter(e -> e.getRole() == roleToChange)
+                    .toList();
         }
         userAssignments.forEach(userAssignment -> userAssignment.setRole(EcmrRole.Reader));
         ecmrAssignmentRepository.saveAll(userAssignments);
