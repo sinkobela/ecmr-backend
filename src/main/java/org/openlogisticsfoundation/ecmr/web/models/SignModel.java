@@ -11,6 +11,7 @@ package org.openlogisticsfoundation.ecmr.web.models;
 import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -20,6 +21,7 @@ public class SignModel {
     @NotNull
     private Signer signer;
     @NotNull
+    @Size(max = 1000000)
     private String data;
     private String city;
 }
