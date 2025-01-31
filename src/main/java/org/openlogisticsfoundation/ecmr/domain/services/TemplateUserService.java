@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.TemplateUserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
@@ -78,8 +79,12 @@ public class TemplateUserService {
         return templateUserRepository.save(templateUser);
     }
 
-    public void shareTemplate(Long id, List<Long> userIdsToShareWith) throws TemplateUserNotFoundException, UserNotFoundException {
+    public void shareTemplate(AuthenticatedUser authenticatedUser, Long id, List<Long> userIdsToShareWith) throws TemplateUserNotFoundException, UserNotFoundException, NoPermissionException {
         TemplateUserEntity templateUserEntity = templateUserRepository.findById(id).orElseThrow(() -> new TemplateUserNotFoundException(id));
+        if (templateUserEntity.getUser().getId() != authenticatedUser.getUser().getId()) {
+            throw new NoPermissionException("No permission to share TemplateUser with id " + id);
+        }
+
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrPersistenceMapper.toModel(templateUserEntity.getEcmr()));
 
         for (Long userIdToShareWith : userIdsToShareWith) {

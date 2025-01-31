@@ -147,7 +147,8 @@ public class TemplateUserControllerTest {
         Long templateId = 1L;
         List<Long> userIDs = Arrays.asList(2L, 3L);
 
-        doNothing().when(templateUserService).shareTemplate(templateId, userIDs);
+        when(authenticationService.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        doNothing().when(templateUserService).shareTemplate(authenticatedUser, templateId, userIDs);
 
         // Act & Assert
         mockMvc.perform(post("/template/share/{id}", templateId)
@@ -156,7 +157,7 @@ public class TemplateUserControllerTest {
             .andExpect(status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
-        verify(templateUserService, times(1)).shareTemplate(templateId, userIDs);
+        verify(templateUserService, times(1)).shareTemplate(authenticatedUser, templateId, userIDs);
     }
 
     @Test

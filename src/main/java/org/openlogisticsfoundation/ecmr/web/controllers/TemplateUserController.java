@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.TemplateUserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -194,11 +195,14 @@ public class TemplateUserController {
             @ApiResponse(description = "Unauthorized access", responseCode = "401")
         })
     public ResponseEntity<TemplateUser> shareTemplate(@PathVariable(value = "id") Long id, @RequestBody List<Long> userIDs)
-        throws TemplateUserNotFoundException {
+            throws TemplateUserNotFoundException, AuthenticationException {
         try {
-            this.templateUserService.shareTemplate(id, userIDs);
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            this.templateUserService.shareTemplate(authenticatedUser, id, userIDs);
         } catch (UserNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
         return ResponseEntity.ok(new TemplateUser());
     }
