@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasChildrenException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasNoParentException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupHasUsersException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
@@ -117,8 +118,13 @@ public class GroupService {
     }
 
     @Transactional
-    public Boolean deleteGroup(long id) throws GroupNotFoundException, GroupHasChildrenException, GroupHasNoParentException {
+    public Boolean deleteGroup(long id) throws GroupNotFoundException, GroupHasChildrenException, GroupHasNoParentException, GroupHasUsersException {
         GroupEntity groupEntity = groupRepository.findById(id).orElseThrow(() -> new GroupNotFoundException(id));
+
+        if(userToGroupRepository.existsByGroupId(id)) {
+            throw new GroupHasUsersException(id);
+        }
+
         if(groupEntity.getChildren().isEmpty() && groupEntity.getParent() != null) {
             GroupEntity parentEntity = groupEntity.getParent();
 

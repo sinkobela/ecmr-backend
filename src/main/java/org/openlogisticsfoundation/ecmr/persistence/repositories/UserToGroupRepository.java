@@ -27,4 +27,6 @@ public interface UserToGroupRepository extends JpaRepository<UserToGroupEntity, 
     List<GroupEntity> findGroupsByUserId(@Param("userId") long userId);
 
     void deleteByUserIdAndGroupId(long userId, long groupId);
+
+    boolean existsByGroupId(long groupId);
 }

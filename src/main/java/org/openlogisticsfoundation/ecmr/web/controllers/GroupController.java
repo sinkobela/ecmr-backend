@@ -247,7 +247,7 @@ public class GroupController {
             return ResponseEntity.ok(deleteResult);
         } catch (GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (GroupHasChildrenException | GroupHasNoParentException e) {
+        } catch (GroupHasChildrenException | GroupHasNoParentException | GroupHasUsersException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
