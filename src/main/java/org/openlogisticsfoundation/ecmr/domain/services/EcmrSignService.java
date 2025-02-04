@@ -144,7 +144,9 @@ public class EcmrSignService {
 
     private void validateFieldsSender(EcmrEntity ecmrEntity) throws ValidationException {
         this.checkEcmrMemberEntity(ecmrEntity.getSenderInformation(), "Sender Information");
-        this.checkEcmrMemberEntity(ecmrEntity.getConsigneeInformation(), "Consignee Information");
+        if(!ecmrEntity.getIsMultiConsigneeShipment()){
+            this.checkEcmrMemberEntity(ecmrEntity.getConsigneeInformation(), "Consignee Information");
+        }
         TakingOverTheGoodsEntity takingOverTheGoods = ecmrEntity.getTakingOverTheGoods();
         if (takingOverTheGoods == null) {
             throw new ValidationException("Taking Over The Goods information is missing");

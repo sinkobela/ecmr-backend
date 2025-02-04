@@ -128,6 +128,7 @@ public class AuthorisationService {
                 || !Objects.equals(ecmrToChange.getCarrierInformation().getCarrierLicensePlate(), ecmrEntity.getCarrierInformation().getCarrierLicensePlate())
                 || this.checkEcmrMemberChanged(ecmrToChange.getSuccessiveCarrierInformation(), ecmrEntity.getSuccessiveCarrierInformation())
                 || this.checkEcmrMemberChanged(ecmrToChange.getConsigneeInformation(), ecmrEntity.getConsigneeInformation())
+                || !Objects.equals(ecmrToChange.getIsMultiConsigneeShipment(), ecmrEntity.getIsMultiConsigneeShipment())
                 || !Objects.equals(ecmrToChange.getDocumentsRemarks(), ecmrEntity.getDocumentsRemarks())
                 || this.checkDeliveryOfTheGoodsChanged(ecmrToChange.getDeliveryOfTheGoods(), ecmrEntity.getDeliveryOfTheGoods())
                 || this.checkItemsChanged(ecmrToChange.getItemList(), ecmrEntity.getItemList())

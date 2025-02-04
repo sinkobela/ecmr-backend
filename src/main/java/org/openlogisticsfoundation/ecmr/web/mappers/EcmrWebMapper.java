@@ -15,6 +15,7 @@ import org.openlogisticsfoundation.ecmr.api.model.areas.seven.SuccessiveCarrierI
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived;
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.ConsigneeInformation;
+import org.openlogisticsfoundation.ecmr.api.model.areas.two.MultiConsigneeShipment;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.*;
 import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
@@ -37,6 +38,7 @@ public interface EcmrWebMapper {
     @Mapping(source = "ecmrConsignment.documentsHandedToCarrier.documentsRemarks", target = "documentsRemarks")
     @Mapping(source = "ecmrConsignment.deliveryOfTheGoods", target = "deliveryOfTheGoods")
     @Mapping(source = "ecmrConsignment.senderInformation", target = "senderInformation")
+    @Mapping(target = "isMultiConsigneeShipment", expression = "java(mapIsMultiConsigneeShipment(ecmrModel.getEcmrConsignment().getMultiConsigneeShipment()))")
     @Mapping(source = "ecmrConsignment.consigneeInformation", target = "consigneeInformation")
     @Mapping(source = "ecmrConsignment.takingOverTheGoods", target = "takingOverTheGoods")
     @Mapping(source = "ecmrConsignment.carrierInformation", target = "carrierInformation")
@@ -108,4 +110,17 @@ public interface EcmrWebMapper {
     @Mapping(source = "carrierNameCompany", target = "carrierNameCompany")
     @Mapping(source = "carrierNamePerson", target = "carrierNamePerson")
     SharedCarrierInformationModel toSharedCarrierInformation(CarrierInformation value);
+
+    /**
+     * Checks whether ECMR has multiple consignees
+     *
+     * @param multiConsigneeShipment The MultiConsigneeShipment field of the ECMR Model
+     * @return True if the ECMR is marked as a multi consignee shipment, otherwise false
+     *
+     */
+    default Boolean mapIsMultiConsigneeShipment(MultiConsigneeShipment multiConsigneeShipment) {
+        return multiConsigneeShipment != null
+            && multiConsigneeShipment.getIsMultiConsigneeShipment() != null
+            && multiConsigneeShipment.getIsMultiConsigneeShipment();
+    }
 }

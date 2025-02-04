@@ -89,6 +89,8 @@ public class EcmrEntity extends BaseEntity {
     @JoinColumn(name = "carrier_information_id")
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     private CarrierInformationEntity carrierInformation;
+    @NotNull
+    private Boolean isMultiConsigneeShipment;
     @Valid
     @JoinColumn(name = "consignee_information_id")
     @OneToOne(cascade = CascadeType.ALL, optional = false)

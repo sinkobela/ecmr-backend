@@ -9,4 +9,5 @@
     <include file="/db/add-origin-url.xml"/>
     <include file="/db/add-sealing-metadata.xml"/>
     <include file="test-init-data.xml"/>
+    <include file="/db/add-multi-consignee-shipment.xml"/>
 </databaseChangeLog>

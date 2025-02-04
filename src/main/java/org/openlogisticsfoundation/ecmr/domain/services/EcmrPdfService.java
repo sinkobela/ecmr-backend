@@ -77,12 +77,16 @@ public class EcmrPdfService {
         parameters.put("senderCountry", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue());
 
         //consignee Data
-        parameters.put("consigneeNameCompany", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNameCompany());
-        parameters.put("consigneeNamePerson", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNamePerson());
-        parameters.put("consigneeStreet", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeStreet());
-        parameters.put("consigneePostcode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneePostcode());
-        parameters.put("consigneeCity", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCity());
-        parameters.put("consigneeCountryCode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue());
+        if(!ecmrModel.getEcmrConsignment().getMultiConsigneeShipment().getIsMultiConsigneeShipment()) {
+            parameters.put("consigneeNameCompany", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNameCompany());
+            parameters.put("consigneeNamePerson", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNamePerson());
+            parameters.put("consigneeStreet", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeStreet());
+            parameters.put("consigneePostcode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneePostcode());
+            parameters.put("consigneeCity", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCity());
+            parameters.put("consigneeCountryCode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue());
+        }else{
+            parameters.put("multiConsigneeShipmentNotice", getMultiConsigneeShipmentText());
+        }
 
         //taking over The goods
         parameters.put("takingOverTheGoodsPlace", ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getTakingOverTheGoodsPlace());
@@ -195,9 +199,12 @@ public class EcmrPdfService {
         }
 
         //National International Information Text
-        boolean isNational = isNationalTransport(ecmrModel);
-        parameters.put("DE_InternationalNationalTransport", getInformationText("DE", isNational));
-        parameters.put("EN_InternationalNationalTransport", getInformationText("EN", isNational));
+        EcmrTransportType ecmrTransportType = getEcmrTransportType(ecmrModel);
+        if (ecmrTransportType != EcmrTransportType.UNKNOWN) {
+            boolean isNational = (ecmrTransportType == EcmrTransportType.NATIONAL);
+            parameters.put("DE_InternationalNationalTransport", getInformationText("DE", isNational));
+            parameters.put("EN_InternationalNationalTransport", getInformationText("EN", isNational));
+        }
 
         parameters.put("nonContractualCarrierRemarks",
                 ecmrModel.getEcmrConsignment().getNonContractualPartReservedForTheCarrier().getNonContractualCarrierRemarks());
@@ -205,7 +212,7 @@ public class EcmrPdfService {
         parameters.put("ecmrId", ecmrModel.getEcmrId());
 
         //eCmr Logo
-        if (!isNational) {
+        if (EcmrTransportType.INTERNATIONAL == ecmrTransportType) {
             InputStream imageStream = resourceLoader.getResource("classpath:/images/cmrLogo.png").getInputStream();
             byte[] waterMarkBytes = imageStream.readAllBytes();
             Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
@@ -215,6 +222,14 @@ public class EcmrPdfService {
         return parameters;
     }
 
+    private String getMultiConsigneeShipmentText() throws IOException {
+        String language = "EN";
+        String filePath = "reports/texts/" + language + "_MultiConsigneeShipment.txt";
+        InputStream resource = new ClassPathResource(filePath).getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource));
+        return reader.lines().collect(Collectors.joining());
+    }
+
     private String getInformationText(String language, boolean isNational) throws IOException {
         String filePath = "reports/texts/" + language + (isNational ? "_NationalTransport.txt" : "_InternationalTransport.txt");
         InputStream resource = new ClassPathResource(filePath).getInputStream();
@@ -222,15 +237,21 @@ public class EcmrPdfService {
         return reader.lines().collect(Collectors.joining());
     }
 
-    private boolean isNationalTransport(EcmrModel ecmrModel) {
+    private EcmrTransportType getEcmrTransportType(EcmrModel ecmrModel) {
         String senderCountry = ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue();
         String consigneeCountry = ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue();
 
         if (senderCountry == null || consigneeCountry == null) {
-            return false;
+            return EcmrTransportType.UNKNOWN;
         }
 
-        return senderCountry.equals(consigneeCountry);
+        return senderCountry.equals(consigneeCountry) ? EcmrTransportType.NATIONAL : EcmrTransportType.INTERNATIONAL;
+    }
+
+    private enum EcmrTransportType {
+        INTERNATIONAL,
+        NATIONAL,
+        UNKNOWN
     }
 
     private Renderable decodeImage(String base64Image) throws IOException {

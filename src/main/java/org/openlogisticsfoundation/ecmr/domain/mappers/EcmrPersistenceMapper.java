@@ -66,6 +66,7 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "ecmrId", source = "ecmrId")
     @Mapping(target = "ecmrStatus", source = "ecmrStatus")
     @Mapping(target = "ecmrConsignment.senderInformation", source = "senderInformation")
+    @Mapping(target = "ecmrConsignment.multiConsigneeShipment.isMultiConsigneeShipment", source = "isMultiConsigneeShipment")
     @Mapping(target = "ecmrConsignment.consigneeInformation", source = "consigneeInformation")
     @Mapping(target = "ecmrConsignment.deliveryOfTheGoods", source = "deliveryOfTheGoods")
     @Mapping(target = "ecmrConsignment.sendersInstructions.transportInstructionsDescription", source = "transportInstructionsDescription")

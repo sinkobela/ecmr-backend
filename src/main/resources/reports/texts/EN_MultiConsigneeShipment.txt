@@ -1,0 +1,1 @@
+This shipment has multiple consignees. Information about consignees can be found in the documents carried by the driver.

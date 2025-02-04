@@ -35,6 +35,8 @@ public class EcmrCommand {
     @Valid
     private SuccessiveCarrierInformationCommand successiveCarrierInformation;
 
+    private Boolean isMultiConsigneeShipment;
+
     @Valid
     private ConsigneeInformationCommand consigneeInformation;
 

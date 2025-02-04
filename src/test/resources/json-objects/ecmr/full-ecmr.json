@@ -16,6 +16,9 @@
         "phone": "123"
       }
     },
+    "multiConsigneeShipment": {
+      "isMultiConsigneeShipment": false
+    },
     "consigneeInformation": {
       "consigneeNameCompany": "xy",
       "consigneeNamePerson": "xy",

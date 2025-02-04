@@ -103,6 +103,7 @@
 	<parameter name="ecmrId" class="java.lang.String"/>
 	<parameter name="EN_InternationalNationalTransport" class="java.lang.String"/>
 	<parameter name="DE_InternationalNationalTransport" class="java.lang.String"/>
+	<parameter name="multiConsigneeShipmentNotice" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -345,6 +346,19 @@
 					</textElement>
 					<text><![CDATA[Country:]]></text>
 				</staticText>
+        <textField isBlankWhenNull="true">
+          <reportElement x="0" y="15" width="278" height="30">
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+          </reportElement>
+          <box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="0">
+            <pen lineWidth="0.0"/>
+            <bottomPen lineWidth="0.0"/>
+          </box>
+          <textElement verticalAlignment="Middle">
+            <font size="8"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$P{multiConsigneeShipmentNotice}]]></textFieldExpression>
+        </textField>
 			</frame>
 			<frame>
 				<reportElement x="0" y="170" width="278" height="60" uuid="47c2075a-c941-4725-9872-36f87d9299a2">
