@@ -92,9 +92,12 @@
 	<parameter name="consigneeTimeOfDeparture" class="java.util.Date"/>
 	<parameter name="ecmrLogo" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="items" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
-	<parameter name="senderSignature" class="net.sf.jasperreports.renderers.Renderable"/>
-	<parameter name="carrierSignature" class="net.sf.jasperreports.renderers.Renderable"/>
-	<parameter name="consigneeSignature" class="net.sf.jasperreports.renderers.Renderable"/>
+	<parameter name="senderSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
+	<parameter name="carrierSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
+	<parameter name="consigneeSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
+	<parameter name="senderSignatureESeal" class="java.lang.String"/>
+	<parameter name="carrierSignatureESeal" class="java.lang.String"/>
+	<parameter name="consigneeSignatureESeal" class="java.lang.String"/>
 	<parameter name="consigneeSigningLocation" class="java.lang.String"/>
 	<parameter name="consigneeSignatureDate" class="java.util.Date"/>
 	<parameter name="consigneeReservationsObservations" class="java.lang.String"/>
@@ -1765,8 +1768,17 @@
 				</staticText>
 				<image>
 					<reportElement x="1" y="1" width="138" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
-					<imageExpression><![CDATA[$P{senderSignature}]]></imageExpression>
+					<imageExpression><![CDATA[$P{senderSignatureImage}]]></imageExpression>
 				</image>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="1" width="138" height="74" uuid="aeec8b09-30f6-424f-a9ce-12cbe3b4aabb">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$P{senderSignatureESeal}]]></textFieldExpression>
+				</textField>
 			</frame>
 			<frame>
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="139" y="650" width="139" height="75" uuid="8397c233-4be7-43ad-8624-b1656a067659">
@@ -1801,8 +1813,17 @@
 				</staticText>
 				<image>
 					<reportElement x="1" y="1" width="138" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
-					<imageExpression><![CDATA[$P{carrierSignature}]]></imageExpression>
+					<imageExpression><![CDATA[$P{carrierSignatureImage}]]></imageExpression>
 				</image>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="1" width="138" height="74" uuid="6f1e50a5-fac4-4121-b93c-915a61b491de">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$P{carrierSignatureESeal}]]></textFieldExpression>
+				</textField>
 			</frame>
 			<frame>
 				<reportElement positionType="Float" stretchType="RelativeToTallestObject" x="278" y="650" width="276" height="110" uuid="384f651e-2009-4069-b49d-4c7ae7fe069e">
@@ -1885,8 +1906,17 @@
 				</textField>
 				<image>
 					<reportElement x="1" y="37" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
-					<imageExpression><![CDATA[$P{consigneeSignature}]]></imageExpression>
+					<imageExpression><![CDATA[$P{consigneeSignatureImage}]]></imageExpression>
 				</image>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="1" width="138" height="73" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$P{consigneeSignatureESeal}]]></textFieldExpression>
+				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="30" y="0" width="246" height="15" uuid="35409fc2-d24d-4a22-a239-cf81b7abaf91">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>

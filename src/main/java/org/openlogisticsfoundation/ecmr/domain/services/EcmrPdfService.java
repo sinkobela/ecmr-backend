@@ -11,18 +11,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
+import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
 import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
+import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -35,6 +41,7 @@ import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JasperRunManager;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.export.JRPdfExporterParameter;
 import net.sf.jasperreports.renderers.Renderable;
 import net.sf.jasperreports.renderers.SimpleDataRenderer;
 
@@ -169,16 +176,26 @@ public class EcmrPdfService {
 
         //Sender Signature
         if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature() != null) {
-            Renderable renderableSignature =
-                    this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getData());
-            parameters.put("senderSignature", renderableSignature);
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getType(), SignatureType.SignOnGlass.toString())) {
+                Renderable renderableSignature =
+                        this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getData());
+                parameters.put("senderSignatureImage", renderableSignature);
+            }
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getType(), SignatureType.ESeal.toString())) {
+                parameters.put("senderSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature()));
+            }
         }
 
         //Carrier Signature
         if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature() != null) {
-            Renderable renderableSignature =
-                    this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
-            parameters.put("carrierSignature", renderableSignature);
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getType(), SignatureType.SignOnGlass.toString())) {
+                Renderable renderableSignature =
+                        this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
+                parameters.put("carrierSignatureImage", renderableSignature);
+            }
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getType(), SignatureType.ESeal.toString())) {
+                parameters.put("carrierSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature()));
+            }
 
             //Fields filled by the Consignee
             parameters.put("consigneeSigningLocation",
@@ -193,9 +210,14 @@ public class EcmrPdfService {
 
         //Consignee Signature
         if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
-            Renderable renderableSignature =
-                    this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
-            parameters.put("consigneeSignature", renderableSignature);
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getType(), SignatureType.SignOnGlass.toString())) {
+                Renderable renderableSignature =
+                        this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
+                parameters.put("consigneeSignatureImage", renderableSignature);
+            }
+            if(Objects.equals(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getType(), SignatureType.ESeal.toString())) {
+                parameters.put("consigneeSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
+            }
         }
 
         //National International Information Text
@@ -266,6 +288,13 @@ public class EcmrPdfService {
             log.error("Error while decoding image", e);
             throw new IOException(e);
         }
+    }
+
+    private String getESealText(Signature signature) {
+        Date date = Date.from(signature.getTimestamp());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+        String formattedDate = formatter.format(date);
+        return "Signed with eSeal on:\r\n" + formattedDate + "\r\n\r\nBy:\r\n" + signature.getUserName();
     }
 
     private List<ItemBean> convertToItemBeans(List<Item> items) {
