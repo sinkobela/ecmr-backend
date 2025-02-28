@@ -31,7 +31,8 @@ As a solution a localhost service is used, which ensures that the host name is i
 ### Configuration
 To start the applications these changes must be made first:
 
-1. Edit the files config/postgres-params.env and config/backend-params.env to add usernames and passwords.
+1. Edit the files config/postgres-params.env and config/backend-params.env to add usernames, passwords and
+the parameters of your smtp server (if you want to be able to share eCMRs with external instances).
 2. Change the user password in the realm configuration files.
 3. To add other users you must add them to realm config file and to the backend project (resources/db/init-data.xml). Please verify that the email addresses are identical.
 

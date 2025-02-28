@@ -80,6 +80,7 @@ public class EcmrShareService {
     private final ESealService eSealService;
     private final EcmrWebMapper ecmrWebMapper;
     private final HistoryLogService historyLogService;
+    private final MailService mailService;
 
     @Value("${app.frontend-url}")
     private String frontendAddress;
@@ -279,7 +280,14 @@ public class EcmrShareService {
 
         SealedDocumentEntity sealedDocumentEntity = sealedDocumentRepository.findByEcmrId(ecmrId).orElseThrow();
 
-        if (!shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithReaderToken())) {
+        boolean shareTokenValid =
+            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithSenderToken()) ||
+            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithCarrierToken()) ||
+            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithConsigneeToken()) ||
+            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithReaderToken());
+
+
+        if (!shareTokenValid) {
             throw new ValidationException("You need a valid share token to import this ecmr");
         }
 
@@ -341,5 +349,12 @@ public class EcmrShareService {
 
         // save history log
         this.historyLogService.writeHistoryLog(entity, sealedDocument.getSealedEcmr().getEcmr().getOriginUrl(), ActionType.Creation);
+    }
+
+    public EcmrShareResponse sendTokenPerEmail(UUID ecmrId, String receiverEmail, EcmrRole ecmrRole, InternalOrExternalUser user) throws EcmrNotFoundException, NoPermissionException {
+        String shareToken = getShareToken(ecmrId, ecmrRole, user);
+        String text = String.format("To import the ecmr use the following properties: %n-ecmrId: %s %n-url: %s %n-share token: %s", ecmrId, originUrl, shareToken);
+        mailService.sendMail(receiverEmail, "Import eCMR", text);
+        return new EcmrShareResponse(ShareEcmrResult.SharedExternal, null);
     }
 }
