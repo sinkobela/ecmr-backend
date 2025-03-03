@@ -12,7 +12,7 @@
 
 	<groupId>org.openlogisticsfoundation.ecmr</groupId>
 	<artifactId>ecmr-backend</artifactId>
-	<version>0.0.11-SNAPSHOT</version>
+	<version>0.0.12-SNAPSHOT</version>
 	<name>ecmr-backend</name>
 	<description>Backend application for eCMR</description>
 
