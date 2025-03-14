@@ -37,7 +37,7 @@ Fill the values set in double curly braces ({+{fill-here}+}) with correct values
 The APIs in this project use RESTful communication, typically involving JSON payloads for both requests and responses. The project also leverages Swagger for API documentation and testing.
 
 To access the Swagger UI for interactive API documentation and testing, use the following local link:
-`http://localhost:8080/api/swagger-ui/`
+`http://localhost:8080/api/swagger-ui`
 
 Below, you will find a list of controllers and their respective APIs, including descriptions, endpoints to the corresponding controller files:
 

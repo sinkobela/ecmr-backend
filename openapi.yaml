@@ -598,6 +598,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Group'
+  /external/ecmr/import:
+    post:
+      tags:
+        - ECMR external
+      summary: Import eCMR with ID, share token and url
+      operationId: importEcmrFromExternal
+      parameters:
+        - name: ecmrId
+          in: query
+          description: UUID of the eCMR
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: shareToken
+          in: query
+          description: Share token
+          required: true
+          schema:
+            type: string
+        - name: groupIds
+          in: query
+          description: Group IDs
+          required: true
+          schema:
+            type: object
+        - name: url
+          in: query
+          description: URL of the external instance
+          required: true
+          schema:
+            type: string
+        - name: groupId
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+      responses:
+        '200':
+          description: eCMR was imported successfully
+        '400':
+          description: Share token is invalid
+        '401':
+          description: Unauthorized access
+        '403':
+          description: Forbidden access
   /ecmr/{ecmrId}/sign-on-glass:
     post:
       tags:
@@ -645,6 +694,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Signature'
+  /ecmr/{ecmrId}/seal:
+    post:
+      tags:
+        - ECMR
+      summary: Seal eCMR
+      operationId: seal
+      parameters:
+        - name: ecmrId
+          in: path
+          description: UUID of the eCMR to seal
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SealModel'
+        required: true
+      responses:
+        '400':
+          description: Validation error or signature already present
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Signature'
+        '401':
+          description: Unauthorized access
+        '403':
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Signature'
+        '404':
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Signature'
+        default:
+          description: The created signature
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signature'
   /ecmr/my-ecmrs:
     post:
       tags:
@@ -657,11 +753,11 @@ paths:
           required: false
           schema:
             type: string
+            default: ECMR
             enum:
               - ECMR
               - TEMPLATE
               - ARCHIVED
-            default: ECMR
         - name: page
           in: query
           required: false
@@ -681,6 +777,7 @@ paths:
           required: false
           schema:
             type: string
+            default: creationDate
             enum:
               - referenceId
               - from
@@ -693,16 +790,15 @@ paths:
               - lastEditor
               - lastEditDate
               - creationDate
-            default: creationDate
         - name: sortingOrder
           in: query
           required: false
           schema:
             type: string
+            default: ASC
             enum:
               - ASC
               - DESC
-            default: ASC
       requestBody:
         content:
           application/json:
@@ -1176,6 +1272,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupFlatModel'
+  /external/ecmr/{ecmrId}/export:
+    get:
+      tags:
+        - ECMR external
+      summary: Export eCMR as sealed document with ID and share token
+      operationId: exportEcmrToExternal
+      parameters:
+        - name: ecmrId
+          in: path
+          description: UUID of the eCMR
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: shareToken
+          in: query
+          description: Share token
+          required: true
+          schema:
+            type: string
+      responses:
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SealedDocument'
+        '404':
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/SealedDocument'
+        default:
+          description: The requested ecmr as sealed document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SealedDocument'
   /ecmr/{ecmrId}:
     get:
       tags:
@@ -1893,6 +2030,8 @@ components:
           type: string
           format: date-time
         editedBy:
+          type: string
+        originUrl:
           type: string
     Established:
       type: object
@@ -2816,6 +2955,21 @@ components:
           type: string
         city:
           type: string
+    SealModel:
+      required:
+        - signer
+      type: object
+      properties:
+        signer:
+          type: string
+          enum:
+            - Sender
+            - Carrier
+            - Consignee
+        precedingSeal:
+          type: string
+        city:
+          type: string
     FilterRequestModel:
       type: object
       properties:
@@ -2938,6 +3092,36 @@ components:
           type: string
         description:
           type: string
+    Metadata:
+      type: object
+      properties:
+        sealer:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    SealedDocument:
+      required:
+        - seal
+        - sealedEcmr
+      type: object
+      properties:
+        sealedEcmr:
+          $ref: '#/components/schemas/SealedEcmr'
+        seal:
+          type: string
+        precedingSeal:
+          type: string
+    SealedEcmr:
+      required:
+        - ecmr
+        - metadata
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        ecmr:
+          $ref: '#/components/schemas/EcmrModel'
     StreamingResponseBody:
       type: object
   securitySchemes:

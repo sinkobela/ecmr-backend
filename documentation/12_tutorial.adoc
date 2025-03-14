@@ -2,8 +2,237 @@
 
 == Tutorial
 
-There is a tutorial to show how to setup, start and use the ecmr backend.
+There is a tutorial to show how to setup, start and use the ecmr service.
 
-== Database setup
+// We need an tutorial to setup an ecmr instance that includes:
 
-Create your own user. Please be careful and use a valid email address.
+The eCMR components are developed and maintained in the Open Logistics Foundation's GitLab repository. The source code and documentation can be accessed at:
+GitLab https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr[Repository]
+
+=== Contact
+
+If you have any question or for feedback please contact us via ecmr-feedback@lists.openlogisticsfoundation.org
+
+If you found an issue or if you have an change request please visit our
+https://git.openlogisticsfoundation.org/groups/wg-electronictransportdocuments/ecmr/-/boards/132[GitLab Issue Board]
+
+===  General information
+
+This tutorial provides step-by-step instructions on how to set up, start, and use the eCMR backend, frontend, and eSEAL system. It includes information on architecture, API definition, and required dependencies.
+
+* ecmr data model description https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/ecmr-model/-/tree/main/documentation?ref_type=heads[Link]
+* API description https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/ecmr-backend/-/blob/fd4f0f6e22b895f4c676b28e25b1b19f5571c05c/openapi.yaml[Link]
+
+=== General requirements
+
+Before setting up eCMR, ensure the following requirements are met:
+
+* Docker environment
+* A Database Management System (DBMS). The ecmr Instance is tested with Postgres
+and Microsoft SQL Server
+* A User Management System that supports OAuth. The ecmr Instance is tested
+with keycloak
+
+=== Running the Docker-Compose Setup
+
+With the ecmr-backend component is a Docker-Compose Setup (see the
+docker-compose.yml file for more information), that comes with all required
+systems and a setup for local/developer setup. This is _NOT_ meant to be used
+as a productive setup.
+
+Ensure Docker and Docker-Compose are installed on your testing environment.
+
+Navigate to the ecmr-backend root directory containing docker-compose.yml.
+
+Start all services:
+
+  docker-compose up -d
+
+Verify all containers are running:
+
+  docker ps
+
+=== Setup eCMR Frontend
+
+To use the frontend the following variables need to be set through environment variables:
+
+* OAUTH_ISSUER
+* OAUTH_CLIENT_ID
+* optional: OAUTH_ADDITIONAL_SCOPES
+* BACKEND_API_URL
+
+==== Backend in einem Container starten
+Build the project using the following command:
+[source, bash]
+----
+docker build -t ecmr-frontend .
+----
+
+Start the container using the following command:
+[source, bash]
+----
+docker run -p 8080:8080 [optional: --env-file .env] ecmr-frontend
+----
+
+=== Setup eCMR Backend
+
+To start the eCMR backend, a DBMS (e.g. postgres) and a User Management System (e.g. keycloak) must be available.
+Configure the access to both of these systems either through the application.properties file or environment variables.
+
+==== DBMS
+To use postgres, the following properties must be set:
+
+* set spring.datasource.driverClassName to org.postgresql.Driver
+* spring.datasource.username
+* spring.datasource.password
+* spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DB Name]
+
+When starting the backend for the first time, all database tables are created through liquibase.
+
+==== User Management System
+To use keycloak for user management, the following property must be set:
+----
+spring.security.oauth2.resourceserver.jwt.issuer-uri: url to the realm
+----
+Users are identified through their email address.
+To create a user, you have to add the user in your keycloak realm and in the link:../src/main/resources/db/init-data.xml[liquibase script] using the _same_ email address.
+
+==== eMail Settings
+----
+spring.mail.host=YOUR_MAIL_HOST
+spring.mail.port=YOUR_SMTP_PORT
+spring.mail.auth=false
+mail.from=SENDER_EMAIL_ADDRESS
+----
+
+Please Note, Host and Post must be given. Auth depends on your Mail_Host. If
+Auth is required please add true here and give additionally these two
+parameter depending on your mail host configuration:
+
+----
+spring.mail.username=
+spring.mail.password=
+----
+
+Furthermore, if you do not want to add a valid from email address you can add a
+no-reply email (e.g. something like
+no-reply@yourdomain.countrycode).
+
+==== Other properties
+Also make sure to set these properties correctly:
+
+* app.frontend.url: the url to your eCMR frontend
+* web.cors.origins: the url to your eCMR frontend
+* app.origin.url: the value for the property "originUrl" for signed eCMRs, should be the url to your eCMR backend application. This is also used in the e-mail when sharing an eCMR
+
+==== Backend in einem Container starten
+Build the project using the following command:
+[source, bash]
+----
+docker build -t ecmr-backend .
+----
+
+Start the container using the following command:
+[source, bash]
+----
+docker run -p 8080:8080 [optional: --env-file .env] ecmr-backend
+----
+
+=== Setup eSEAL
+
+The eSeal dependencies for both the verifier and the signer are included through maven in this project.
+To use these services they need to be configured correctly through either the application.properties file or environment variables.
+
+==== Signer
+
+Keystore
+
+The following config values control the keystore and the selection of the signing key.
+
+[options="header"]
+|=========================================
+| Name                                 | Required  | Default | Description                                                                                                                                                                           |
+| `ecmr.seal.sign.keystore-type`       | yes       |         | One of `JKS`, `PKCS12`, or `PKCS11`.                                                                                                                                                  |
+| `ecmr.seal.sign.keystore-path`       | yes       |         | The path to the keystore file, or the PKCS11 library.                                                                                                                                 |
+| `ecmr.seal.sign.keystore-password`   | dependent |         | The password of the keystore file. Whether this is needed or not depends on the keystore.                                                                                             |
+| `ecmr.seal.sign.key-alias`           | yes       |         | The alias or identifier of the signing entry in the keystore.                                                                                                                         |
+| `ecmr.seal.sign.key-password`        | dependent |         | The password for using the keystore entry. In case of a PKCS11 module, this is the PIN of the smartcard.                                                                              |
+| `ecmr.seal.sign.key-slot-id`         | no        | `0`     | The slot ID of the PKCS11 module. Set to `-1` if this value should not be used.                                                                                                       |
+| `ecmr.seal.sign.key-slot-list-index` | no        | `-1`    | The slot list index of a specific smart-card reader of the PKCS11 module. `-1` disables the parameter.                                                                                |
+| `ecmr.seal.sign.extra-pkcs11-config` | no        |         | Additional config values which should be attached to the configuration of the link:https://docs.oracle.com/en/java/javase/21/security/pkcs11-reference-guide1.html[SunPKCS11 Provider]|
+|=========================================
+
+Algorithms
+
+The following settings control the signature algorithm.
+
+[options="header"]
+|=========================================
+| Name                                            | Required | Default   | Description                                                                                                                                                                                                                                                                                            |
+| `ecmr.seal.sign.reference-digest-algorithm`     | no       | `SHA-256` | Digest algorithm used for creating the eSeal reference. (See [SD-DSS Algorithms](https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/doc/dss-documentation.html#_signature_algorithms) for possible values.)                                                                                  |
+| `ecmr.seal.sign.signature-digest-algorithm`     | no       | `SHA-256` | Digest algorithm used for creating the eSeal signature. (See [SD-DSS Algorithms](https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/doc/dss-documentation.html#_signature_algorithms) for possible values.)                                                                                  |
+| `ecmr.seal.sign.signature-encryption-algorithm` | no       |           | Overrides the encryption part of the signature algorithm. The only sensible application is to select between `RSA-SSA` and `RSA-PSS`. (See link:https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/doc/dss-documentation.html#_signature_algorithms[SD-DSS Algorithms] for possible values.) |
+|=========================================
+
+
+==== Verifier
+
+Truststore
+
+There are two options providing a truststore to the application.
+The EU TSL is use by default, or a provided truststore can be used.
+
+[options="header"]
+|=========================================
+| Name                                      | Required         | Default                                     | Description                                                                                                                                                         |
+| `ecmr.seal.verify.trust-source`           | yes              | `TSL`                                       | One of `TSL`, or `TrustStore`.                                                                                                                                      |
+| `ecmr.seal.verify.truststore.url`         | yes (TrustStore) |                                             | URL to the truststore. Can be any URL supported by Java, or the special `classpath://` URL referencing a bundled file.                                              |
+| `ecmr.seal.verify.truststore.type`        | yes (TrustStore) |                                             | Type of the keystore. For supported values see link:https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#keystore-types[Java Algorithms]. |
+| `ecmr.seal.verify.tsl.lotl-url`           | yes (TSL)        | https://ec.europa.eu/tools/lotl/eu-lotl.xml | URL of the EU LotL.                                                                                                                                                 |
+| `ecmr.seal.verify.tsl.lotl-signer-url[n]` | dependent (TSL)  | embedded signers                            | List URLs of signing certificates of the LotL.                                                                                                                      |
+| `ecmr.seal.verify.tsl.journal-entry-url`  | dependent (TSL)  |                                             | Use EU journal to extract signer certificates. Can be used as an alternative to embedded signers.                                                                   |
+| `ecmr.seal.verify.tsl.update-interval`    | yes (TSL)        | `PT1H`                                      | Update interval of the TSL.                                                                                                                                         |
+| `ecmr.seal.verify.tsl.cache-path`         | no (TSL)         |                                             | Path on the filesystem to use as a cache directory. If not set, the TSL downloads will not survive restarts.                                                        |
+|=========================================
+
+Verification
+
+[options="header"]
+|=========================================
+| Name                               | Required | Default                                    | Description                                                                                                                                                                                                                                            |
+| `ecmr.seal.verify.policy-url`      | yes      | `classpath:///policy/sig-policy-eidas.xml` | URL to the link:https://ec.europa.eu/digital-building-blocks/DSS/webapp-demo/doc/dss-documentation.html#validationPolicyConstraints[SD-DSS validation policy]. The default policy bundled with SD-DSS is embedded, but customization is strongly advised. |
+| `ecmr.seal.verify.simple-report`   | yes      | `false`                                    | Whether to set simple report in validation response.                                                                                                                                                                                                   |
+| `ecmr.seal.verify.detailed-report` | yes      | `false`                                    | Whether to set detailed report in validation response.                                                                                                                                                                                                 |
+| `ecmr.seal.verify.etsi-report`     | yes      | `true`                                     | Whether to set ETSI report in validation response.                                                                                                                                                                                                     |
+| `ecmr.seal.verify.diagnostic-data` | yes      | `false`                                    | Whether to set diagnostic data in validation response.                                                                                                                                                                                                 |
+|=========================================
+
+
+=== Create and store keystores
+To create the trust- and keystore, you can use the following command using keytool:
+[source, bash]
+----
+keytool -genkeypair -alias myAlias -keyalg RSA -keystore myKeystore.jks -keysize 2048
+----
+
+To add a certificate to your trust store, you can use the following command:
+[source, bash]
+----
+keytool -import -alias myCertificate -file myCertificate.crt -keystore myTruststore.jks
+----
+
+Keep your private key (in the keystore) secure, as you will only need it within your own project to sign eCMRs.
+Store your public key (in the truststore) in a location accessible (e.g. a gitlab repository) to the instances that need to verify your signed eCMRs.
+
+==== How to add a public key to a public key store in GitLab
+1. Create a repository for the truststore. Make sure the repository is publicly available.
+2. Add your truststore with the key to the gitlab repository.
+3. Use the link to the truststore in your project (e.g. https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/eseal-public-keystore/-/raw/main/fraunhofer-test-truststore.jks)
+
+=== Setup Start eCMR
+
+===  How to establish sharing eCMR
+
+Overview, architecture and workflow sharing eCMRs between instances
+
+...
