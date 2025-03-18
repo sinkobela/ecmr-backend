@@ -18,35 +18,19 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
+import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.RateLimitException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
-import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
-import org.openlogisticsfoundation.ecmr.domain.models.Group;
-import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
-import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
+import org.openlogisticsfoundation.ecmr.domain.models.*;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.MessageProviderException;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.PhoneMessageProvider;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.ExternalUserEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.SealedEcmrEntity;
-import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.*;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.ExternalUserRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.SealedDocumentRepository;
@@ -275,31 +259,47 @@ public class EcmrShareService {
     }
 
     @Transactional
-    public SealedDocument exportEcmrToExternal(UUID ecmrId, String shareToken)
+    public EcmrExportResult exportEcmrToExternal(UUID ecmrId, String shareToken)
             throws ValidationException {
 
         SealedDocumentEntity sealedDocumentEntity = sealedDocumentRepository.findByEcmrId(ecmrId).orElseThrow();
 
-        boolean shareTokenValid =
-            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithSenderToken()) ||
-            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithCarrierToken()) ||
-            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithConsigneeToken()) ||
-            shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithReaderToken());
+        EcmrRole ecmrRole;
 
-
-        if (!shareTokenValid) {
+        if(shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithSenderToken())) {
+            ecmrRole = EcmrRole.Sender;
+        } else if(shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithCarrierToken())) {
+            ecmrRole = EcmrRole.Carrier;
+        } else if(shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithConsigneeToken())) {
+            ecmrRole = EcmrRole.Consignee;
+        } else if(shareToken.equals(sealedDocumentEntity.getSealedEcmr().getEcmr().getShareWithReaderToken())) {
+            ecmrRole = EcmrRole.Reader;
+        } else { // share token not valid
             throw new ValidationException("You need a valid share token to import this ecmr");
         }
 
-        return ecmrPersistenceMapper.toModel(sealedDocumentEntity);
+        SealedDocument sealedDocument = ecmrPersistenceMapper.toModel(sealedDocumentEntity);
+        return new EcmrExportResult(sealedDocument, ecmrRole);
     }
 
     // import existing ecmr from external instance and save it initially on this instance
     @Transactional
     public void importEcmrFromExternal(String url, UUID ecmrId, String shareToken, List<Long> groupIds, AuthenticatedUser authenticatedUser)
-            throws InvalidInputException, NoPermissionException {
+        throws InvalidInputException, NoPermissionException, EcmrAlreadyExistsException {
+        // check if the ecmr is already imported
+        try{
+            EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
+            if(ecmr != null) {
+                throw new EcmrAlreadyExistsException(ecmrId);
+            }
+        }
+        catch (EcmrNotFoundException e){
+            // do nothing
+        }
+
         // 1. call export endpoint from external instance
-        SealedDocument sealedDocument = externalEcmrInstanceService.importEcmr(url, ecmrId, shareToken);
+        EcmrExportResult exportResult = externalEcmrInstanceService.importEcmr(url, ecmrId, shareToken);
+        SealedDocument sealedDocument = exportResult.getSealedDocument();
 
         // 2. verify sealed document before calling any internal functions
         ESeal seal = new ESeal(sealedDocument.getSeal(), null);
@@ -323,6 +323,18 @@ public class EcmrShareService {
         entity.setEcmrStatus(sealedDocument.getSealedEcmr().getEcmr().getEcmrStatus());
         entity.setOriginUrl(sealedDocument.getSealedEcmr().getEcmr().getOriginUrl());
 
+        // set signatures
+        EcmrConsignment consignment = sealedDocument.getSealedEcmr().getEcmr().getEcmrConsignment();
+
+        SignatureEntity senderSignature = ecmrPersistenceMapper.toEntity(consignment.getSignatureOrStampOfTheSender().getSenderSignature());
+        entity.getSenderInformation().setSignature(senderSignature);
+
+        SignatureEntity carrierSignature = ecmrPersistenceMapper.toEntity(consignment.getSignatureOrStampOfTheCarrier().getCarrierSignature());
+        entity.getCarrierInformation().setSignature(carrierSignature);
+
+        SignatureEntity consigneeSignature = ecmrPersistenceMapper.toEntity(consignment.getGoodsReceived().getConsigneeSignature());
+        entity.getConsigneeInformation().setSignature(consigneeSignature);
+
         // create shared token for received ecmr
         entity.setShareWithSenderToken(RandomStringUtils.secure().nextAlphanumeric(4));
         entity.setShareWithCarrierToken(RandomStringUtils.secure().nextAlphanumeric(4));
@@ -343,7 +355,7 @@ public class EcmrShareService {
             EcmrAssignmentEntity ecmrAssignmentEntity = new EcmrAssignmentEntity();
             ecmrAssignmentEntity.setEcmr(entity);
             ecmrAssignmentEntity.setGroup(groupEntity);
-            ecmrAssignmentEntity.setRole(EcmrRole.Sender);
+            ecmrAssignmentEntity.setRole(exportResult.getEcmrRole());
             ecmrAssignmentRepository.save(ecmrAssignmentEntity);
         }
 
@@ -351,7 +363,10 @@ public class EcmrShareService {
         this.historyLogService.writeHistoryLog(entity, sealedDocument.getSealedEcmr().getEcmr().getOriginUrl(), ActionType.Creation);
     }
 
-    public EcmrShareResponse sendTokenPerEmail(UUID ecmrId, String receiverEmail, EcmrRole ecmrRole, InternalOrExternalUser user) throws EcmrNotFoundException, NoPermissionException {
+    @Transactional
+    public EcmrShareResponse sendTokenPerEmail(UUID ecmrId, String receiverEmail, EcmrRole ecmrRole, InternalOrExternalUser user) throws EcmrNotFoundException, NoPermissionException, SealedEcmrNotFoundException {
+        // verify that a sealed document exists
+        sealedDocumentRepository.findByEcmrId(ecmrId).orElseThrow(() -> new SealedEcmrNotFoundException(ecmrId));
         String shareToken = getShareToken(ecmrId, ecmrRole, user);
         String text = String.format("To import the ecmr use the following properties: %n-ecmrId: %s %n-url: %s %n-share token: %s", ecmrId, originUrl, shareToken);
         mailService.sendMail(receiverEmail, "Import eCMR", text);

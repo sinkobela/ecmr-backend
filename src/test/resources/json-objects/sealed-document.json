@@ -85,7 +85,7 @@
         "carriersReservationsAndObservationsOnTakingOverTheGoods": {
           "carrierReservationsObservations": null,
           "senderReservationsObservationsSignature": {
-            "type": null,
+            "type": "ESeal",
             "userName": "Test User",
             "userCompany": null,
             "userStreet": null,
@@ -159,7 +159,7 @@
         },
         "signatureOrStampOfTheSender": {
           "senderSignature": {
-            "type": null,
+            "type": "ESeal",
             "userName": "Test User",
             "userCompany": null,
             "userStreet": null,

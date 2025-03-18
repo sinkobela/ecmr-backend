@@ -8,7 +8,7 @@
 
 package org.openlogisticsfoundation.ecmr.domain.services;
 
-import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrExportResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -19,11 +19,11 @@ public class ExternalEcmrInstanceService {
 
     private WebClient webClient;
 
-    public SealedDocument importEcmr(String uri, UUID ecmrId, String shareToken) {
+    public EcmrExportResult importEcmr(String uri, UUID ecmrId, String shareToken) {
         webClient = WebClient.builder().baseUrl(uri).build();
         return this.webClient.get()
             .uri("api/external/ecmr/{ecmrId}/export?shareToken={shareToken}", ecmrId, shareToken)
             .retrieve()
-            .bodyToMono(SealedDocument.class).block();
+            .bodyToMono(EcmrExportResult.class).block();
     }
 }

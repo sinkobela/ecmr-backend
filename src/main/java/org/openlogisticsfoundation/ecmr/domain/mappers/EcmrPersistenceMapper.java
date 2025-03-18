@@ -166,4 +166,7 @@ public interface EcmrPersistenceMapper {
     SealedDocument toModel(SealedDocumentEntity sealedDocumentEntity);
 
     SealedDocumentEntity toEntity(SealedDocument sealedDocument);
+
+    @Mapping(source = "type", target = "signatureType")
+    SignatureEntity toEntity(Signature signature);
 }

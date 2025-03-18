@@ -22,7 +22,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 
-public class SealEcmrTest extends E2EBaseTest {
+class SealEcmrTest extends E2EBaseTest {
     static String validEcmrId;
     static String secondValidEcmrId;
     static String validEcmrIdEmpty;

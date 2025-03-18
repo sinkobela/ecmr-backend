@@ -12,10 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrExportResult;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc(addFilters = false)
 @DirtiesContext
-public class ExternalControllerTest {
+class ExternalControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,7 +50,7 @@ public class ExternalControllerTest {
     private EcmrShareService ecmrShareService;
 
     @MockBean
-    private SealedDocument sealedDocument;
+    private EcmrExportResult ecmrExportResult;
 
     @MockBean
     private AuthenticationService authenticationService;
@@ -65,29 +65,29 @@ public class ExternalControllerTest {
     private final String groupId = "1";
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         when(authenticationService.getAuthenticatedUser(true)).thenReturn(authenticatedUser);
     }
 
     // EXPORT
 
     @Test
-    public void exportEcmr_successful() throws Exception {
+    void exportEcmr_successful() throws Exception {
         // Arrange
-        when(ecmrShareService.exportEcmrToExternal(ecmrId, shareToken)).thenReturn(sealedDocument);
+        when(ecmrShareService.exportEcmrToExternal(ecmrId, shareToken)).thenReturn(ecmrExportResult);
 
         // Act & Assert
         mockMvc.perform(get("/external/ecmr/{ecmrId}/export", ecmrId)
                 .param("shareToken", shareToken))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().json(objectMapper.writeValueAsString(sealedDocument)));
+            .andExpect(content().json(objectMapper.writeValueAsString(ecmrExportResult)));
 
         verify(ecmrShareService, times(1)).exportEcmrToExternal(ecmrId, shareToken);
     }
 
     @Test
-    public void exportEcmr_invalidShareToken() throws Exception {
+    void exportEcmr_invalidShareToken() throws Exception {
         // Arrange
         when(ecmrShareService.exportEcmrToExternal(ecmrId, shareToken)).thenThrow(ValidationException.class);
 
@@ -100,7 +100,7 @@ public class ExternalControllerTest {
     }
 
     @Test
-    public void exportEcmr_invalidEcmrId() throws Exception {
+    void exportEcmr_invalidEcmrId() throws Exception {
         // Arrange
         when(ecmrShareService.exportEcmrToExternal(ecmrId, shareToken)).thenThrow(NoSuchElementException.class);
 
@@ -116,7 +116,7 @@ public class ExternalControllerTest {
 
     @Test
     @WithMockUser
-    public void importEcmr_successful() throws Exception {
+    void importEcmr_successful() throws Exception {
         // Act
         mockMvc.perform(post("/external/ecmr/import")
                 .param("ecmrId", ecmrId.toString())
@@ -130,7 +130,7 @@ public class ExternalControllerTest {
 
     @Test
     @WithMockUser
-    public void importEcmr_invalidAuthentication() throws Exception {
+    void importEcmr_invalidAuthentication() throws Exception {
         // Arrange
         when(authenticationService.getAuthenticatedUser(true)).thenThrow(AuthenticationException.class);
 
@@ -147,7 +147,7 @@ public class ExternalControllerTest {
 
     @Test
     @WithMockUser
-    public void importEcmr_invalidGroupIds() throws Exception {
+    void importEcmr_invalidGroupIds() throws Exception {
         // Arrange
         doThrow(NoPermissionException.class)
             .when(ecmrShareService).importEcmrFromExternal(url, ecmrId, shareToken, List.of(Long.valueOf(groupId)), authenticatedUser);
@@ -165,7 +165,7 @@ public class ExternalControllerTest {
 
     @Test
     @WithMockUser
-    public void importEcmr_invalidSeal() throws Exception {
+    void importEcmr_invalidSeal() throws Exception {
         // Arrange
         doThrow(InvalidInputException.class)
             .when(ecmrShareService).importEcmrFromExternal(url, ecmrId, shareToken, List.of(Long.valueOf(groupId)), authenticatedUser);

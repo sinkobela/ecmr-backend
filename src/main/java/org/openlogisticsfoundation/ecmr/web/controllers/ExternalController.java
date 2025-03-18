@@ -16,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
-import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
-import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
-import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.*;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
@@ -65,8 +62,8 @@ public class ExternalController {
             @ApiResponse(description = "eCMR not found", responseCode = "404"),
             @ApiResponse(description = "Forbidden access", responseCode = "403")
         })
-    public ResponseEntity<SealedDocument> exportEcmrToExternal(@PathVariable(value = "ecmrId") UUID ecmrId,
-                                                               @RequestParam @Valid @NotNull String shareToken) {
+    public ResponseEntity<EcmrExportResult> exportEcmrToExternal(@PathVariable(value = "ecmrId") UUID ecmrId,
+                                                                 @RequestParam @Valid @NotNull String shareToken) {
         try {
             return ResponseEntity.ok(this.ecmrShareService.exportEcmrToExternal(ecmrId, shareToken));
         } catch (NoSuchElementException e) {
@@ -107,6 +104,8 @@ public class ExternalController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (EcmrAlreadyExistsException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
         }
     }
 
@@ -125,6 +124,8 @@ public class ExternalController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (SealedEcmrNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 }

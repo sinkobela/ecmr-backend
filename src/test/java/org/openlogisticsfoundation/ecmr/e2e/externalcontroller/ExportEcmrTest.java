@@ -12,7 +12,7 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
-import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrExportResult;
 import org.openlogisticsfoundation.ecmr.e2e.E2EBaseTest;
 import org.openlogisticsfoundation.ecmr.e2e.ResourceLoader;
 import org.springframework.http.HttpStatus;
@@ -23,7 +23,7 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ExportEcmrTest extends E2EBaseTest {
+class ExportEcmrTest extends E2EBaseTest {
 
     static String validEcmrId;
     static String validShareToken;
@@ -120,8 +120,8 @@ public class ExportEcmrTest extends E2EBaseTest {
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .extract().response();
 
-        SealedDocument result = response.as(SealedDocument.class);
-        assertEquals(validEcmrId, result.getSealedEcmr().getEcmr().getEcmrId());
+        EcmrExportResult result = response.as(EcmrExportResult.class);
+        assertEquals(validEcmrId, result.getSealedDocument().getSealedEcmr().getEcmr().getEcmrId());
     }
 
     @Test
