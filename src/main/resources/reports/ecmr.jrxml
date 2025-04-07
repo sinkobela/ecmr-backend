@@ -1998,7 +1998,7 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{ecmrId}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["eCMR ID: " + $P{ecmrId}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>
