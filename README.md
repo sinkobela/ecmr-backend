@@ -10,8 +10,7 @@ Core technology of the frontend is Java and the Sprint Boot Framework.
 The versions of the runtime environment and the most relevant frameworks used are listed below:
 
 * Java: 21
-* Spring Boot: 3.2.11
-
+* Spring Boot: 3.4.4
 
 
 ## Run with docker compose
