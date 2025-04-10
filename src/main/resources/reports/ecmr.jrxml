@@ -95,6 +95,9 @@
 	<parameter name="senderSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="carrierSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
+  <parameter name="senderSignatureText" class="java.lang.String"/>
+  <parameter name="carrierSignatureText" class="java.lang.String"/>
+  <parameter name="consigneeSignatureText" class="java.lang.String"/>
 	<parameter name="senderSignatureESeal" class="java.lang.String"/>
 	<parameter name="carrierSignatureESeal" class="java.lang.String"/>
 	<parameter name="consigneeSignatureESeal" class="java.lang.String"/>
@@ -1770,6 +1773,17 @@
 					<reportElement x="1" y="1" width="138" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
 					<imageExpression><![CDATA[$P{senderSignatureImage}]]></imageExpression>
 				</image>
+        <textField isBlankWhenNull="true">
+          <reportElement x="1" y="1" width="138" height="73">
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            <property name="com.jaspersoft.studio.unit.width" value="px"/>
+          </reportElement>
+          <box leftPadding="5"/>
+          <textElement verticalAlignment="Bottom" textAlignment="Center">
+            <font size="6" isBold="true"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$P{senderSignatureText}]]></textFieldExpression>
+        </textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="1" width="138" height="74" uuid="aeec8b09-30f6-424f-a9ce-12cbe3b4aabb">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1815,6 +1829,17 @@
 					<reportElement x="1" y="1" width="138" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
 					<imageExpression><![CDATA[$P{carrierSignatureImage}]]></imageExpression>
 				</image>
+        <textField isBlankWhenNull="true">
+          <reportElement x="1" y="1" width="138" height="73">
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            <property name="com.jaspersoft.studio.unit.width" value="px"/>
+          </reportElement>
+          <box leftPadding="5"/>
+          <textElement verticalAlignment="Bottom" textAlignment="Center">
+            <font size="6" isBold="true"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$P{carrierSignatureText}]]></textFieldExpression>
+        </textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="1" width="138" height="74" uuid="6f1e50a5-fac4-4121-b93c-915a61b491de">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -1905,11 +1930,22 @@
 					<textFieldExpression><![CDATA[$P{consigneeSignatureDate}]]></textFieldExpression>
 				</textField>
 				<image>
-					<reportElement x="1" y="37" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
+					<reportElement x="1" y="36" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
 					<imageExpression><![CDATA[$P{consigneeSignatureImage}]]></imageExpression>
 				</image>
+        <textField isBlankWhenNull="true">
+          <reportElement x="1" y="36" width="138" height="73">
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            <property name="com.jaspersoft.studio.unit.width" value="px"/>
+          </reportElement>
+          <box leftPadding="5"/>
+          <textElement verticalAlignment="Bottom" textAlignment="Center">
+            <font size="6" isBold="true"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$P{consigneeSignatureText}]]></textFieldExpression>
+        </textField>
 				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="1" width="138" height="73" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
+					<reportElement x="1" y="36" width="138" height="73" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>

@@ -180,6 +180,7 @@ public class EcmrPdfService {
                 Renderable renderableSignature =
                         this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getData());
                 parameters.put("senderSignatureImage", renderableSignature);
+                parameters.put("senderSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature()));
             }
             if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getType(), SignatureType.ESeal.toString())) {
                 parameters.put("senderSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature()));
@@ -192,6 +193,7 @@ public class EcmrPdfService {
                 Renderable renderableSignature =
                         this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
                 parameters.put("carrierSignatureImage", renderableSignature);
+                parameters.put("carrierSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature()));
             }
             if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getType(), SignatureType.ESeal.toString())) {
                 parameters.put("carrierSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature()));
@@ -214,6 +216,7 @@ public class EcmrPdfService {
                 Renderable renderableSignature =
                         this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
                 parameters.put("consigneeSignatureImage", renderableSignature);
+                parameters.put("consigneeSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
             }
             if(Objects.equals(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getType(), SignatureType.ESeal.toString())) {
                 parameters.put("consigneeSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
@@ -296,6 +299,16 @@ public class EcmrPdfService {
         String formattedDate = formatter.format(date);
         return "Signed with eSeal on:\r\n" + formattedDate + "\r\n\r\nBy:\r\n" + signature.getUserName();
     }
+
+    private String getSignatureText(Signature signature) {
+        String upperCaseUserName = signature.getUserName() != null ? signature.getUserName().toUpperCase() : "";
+        String userCompany = signature.getUserCompany();
+
+        return userCompany != null && !userCompany.isBlank()
+            ? upperCaseUserName + "\r\n" + userCompany
+            : upperCaseUserName;
+    }
+
 
     private List<ItemBean> convertToItemBeans(List<Item> items) {
         List<ItemBean> itemBeans = new ArrayList<>();

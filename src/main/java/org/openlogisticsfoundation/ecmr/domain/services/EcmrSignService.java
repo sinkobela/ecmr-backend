@@ -92,6 +92,8 @@ public class EcmrSignService {
 
         signatureEntity.setTimestamp(Instant.now());
         signatureEntity.setUserName(internalOrExternalUser.getFullName());
+        signatureEntity.setUserCompany((internalOrExternalUser.isExternalUser()) ? internalOrExternalUser.getExternalUser().getCompany() :
+            null);
         signatureEntity.setUserCountry((internalOrExternalUser.isInternalUser()) ? internalOrExternalUser.getInternalUser().getCountry().name() :
             null);
         signatureEntity.setSignatureType(signatureType);
