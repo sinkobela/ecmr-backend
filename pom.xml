@@ -183,7 +183,7 @@
         <dependency>
             <groupId>org.openlogisticsfoundation.ecmr.data-model</groupId>
             <artifactId>data-model</artifactId>
-            <version>0.3.2</version>
+            <version>0.3.3</version>
         </dependency>
 
         <dependency>
