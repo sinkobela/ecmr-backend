@@ -236,6 +236,28 @@ public class EcmrControllerTest {
 
     @Test
     @WithMockUser
+    public void testShareEcmrWithGroup_Success() throws Exception {
+        //Arrange
+        EcmrShareWithGroupModel ecmrShareWithGroupModel = new EcmrShareWithGroupModel(groupIds.get(0),EcmrRole.Consignee);
+        EcmrShareResponse ecmrShareResponse = new EcmrShareResponse(ShareEcmrResult.SharedInternal, new Group());
+
+        when(authenticationService.getAuthenticatedUser()).thenReturn(authenticatedUser);
+        when(ecmrShareService.shareEcmrWithGroup(any(InternalOrExternalUser.class), any(UUID.class), any(Long.class), any(EcmrRole.class)))
+            .thenReturn(ecmrShareResponse);
+
+        //Act
+        mockMvc.perform(patch("/ecmr/{ecmrId}/shareWithGroup", ecmrId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(ecmrShareWithGroupModel)))
+            .andExpect(status().isOk());
+
+        //Assert
+        verify(authenticationService, times(1)).getAuthenticatedUser();
+        verify((ecmrShareService), times(1)).shareEcmrWithGroup(any(InternalOrExternalUser.class), any(UUID.class), any(Long.class), any(EcmrRole.class));
+    }
+
+    @Test
+    @WithMockUser
     public void testImportEcmr_Success() throws Exception {
         // Arrange
         String shareToken = "valid-share-token";

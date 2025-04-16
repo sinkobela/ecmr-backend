@@ -21,12 +21,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
@@ -343,6 +338,55 @@ public class EcmrController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         }
     }
+
+    /**
+     * Shares an eCMR with a group
+     *
+     * @param ecmrId         The ID of the eCMR to share
+     * @param ecmrShareWithGroupModel The sharing details
+     * @return The response of the sharing operation
+     */
+    @PatchMapping(path = {"{ecmrId}/shareWithGroup"})
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        tags = "ECMR",
+        summary = "Share an eCMR",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the eCMR to share", required = true, schema = @Schema(type = "string", format = "uuid"))
+        },
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
+            mediaType = MediaType.APPLICATION_JSON_VALUE,
+            schema = @Schema(implementation = EcmrShareWithGroupModel.class))),
+        responses = {
+            @ApiResponse(description = "Successfully shared eCMR",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EcmrShareResponse.class))),
+            @ApiResponse(description = "eCMR or group not found", responseCode = "404"),
+            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+            @ApiResponse(description = "Forbidden access", responseCode = "403"),
+            @ApiResponse(description = "Bad request", responseCode = "400")
+        })
+    public ResponseEntity<EcmrShareResponse> shareEcmrWithGroup(@PathVariable(value = "ecmrId") UUID ecmrId,
+                                                       @RequestBody @Valid EcmrShareWithGroupModel ecmrShareWithGroupModel) {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(
+                this.ecmrShareService.shareEcmrWithGroup(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId, ecmrShareWithGroupModel.getGroupId(),
+                    ecmrShareWithGroupModel.getRole()));
+        } catch (EcmrNotFoundException | GroupNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        } catch (NotImplementedException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
+        } catch (ValidationException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
 
     /**
      * Imports an eCMR using a share token

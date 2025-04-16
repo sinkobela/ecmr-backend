@@ -31,10 +31,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegis
 import org.openlogisticsfoundation.ecmr.domain.services.tan.MessageProviderException;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.PhoneMessageProvider;
 import org.openlogisticsfoundation.ecmr.persistence.entities.*;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.ExternalUserRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.SealedDocumentRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.*;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -65,6 +62,7 @@ public class EcmrShareService {
     private final EcmrWebMapper ecmrWebMapper;
     private final HistoryLogService historyLogService;
     private final MailService mailService;
+    private final GroupRepository groupRepository;
 
     @Value("${app.frontend-url}")
     private String frontendAddress;
@@ -223,6 +221,34 @@ public class EcmrShareService {
             }
             break;
         }
+    }
+
+    public EcmrShareResponse shareEcmrWithGroup(InternalOrExternalUser internalOrExternalUser, @Valid @NotNull UUID ecmrId, @Valid @NotNull Long groupId,
+                                       @Valid @NotNull EcmrRole role) throws EcmrNotFoundException, GroupNotFoundException, NoPermissionException, ValidationException {
+        if (role == EcmrRole.Reader) {
+            throw new ValidationException("Ecmr can't be shared to Reader");
+        }
+        List<EcmrRole> rolesOfUser = authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
+        if (!rolesOfUser.contains(EcmrRole.Sender) && !rolesOfUser.contains(EcmrRole.Carrier)) {
+            throw new NoPermissionException("No Permission to share as Consignee or Readonly");
+        }
+        this.validateShareRoles(rolesOfUser, role);
+        EcmrEntity ecmr = ecmrService.getEcmrEntity(ecmrId);
+
+        GroupEntity groupEntity = groupRepository.findById(groupId).orElseThrow(() -> new GroupNotFoundException(groupId));
+
+        if (rolesOfUser.contains(role)) {
+            this.changeRoleToReadonly(internalOrExternalUser, role, ecmrId);
+        }
+        List<EcmrAssignmentEntity> assignment = this.ecmrAssignmentRepository.findByEcmr_EcmrIdAndGroup_idInAndRole(
+            ecmrId, List.of(groupId), role);
+        if (!assignment.isEmpty()) {
+            return new EcmrShareResponse(ShareEcmrResult.SharedInternal, this.groupPersistenceMapper.toGroup(groupEntity));
+        }
+
+        createAndSaveAssigment(ecmr, role, groupEntity);
+
+        return new EcmrShareResponse(ShareEcmrResult.SharedInternal, this.groupPersistenceMapper.toGroup(groupEntity));
     }
 
     public String getShareToken(UUID ecmrId, EcmrRole ecmrRole, InternalOrExternalUser internalOrExternalUser)
