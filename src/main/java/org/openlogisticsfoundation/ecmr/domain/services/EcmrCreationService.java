@@ -74,8 +74,10 @@ public class EcmrCreationService {
 
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmrEntity.setCreatedBy(fullName);
-
         ecmrEntity.setCreatedAt(Instant.now());
+
+        ecmrEntity = ecmrService.clearPhoneNumbers(ecmrEntity);
+
         ecmrEntity = this.ecmrRepository.save(ecmrEntity);
 
         if (type == EcmrType.ECMR) {

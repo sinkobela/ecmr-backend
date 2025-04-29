@@ -87,9 +87,11 @@ public class EcmrUpdateService {
         }
 
         ecmrEntity = persistenceMapper.toEntity(ecmrEntity, ecmrCommand, EcmrType.ECMR);
-        ecmrEntity.setEditedAt(Instant.now());
 
+        ecmrEntity.setEditedAt(Instant.now());
         ecmrEntity.setEditedBy(internalOrExternalUser.getFullName());
+
+        ecmrEntity = ecmrService.clearPhoneNumbers(ecmrEntity);
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
         ecmrEntity = this.ecmrService.setEcmrStatus(ecmrEntity);

@@ -151,4 +151,34 @@ public class EcmrService {
         }
         return this.ecmrPdfService.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
     }
+
+    public EcmrEntity clearPhoneNumbers(EcmrEntity ecmrEntity) {
+        ecmrEntity.getCarrierInformation().setPhone(
+                cleanPhoneNumber(ecmrEntity.getCarrierInformation().getPhone()));
+
+        ecmrEntity.getSenderInformation().setPhone(
+                cleanPhoneNumber(ecmrEntity.getSenderInformation().getPhone()));
+
+        ecmrEntity.getConsigneeInformation().setPhone(
+                cleanPhoneNumber(ecmrEntity.getConsigneeInformation().getPhone()));
+
+        ecmrEntity.getSuccessiveCarrierInformation().setPhone(
+                cleanPhoneNumber(ecmrEntity.getSuccessiveCarrierInformation().getPhone()));
+
+        return ecmrEntity;
+    }
+
+    private String cleanPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null) {
+            return null;
+        }
+
+        String digits = phoneNumber.trim().replaceAll("\\D", "");
+        if (digits.isEmpty()) {
+            return null;
+        }
+
+        boolean startsWithPlus = phoneNumber.trim().startsWith("+");
+        return startsWithPlus ? "+" + digits : digits;
+    }
 }
