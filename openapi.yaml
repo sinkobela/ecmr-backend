@@ -1,9 +1,3 @@
-# Copyright Open Logistics Foundation
-#
-# Licensed under the Open Logistics Foundation License 1.3.
-# For details on the licensing terms, see the LICENSE file.
-# SPDX-License-Identifier: OLFL-1.3
-#
 openapi: 3.0.1
 info:
   title: eCMR - API
@@ -15,7 +9,7 @@ info:
     email: info@openlogisticsfoundation.org
   version: v0.1
 servers:
-  - url: http://localhost:8080/api
+  - url: http://localhost:8081/api
     description: Generated server url
 security:
   - OAUth2: []
@@ -30,29 +24,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrModel'
+              $ref: "#/components/schemas/EcmrModel"
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The updated eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
     post:
       tags:
         - ECMR
@@ -71,29 +69,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrModel'
+              $ref: "#/components/schemas/EcmrModel"
         required: true
       responses:
-        '400':
-          description: Bad request
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The created eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "400":
+          description: Bad request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /anonymous/ecmr:
     put:
       tags:
@@ -101,6 +103,12 @@ paths:
       summary: Update ECMR
       operationId: updateEcmr_1
       parameters:
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -111,29 +119,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrModel'
+              $ref: "#/components/schemas/EcmrModel"
         required: true
       responses:
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: Updated ECMR model
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /user:
     get:
       tags:
@@ -141,14 +153,12 @@ paths:
       summary: Get All Users
       operationId: getAllUsers
       responses:
-        '401':
-          description: Unauthorized
         default:
           description: List of users
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
     post:
       tags:
         - User
@@ -158,35 +168,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreationAndUpdateModel'
+              $ref: "#/components/schemas/UserCreationAndUpdateModel"
         required: true
       responses:
-        '400':
-          description: Bad request due to validation
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
-        '409':
-          description: User already exists
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
         default:
           description: The created user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request due to validation
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
+        "409":
+          description: User already exists
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
   /user/{id}:
     post:
       tags:
@@ -204,35 +212,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreationAndUpdateModel'
+              $ref: "#/components/schemas/UserCreationAndUpdateModel"
         required: true
       responses:
-        '400':
-          description: Bad request due to validation
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/User'
         default:
           description: The updated user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request due to validation
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
   /user/{id}/deactivate:
     post:
       tags:
@@ -247,14 +253,12 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: User deactivated successfully
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden access
-        '404':
+        "404":
           description: User not found
+        "403":
+          description: Forbidden access
   /user/{id}/activate:
     post:
       tags:
@@ -269,14 +273,12 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: User activated successfully
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden access
-        '404':
+        "404":
           description: User not found
+        "403":
+          description: Forbidden access
   /template:
     get:
       tags:
@@ -284,14 +286,20 @@ paths:
       summary: Retrieve All Templates
       operationId: getAllTemplatesForUser
       responses:
-        '401':
-          description: Unauthorized access
         default:
           description: List of templates for the authenticated user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateUser'
+                $ref: "#/components/schemas/TemplateUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemplateUser"
     post:
       tags:
         - Template
@@ -307,23 +315,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrModel'
+              $ref: "#/components/schemas/EcmrModel"
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
-          description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/TemplateUser'
         default:
           description: The created template
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateUser'
+                $ref: "#/components/schemas/TemplateUser"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
     patch:
       tags:
         - Template
@@ -333,23 +345,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TemplateUser'
+              $ref: "#/components/schemas/TemplateUser"
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
-          description: Template not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/TemplateUser'
         default:
           description: The updated template
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateUser'
+                $ref: "#/components/schemas/TemplateUser"
+        "404":
+          description: Template not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
   /template/share/{id}:
     post:
       tags:
@@ -370,20 +386,24 @@ paths:
               type: integer
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
-          description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/TemplateUser'
         default:
           description: Successfully shared template
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateUser'
+                $ref: "#/components/schemas/TemplateUser"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
   /group:
     get:
       tags:
@@ -398,22 +418,28 @@ paths:
           schema:
             type: boolean
       responses:
-        '401':
+        default:
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "401":
           description: Unauthorized access
-        '403':
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "403":
           description: Forbidden access
           content:
             '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
-        default:
-          description: List of groups
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
+                  $ref: "#/components/schemas/Group"
     post:
       tags:
         - Group
@@ -423,29 +449,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupCreationModel'
+              $ref: "#/components/schemas/GroupCreationModel"
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
-        '404':
-          description: Group not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
         default:
           description: The created group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
+        "404":
+          description: Group not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
   /group/{id}:
     get:
       tags:
@@ -460,26 +490,30 @@ paths:
           schema:
             type: integer
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
-        '404':
-          description: Group not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
         default:
           description: The requested group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
+        "404":
+          description: Group not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
     post:
       tags:
         - Group
@@ -496,29 +530,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupUpdateModel'
+              $ref: "#/components/schemas/GroupUpdateModel"
         required: true
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
-        '404':
-          description: Group not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
         default:
           description: The updated group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
+        "404":
+          description: Group not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
     delete:
       tags:
         - Group
@@ -532,22 +570,26 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Group deleted successfully
           content:
             '*/*':
               schema:
                 type: boolean
-        '400':
+        "404":
+          description: Group not found
+          content:
+            '*/*':
+              schema:
+                type: boolean
+        "400":
           description: Bad request due to group constraints
           content:
             '*/*':
               schema:
                 type: boolean
-        '401':
+        "401":
           description: Unauthorized access
-        '404':
-          description: Group not found
           content:
             '*/*':
               schema:
@@ -569,40 +611,107 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupParentUpdateModel'
+              $ref: "#/components/schemas/GroupParentUpdateModel"
         required: true
       responses:
-        '400':
-          description: Bad request due to validation
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
-        '404':
-          description: Group not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Group'
         default:
           description: The updated group
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
+        "404":
+          description: Group not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          description: Bad request due to validation
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Group"
+  /external/ecmr/{ecmrId}/email:
+    post:
+      tags:
+        - ECMR External
+      summary: Send eCMR sharing token via email
+      operationId: sendEmail
+      parameters:
+        - name: ecmrId
+          in: path
+          description: UUID of the eCMR
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: receiverEmail
+          in: query
+          description: Email address of the receiver
+          required: true
+          schema:
+            type: string
+            format: email
+        - name: ecmrRole
+          in: query
+          description: Role of the user for the eCMR
+          required: true
+          schema:
+            type: string
+            enum:
+              - Reader
+              - Sender
+              - Carrier
+              - Consignee
+      responses:
+        "200":
+          description: Email sent successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "400":
+          description: Sealed eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
   /external/ecmr/import:
     post:
       tags:
-        - ECMR external
-      summary: Import eCMR with ID, share token and url
+        - ECMR External
+      summary: "Import eCMR with ID, share token and url"
       operationId: importEcmrFromExternal
       parameters:
         - name: ecmrId
@@ -639,14 +748,14 @@ paths:
               type: integer
               format: int64
       responses:
-        '200':
+        "200":
           description: eCMR was imported successfully
-        '400':
-          description: Share token is invalid
-        '401':
+        "401":
           description: Unauthorized access
-        '403':
+        "403":
           description: Forbidden access
+        "400":
+          description: Share token is invalid
   /ecmr/{ecmrId}/sign-on-glass:
     post:
       tags:
@@ -665,35 +774,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignModel'
+              $ref: "#/components/schemas/SignModel"
         required: true
       responses:
-        '400':
-          description: Validation error or signature already present
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
         default:
           description: The created signature
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Signature'
+                $ref: "#/components/schemas/Signature"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "400":
+          description: Validation error or signature already present
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
   /ecmr/{ecmrId}/seal:
     post:
       tags:
@@ -712,35 +825,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SealModel'
+              $ref: "#/components/schemas/SealModel"
         required: true
       responses:
-        '400':
-          description: Validation error or signature already present
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
         default:
           description: The created signature
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Signature'
+                $ref: "#/components/schemas/Signature"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "400":
+          description: Validation error or signature already present
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
   /ecmr/my-ecmrs:
     post:
       tags:
@@ -803,17 +920,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FilterRequestModel'
+              $ref: "#/components/schemas/FilterRequestModel"
         required: true
       responses:
-        '401':
-          description: Unauthorized
         default:
           description: Paginated list of eCMRs
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrPageModel'
+                $ref: "#/components/schemas/EcmrPageModel"
   /anonymous/registration:
     post:
       tags:
@@ -824,19 +939,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ExternalUserRegistrationModel'
+              $ref: "#/components/schemas/ExternalUserRegistrationModel"
         required: true
       responses:
-        '200':
+        "200":
           description: User registered successfully
-        '400':
-          description: Validation error
-        '401':
-          description: Unauthorized
-        '404':
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExternalUserRegistrationResponseModel"
+        "404":
           description: ECMR not found
-        '500':
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExternalUserRegistrationResponseModel"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExternalUserRegistrationResponseModel"
+        "500":
           description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExternalUserRegistrationResponseModel"
   /anonymous/ecmr/{ecmrId}/sign-on-glass:
     post:
       tags:
@@ -851,6 +980,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -861,35 +996,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignModel'
+              $ref: "#/components/schemas/SignModel"
         required: true
       responses:
-        '400':
-          description: Signature already present
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Signature'
         default:
           description: Signature result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Signature'
+                $ref: "#/components/schemas/Signature"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "400":
+          description: Signature already present
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Signature"
   /ecmr/{ecmrId}/share:
     patch:
       tags:
@@ -908,35 +1047,90 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrShareModel'
+              $ref: "#/components/schemas/EcmrShareModel"
         required: true
       responses:
-        '400':
-          description: Bad request
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
         default:
           description: Successfully shared eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "400":
+          description: Bad request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+  /ecmr/{ecmrId}/shareWithGroup:
+    patch:
+      tags:
+        - ECMR
+      summary: Share an eCMR
+      operationId: shareEcmrWithGroup
+      parameters:
+        - name: ecmrId
+          in: path
+          description: UUID of the eCMR to share
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EcmrShareWithGroupModel"
+        required: true
+      responses:
+        default:
+          description: Successfully shared eCMR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "404":
+          description: eCMR or group not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "400":
+          description: Bad request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
   /ecmr/{ecmrId}/reactivate:
     patch:
       tags:
@@ -952,26 +1146,30 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The reactivated eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /ecmr/{ecmrId}/archive:
     patch:
       tags:
@@ -987,26 +1185,30 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The archived eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /anonymous/ecmr/{ecmrId}/share:
     patch:
       tags:
@@ -1021,6 +1223,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -1031,41 +1239,45 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EcmrShareModel'
+              $ref: "#/components/schemas/EcmrShareModel"
         required: true
       responses:
-        '400':
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
-        '501':
-          description: Not implemented
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
         default:
           description: Share response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrShareResponse'
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "501":
+          description: Not implemented
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrShareResponse"
   /user/{id}/groups:
     get:
       tags:
@@ -1080,22 +1292,20 @@ paths:
           schema:
             type: integer
       responses:
-        '401':
-          description: Unauthorized
-        '404':
+        default:
+          description: List of groups for the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "404":
           description: User not found
           content:
             '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
-        default:
-          description: List of groups for the user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
+                  $ref: "#/components/schemas/Group"
   /user/mail:
     get:
       tags:
@@ -1103,8 +1313,6 @@ paths:
       summary: Get All User Emails
       operationId: getAllUserMails
       responses:
-        '401':
-          description: Unauthorized
         default:
           description: List of user emails
           content:
@@ -1118,14 +1326,39 @@ paths:
       summary: Get Current User
       operationId: current
       responses:
-        '401':
-          description: Unauthorized access
         default:
           description: Authenticated user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthenticatedUser'
+                $ref: "#/components/schemas/AuthenticatedUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthenticatedUser"
+  /user/current/groups:
+    get:
+      tags:
+        - User
+      summary: Get Groups of the current User
+      operationId: getCurrentUserGroups
+      responses:
+        default:
+          description: Groups of authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
   /template/{id}:
     get:
       tags:
@@ -1140,20 +1373,24 @@ paths:
           schema:
             type: integer
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
-          description: Template not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/TemplateUser'
         default:
           description: The requested template
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TemplateUser'
+                $ref: "#/components/schemas/TemplateUser"
+        "404":
+          description: Template not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TemplateUser"
     delete:
       tags:
         - Template
@@ -1167,16 +1404,20 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Template deleted successfully
           content:
             '*/*':
               schema:
                 type: object
-        '401':
-          description: Unauthorized access
-        '404':
+        "404":
           description: Template not found
+          content:
+            '*/*':
+              schema:
+                type: object
+        "401":
+          description: Unauthorized access
           content:
             '*/*':
               schema:
@@ -1196,22 +1437,28 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
+        default:
+          description: List of history logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryLog"
+        "401":
           description: Unauthorized access
-        '403':
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HistoryLog"
+        "403":
           description: Forbidden access
           content:
             '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/HistoryLog'
-        default:
-          description: List of history logs
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HistoryLog'
+                  $ref: "#/components/schemas/HistoryLog"
   /group/{id}/users:
     get:
       tags:
@@ -1226,22 +1473,28 @@ paths:
           schema:
             type: integer
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
+        default:
+          description: List of users in the group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
           description: Group not found
           content:
             '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
-        default:
-          description: List of users in the group
+                  $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized access
           content:
-            application/json:
+            '*/*':
               schema:
-                $ref: '#/components/schemas/User'
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
   /group/flat-list:
     get:
       tags:
@@ -1256,26 +1509,32 @@ paths:
           schema:
             type: boolean
       responses:
-        '401':
+        default:
+          description: Flat list of groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupFlatModel"
+        "401":
           description: Unauthorized access
-        '403':
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GroupFlatModel"
+        "403":
           description: Forbidden access
           content:
             '*/*':
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GroupFlatModel'
-        default:
-          description: Flat list of groups
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GroupFlatModel'
+                  $ref: "#/components/schemas/GroupFlatModel"
   /external/ecmr/{ecmrId}/export:
     get:
       tags:
-        - ECMR external
+        - ECMR External
       summary: Export eCMR as sealed document with ID and share token
       operationId: exportEcmrToExternal
       parameters:
@@ -1293,26 +1552,24 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/SealedDocument'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/SealedDocument'
         default:
           description: The requested ecmr as sealed document
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SealedDocument'
+                $ref: "#/components/schemas/SealedDocument"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrExportResult"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrExportResult"
   /ecmr/{ecmrId}:
     get:
       tags:
@@ -1328,26 +1585,30 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The requested eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
     delete:
       tags:
         - ECMR
@@ -1362,14 +1623,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: eCMR deleted successfully
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-        '404':
+        "404":
           description: eCMR not found
+        "401":
+          description: Unauthorized access
+        "403":
+          description: Forbidden access
   /ecmr/{ecmrId}/share-token:
     get:
       tags:
@@ -1391,24 +1652,28 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
+        default:
+          description: The share token
           content:
-            '*/*':
+            application/json:
               schema:
                 type: string
-        '404':
+        "404":
           description: eCMR not found
           content:
             '*/*':
               schema:
                 type: string
-        default:
-          description: The share token
+        "401":
+          description: Unauthorized access
           content:
-            application/json:
+            '*/*':
+              schema:
+                type: string
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
               schema:
                 type: string
   /ecmr/{ecmrId}/role:
@@ -1426,9 +1691,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
-          description: Unauthorized access
-        '404':
+        default:
+          description: List of current roles
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - Reader
+                  - Sender
+                  - Carrier
+                  - Consignee
+        "404":
           description: eCMR not found
           content:
             '*/*':
@@ -1441,17 +1715,19 @@ paths:
                     - Sender
                     - Carrier
                     - Consignee
-        default:
-          description: List of current roles
+        "401":
+          description: Unauthorized access
           content:
-            application/json:
+            '*/*':
               schema:
-                type: string
-                enum:
-                  - Reader
-                  - Sender
-                  - Carrier
-                  - Consignee
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - Reader
+                    - Sender
+                    - Carrier
+                    - Consignee
   /ecmr/{ecmrId}/pdf:
     get:
       tags:
@@ -1467,30 +1743,34 @@ paths:
             type: string
             format: uuid
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '404':
-          description: eCMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '500':
-          description: Error creating PDF
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
         default:
           description: PDF file of the eCMR
           content:
             application/pdf: {}
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "404":
+          description: eCMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "500":
+          description: Error creating PDF
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
   /ecmr/{ecmrId}/import:
     get:
       tags:
@@ -1512,32 +1792,36 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: Unauthorized access
-        '403':
-          description: Forbidden access
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: User not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '501':
-          description: Not implemented
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: The imported eCMR
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: Unauthorized access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: Forbidden access
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "501":
+          description: Not implemented
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /anonymous/is-tan-valid:
     get:
       tags:
@@ -1558,19 +1842,22 @@ paths:
           required: true
           schema:
             type: string
+        - name: userToken
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
-        '401':
-          description: Unauthorized
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                type: boolean
         default:
           description: Validity of the TAN
           content:
             application/json:
+              schema:
+                type: boolean
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
               schema:
                 type: boolean
   /anonymous/ecmr/{ecmrId}:
@@ -1593,27 +1880,36 @@ paths:
           required: true
           schema:
             type: string
+        - name: userToken
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/EcmrModel'
         default:
           description: ECMR details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EcmrModel'
+                $ref: "#/components/schemas/EcmrModel"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EcmrModel"
   /anonymous/ecmr/{ecmrId}/share-token:
     get:
       tags:
@@ -1628,6 +1924,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -1646,24 +1948,28 @@ paths:
               - Carrier
               - Consignee
       responses:
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
+        default:
+          description: Share token
           content:
-            '*/*':
+            application/json:
               schema:
                 type: string
-        '404':
+        "404":
           description: ECMR not found
           content:
             '*/*':
               schema:
                 type: string
-        default:
-          description: Share token
+        "403":
+          description: No permission
           content:
-            application/json:
+            '*/*':
+              schema:
+                type: string
+        "401":
+          description: External user not found
+          content:
+            '*/*':
               schema:
                 type: string
   /anonymous/ecmr/{ecmrId}/share-pdf:
@@ -1687,30 +1993,28 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: Unauthorized
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '500':
-          description: PDF creation error
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
         default:
           description: ECMR PDF file
           content:
             application/pdf: {}
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "500":
+          description: PDF creation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
   /anonymous/ecmr/{ecmrId}/pdf:
     get:
       tags:
@@ -1725,6 +2029,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -1732,30 +2042,34 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: External user not found
-        '403':
-          description: No permission
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '404':
-          description: ECMR not found
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
-        '500':
-          description: PDF creation error
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/StreamingResponseBody'
         default:
           description: ECMR PDF file
           content:
             application/pdf: {}
+        "403":
+          description: No permission
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "500":
+          description: PDF creation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamingResponseBody"
   /anonymous/ecmr-role:
     get:
       tags:
@@ -1770,6 +2084,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: userToken
+          in: query
+          description: Unique token of the external user
+          required: true
+          schema:
+            type: string
         - name: tan
           in: query
           description: TAN for validation
@@ -1777,9 +2097,18 @@ paths:
           schema:
             type: string
       responses:
-        '401':
-          description: External user not found
-        '404':
+        default:
+          description: List of ECMR roles
+          content:
+            application/json:
+              schema:
+                type: string
+                enum:
+                  - Reader
+                  - Sender
+                  - Carrier
+                  - Consignee
+        "404":
           description: ECMR not found
           content:
             '*/*':
@@ -1792,17 +2121,58 @@ paths:
                     - Sender
                     - Carrier
                     - Consignee
+        "401":
+          description: External user not found
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - Reader
+                    - Sender
+                    - Carrier
+                    - Consignee
+  /anonymous/ecmr-carrier/{ecmrId}/{ecmrToken}:
+    get:
+      tags:
+        - Anonymous
+      summary: Get ECMR carrier information
+      operationId: getEcmrCarrierInfo
+      parameters:
+        - name: ecmrId
+          in: path
+          description: UUID of the ECMR
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ecmrToken
+          in: path
+          description: shareToken of the ECMR
+          required: true
+          schema:
+            type: string
+      responses:
         default:
-          description: List of ECMR roles
+          description: ECMR carrier details
           content:
             application/json:
               schema:
-                type: string
-                enum:
-                  - Reader
-                  - Sender
-                  - Carrier
-                  - Consignee
+                $ref: "#/components/schemas/SharedCarrierInformationModel"
+        "404":
+          description: ECMR not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SharedCarrierInformationModel"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SharedCarrierInformationModel"
 components:
   schemas:
     CarrierContactInformation:
@@ -1813,9 +2183,9 @@ components:
           minLength: 0
           type: string
         phone:
-          maxLength: 15
+          maxLength: 32
           minLength: 0
-          pattern: \+?[0-9]{1,15}
+          pattern: "^(\\+)?(?=.*\\d)[0-9\\s\\-().]+${1,32}"
           type: string
     CarrierCountryCode:
       type: object
@@ -1827,7 +2197,7 @@ components:
         value:
           maxLength: 2
           minLength: 2
-          pattern: ^[A-Z]{2}$
+          pattern: "^[A-Z]{2}$"
           type: string
     CarrierInformation:
       type: object
@@ -1851,13 +2221,13 @@ components:
           minLength: 2
           type: string
         carrierCountryCode:
-          $ref: '#/components/schemas/CarrierCountryCode'
+          $ref: "#/components/schemas/CarrierCountryCode"
         carrierLicensePlate:
-          maxLength: 15
+          maxLength: 30
           minLength: 2
           type: string
         carrierContactInformation:
-          $ref: '#/components/schemas/CarrierContactInformation'
+          $ref: "#/components/schemas/CarrierContactInformation"
     CarriersReservationsAndObservationsOnTakingOverTheGoods:
       type: object
       properties:
@@ -1866,7 +2236,7 @@ components:
           minLength: 2
           type: string
         senderReservationsObservationsSignature:
-          $ref: '#/components/schemas/Signature'
+          $ref: "#/components/schemas/Signature"
     CashOnDelivery:
       type: object
       properties:
@@ -1883,9 +2253,9 @@ components:
           minLength: 0
           type: string
         phone:
-          maxLength: 15
+          maxLength: 32
           minLength: 0
-          pattern: \+?[0-9]{1,15}
+          pattern: "^(\\+)?(?=.*\\d)[0-9\\s\\-().]+${1,32}"
           type: string
     ConsigneeCountryCode:
       type: object
@@ -1897,7 +2267,7 @@ components:
         value:
           maxLength: 2
           minLength: 2
-          pattern: ^[A-Z]{2}$
+          pattern: "^[A-Z]{2}$"
           type: string
     ConsigneeInformation:
       type: object
@@ -1917,13 +2287,13 @@ components:
           minLength: 2
           type: string
         consigneeCountryCode:
-          $ref: '#/components/schemas/ConsigneeCountryCode'
+          $ref: "#/components/schemas/ConsigneeCountryCode"
         consigneeStreet:
           maxLength: 255
           minLength: 2
           type: string
         consigneeContactInformation:
-          $ref: '#/components/schemas/ConsigneeContactInformation'
+          $ref: "#/components/schemas/ConsigneeContactInformation"
     CustomCharge:
       type: object
       properties:
@@ -1963,48 +2333,49 @@ components:
       type: object
       properties:
         senderInformation:
-          $ref: '#/components/schemas/SenderInformation'
+          $ref: "#/components/schemas/SenderInformation"
+        multiConsigneeShipment:
+          $ref: "#/components/schemas/MultiConsigneeShipment"
         consigneeInformation:
-          $ref: '#/components/schemas/ConsigneeInformation'
+          $ref: "#/components/schemas/ConsigneeInformation"
         takingOverTheGoods:
-          $ref: '#/components/schemas/TakingOverTheGoods'
+          $ref: "#/components/schemas/TakingOverTheGoods"
         deliveryOfTheGoods:
-          $ref: '#/components/schemas/DeliveryOfTheGoods'
+          $ref: "#/components/schemas/DeliveryOfTheGoods"
         sendersInstructions:
-          $ref: '#/components/schemas/SendersInstructions'
+          $ref: "#/components/schemas/SendersInstructions"
         carrierInformation:
-          $ref: '#/components/schemas/CarrierInformation'
+          $ref: "#/components/schemas/CarrierInformation"
         successiveCarrierInformation:
-          $ref: '#/components/schemas/SuccessiveCarrierInformation'
+          $ref: "#/components/schemas/SuccessiveCarrierInformation"
         carriersReservationsAndObservationsOnTakingOverTheGoods:
-          $ref: >-
-            #/components/schemas/CarriersReservationsAndObservationsOnTakingOverTheGoods
+          $ref: "#/components/schemas/CarriersReservationsAndObservationsOnTakingOverTheGoods"
         documentsHandedToCarrier:
-          $ref: '#/components/schemas/DocumentsHandedToCarrier'
+          $ref: "#/components/schemas/DocumentsHandedToCarrier"
         itemList:
           type: array
           items:
-            $ref: '#/components/schemas/Item'
+            $ref: "#/components/schemas/Item"
         specialAgreementsSenderCarrier:
-          $ref: '#/components/schemas/SpecialAgreementsSenderCarrier'
+          $ref: "#/components/schemas/SpecialAgreementsSenderCarrier"
         toBePaidBy:
-          $ref: '#/components/schemas/ToBePaidBy'
+          $ref: "#/components/schemas/ToBePaidBy"
         otherUsefulParticulars:
-          $ref: '#/components/schemas/OtherUsefulParticulars'
+          $ref: "#/components/schemas/OtherUsefulParticulars"
         cashOnDelivery:
-          $ref: '#/components/schemas/CashOnDelivery'
+          $ref: "#/components/schemas/CashOnDelivery"
         established:
-          $ref: '#/components/schemas/Established'
+          $ref: "#/components/schemas/Established"
         signatureOrStampOfTheSender:
-          $ref: '#/components/schemas/SignatureOrStampOfTheSender'
+          $ref: "#/components/schemas/SignatureOrStampOfTheSender"
         signatureOrStampOfTheCarrier:
-          $ref: '#/components/schemas/SignatureOrStampOfTheCarrier'
+          $ref: "#/components/schemas/SignatureOrStampOfTheCarrier"
         goodsReceived:
-          $ref: '#/components/schemas/GoodsReceived'
+          $ref: "#/components/schemas/GoodsReceived"
         nonContractualPartReservedForTheCarrier:
-          $ref: '#/components/schemas/NonContractualPartReservedForTheCarrier'
+          $ref: "#/components/schemas/NonContractualPartReservedForTheCarrier"
         referenceIdentificationNumber:
-          $ref: '#/components/schemas/ReferenceIdentificationNumber'
+          $ref: "#/components/schemas/ReferenceIdentificationNumber"
     EcmrModel:
       required:
         - ecmrConsignment
@@ -2013,7 +2384,7 @@ components:
         ecmrId:
           type: string
         ecmrConsignment:
-          $ref: '#/components/schemas/EcmrConsignment'
+          $ref: "#/components/schemas/EcmrConsignment"
         ecmrStatus:
           type: string
           enum:
@@ -2055,7 +2426,7 @@ components:
           minLength: 2
           type: string
         consigneeSignature:
-          $ref: '#/components/schemas/Signature'
+          $ref: "#/components/schemas/Signature"
         consigneeSignatureDate:
           type: string
           format: date-time
@@ -2077,17 +2448,17 @@ components:
       type: object
       properties:
         marksAndNos:
-          $ref: '#/components/schemas/MarksAndNos'
+          $ref: "#/components/schemas/MarksAndNos"
         numberOfPackages:
-          $ref: '#/components/schemas/NumberOfPackages'
+          $ref: "#/components/schemas/NumberOfPackages"
         methodOfPacking:
-          $ref: '#/components/schemas/MethodOfPacking'
+          $ref: "#/components/schemas/MethodOfPacking"
         natureOfTheGoods:
-          $ref: '#/components/schemas/NatureOfTheGoods'
+          $ref: "#/components/schemas/NatureOfTheGoods"
         grossWeightInKg:
-          $ref: '#/components/schemas/GrossWeightInKg'
+          $ref: "#/components/schemas/GrossWeightInKg"
         volumeInM3:
-          $ref: '#/components/schemas/VolumeInM3'
+          $ref: "#/components/schemas/VolumeInM3"
     MarksAndNos:
       type: object
       properties:
@@ -2106,6 +2477,13 @@ components:
           maxLength: 35
           minLength: 2
           type: string
+    MultiConsigneeShipment:
+      required:
+        - isMultiConsigneeShipment
+      type: object
+      properties:
+        isMultiConsigneeShipment:
+          type: boolean
     NatureOfTheGoods:
       type: object
       properties:
@@ -2150,9 +2528,9 @@ components:
           minLength: 0
           type: string
         phone:
-          maxLength: 15
+          maxLength: 32
           minLength: 0
-          pattern: \+?[0-9]{1,15}
+          pattern: "^(\\+)?(?=.*\\d)[0-9\\s\\-().]+${1,32}"
           type: string
     SenderCountryCode:
       type: object
@@ -2164,7 +2542,7 @@ components:
         value:
           maxLength: 2
           minLength: 2
-          pattern: ^[A-Z]{2}$
+          pattern: "^[A-Z]{2}$"
           type: string
     SenderInformation:
       type: object
@@ -2188,9 +2566,9 @@ components:
           minLength: 2
           type: string
         senderCountryCode:
-          $ref: '#/components/schemas/SenderCountryCode'
+          $ref: "#/components/schemas/SenderCountryCode"
         senderContactInformation:
-          $ref: '#/components/schemas/SenderContactInformation'
+          $ref: "#/components/schemas/SenderContactInformation"
     SendersInstructions:
       type: object
       properties:
@@ -2224,12 +2602,12 @@ components:
       type: object
       properties:
         carrierSignature:
-          $ref: '#/components/schemas/Signature'
+          $ref: "#/components/schemas/Signature"
     SignatureOrStampOfTheSender:
       type: object
       properties:
         senderSignature:
-          $ref: '#/components/schemas/Signature'
+          $ref: "#/components/schemas/Signature"
     SpecialAgreementsSenderCarrier:
       type: object
       properties:
@@ -2245,9 +2623,9 @@ components:
           minLength: 0
           type: string
         phone:
-          maxLength: 15
+          maxLength: 32
           minLength: 0
-          pattern: \+?[0-9]{1,15}
+          pattern: "^(\\+)?(?=.*\\d)[0-9\\s\\-().]+${1,32}"
           type: string
     SuccessiveCarrierCountryCode:
       type: object
@@ -2259,7 +2637,7 @@ components:
         value:
           maxLength: 2
           minLength: 2
-          pattern: ^[A-Z]{2}$
+          pattern: "^[A-Z]{2}$"
           type: string
     SuccessiveCarrierInformation:
       type: object
@@ -2269,7 +2647,7 @@ components:
           minLength: 2
           type: string
         successiveCarrierCountryCode:
-          $ref: '#/components/schemas/SuccessiveCarrierCountryCode'
+          $ref: "#/components/schemas/SuccessiveCarrierCountryCode"
         successiveCarrierNameCompany:
           type: string
         successiveCarrierNamePerson:
@@ -2281,7 +2659,7 @@ components:
           minLength: 2
           type: string
         successiveCarrierSignature:
-          $ref: '#/components/schemas/Signature'
+          $ref: "#/components/schemas/Signature"
         successiveCarrierSignatureDate:
           type: string
           format: date-time
@@ -2290,7 +2668,7 @@ components:
           minLength: 2
           type: string
         successiveCarrierContactInformation:
-          $ref: '#/components/schemas/SuccessiveCarrierContactInformation'
+          $ref: "#/components/schemas/SuccessiveCarrierContactInformation"
     TakingOverTheGoods:
       type: object
       properties:
@@ -2308,13 +2686,13 @@ components:
       type: object
       properties:
         customChargeCarriage:
-          $ref: '#/components/schemas/CustomCharge'
+          $ref: "#/components/schemas/CustomCharge"
         customChargeSupplementary:
-          $ref: '#/components/schemas/CustomCharge'
+          $ref: "#/components/schemas/CustomCharge"
         customChargeCustomsDuties:
-          $ref: '#/components/schemas/CustomCharge'
+          $ref: "#/components/schemas/CustomCharge"
         customChargeOther:
-          $ref: '#/components/schemas/CustomCharge'
+          $ref: "#/components/schemas/CustomCharge"
     VolumeInM3:
       type: object
       properties:
@@ -2510,7 +2888,7 @@ components:
             - NU
             - NF
             - MP
-            - 'NO'
+            - "NO"
             - OM
             - PK
             - PW
@@ -2784,7 +3162,7 @@ components:
             - NU
             - NF
             - MP
-            - 'NO'
+            - "NO"
             - OM
             - PK
             - PW
@@ -2896,7 +3274,7 @@ components:
         name:
           type: string
         ecmr:
-          $ref: '#/components/schemas/EcmrModel'
+          $ref: "#/components/schemas/EcmrModel"
     GroupCreationModel:
       required:
         - name
@@ -2923,7 +3301,7 @@ components:
         children:
           type: array
           items:
-            $ref: '#/components/schemas/Group'
+            $ref: "#/components/schemas/Group"
     GroupUpdateModel:
       required:
         - name
@@ -2939,6 +3317,17 @@ components:
         parentId:
           type: integer
           format: int64
+    EcmrShareResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          enum:
+            - SharedInternal
+            - SharedExternal
+            - ErrorInternalUserHasNoGroup
+        group:
+          $ref: "#/components/schemas/Group"
     SignModel:
       required:
         - data
@@ -2952,6 +3341,8 @@ components:
             - Carrier
             - Consignee
         data:
+          maxLength: 1000000
+          minLength: 0
           type: string
         city:
           type: string
@@ -3013,7 +3404,7 @@ components:
         ecmrs:
           type: array
           items:
-            $ref: '#/components/schemas/EcmrModel'
+            $ref: "#/components/schemas/EcmrModel"
     ExternalUserRegistrationModel:
       required:
         - company
@@ -3038,6 +3429,14 @@ components:
           type: string
         phone:
           type: string
+    ExternalUserRegistrationResponseModel:
+      type: object
+      properties:
+        ecmrId:
+          type: string
+          format: uuid
+        userToken:
+          type: string
     EcmrShareModel:
       required:
         - email
@@ -3053,22 +3452,27 @@ components:
             - Sender
             - Carrier
             - Consignee
-    EcmrShareResponse:
+    EcmrShareWithGroupModel:
+      required:
+        - groupId
+        - role
       type: object
       properties:
-        result:
+        groupId:
+          type: integer
+          format: int64
+        role:
           type: string
           enum:
-            - SharedInternal
-            - SharedExternal
-            - ErrorInternalUserHasNoGroup
-        group:
-          $ref: '#/components/schemas/Group'
+            - Reader
+            - Sender
+            - Carrier
+            - Consignee
     AuthenticatedUser:
       type: object
       properties:
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
     HistoryLog:
       type: object
       properties:
@@ -3107,7 +3511,7 @@ components:
       type: object
       properties:
         sealedEcmr:
-          $ref: '#/components/schemas/SealedEcmr'
+          $ref: "#/components/schemas/SealedEcmr"
         seal:
           type: string
         precedingSeal:
@@ -3119,11 +3523,30 @@ components:
       type: object
       properties:
         metadata:
-          $ref: '#/components/schemas/Metadata'
+          $ref: "#/components/schemas/Metadata"
         ecmr:
-          $ref: '#/components/schemas/EcmrModel'
+          $ref: "#/components/schemas/EcmrModel"
+    EcmrExportResult:
+      type: object
+      properties:
+        sealedDocument:
+          $ref: "#/components/schemas/SealedDocument"
+        ecmrRole:
+          type: string
+          enum:
+            - Reader
+            - Sender
+            - Carrier
+            - Consignee
     StreamingResponseBody:
       type: object
+    SharedCarrierInformationModel:
+      type: object
+      properties:
+        carrierNameCompany:
+          type: string
+        carrierNamePerson:
+          type: string
   securitySchemes:
     OAUth2:
       type: oauth2

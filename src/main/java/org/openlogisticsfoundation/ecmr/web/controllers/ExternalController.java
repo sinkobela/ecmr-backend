@@ -48,7 +48,7 @@ public class ExternalController {
 
     @GetMapping(path = {"/ecmr/{ecmrId}/export"})
     @Operation(
-        tags = "ECMR external",
+        tags = "ECMR External",
         summary = "Export eCMR as sealed document with ID and share token",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid")),
@@ -76,7 +76,7 @@ public class ExternalController {
     @PostMapping(path = {"/ecmr/import"})
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR external",
+        tags = "ECMR External",
         summary = "Import eCMR with ID, share token and url",
         parameters = {
             @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid")),
@@ -111,6 +111,21 @@ public class ExternalController {
 
     @PostMapping("/ecmr/{ecmrId}/email")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        tags = "ECMR External",
+        summary = "Send eCMR sharing token via email",
+        parameters = {
+            @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+            @Parameter(name = "receiverEmail", description = "Email address of the receiver", required = true, schema = @Schema(type = "string", format = "email")),
+            @Parameter(name = "ecmrRole", description = "Role of the user for the eCMR", required = true, schema = @Schema(implementation = EcmrRole.class))
+        },
+        responses = {
+            @ApiResponse(description = "Email sent successfully", responseCode = "200", content = @Content(schema = @Schema(implementation = EcmrShareResponse.class))),
+            @ApiResponse(description = "eCMR not found", responseCode = "404"),
+            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+            @ApiResponse(description = "Forbidden access", responseCode = "403"),
+            @ApiResponse(description = "Sealed eCMR not found", responseCode = "400")
+        })
     public ResponseEntity<EcmrShareResponse> sendEmail(@RequestParam String receiverEmail,
                                                        @PathVariable(value = "ecmrId") String ecmrId,
                                                        @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
