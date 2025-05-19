@@ -176,7 +176,7 @@ docker-build-ecmr-backend:
   stage: archive
   cache: {}
   image:
-    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   before_script:
   - rm -rf ~/.docker/manifests || true
@@ -184,6 +184,7 @@ docker-build-ecmr-backend:
   - echo "CI_REGISTRY=$CI_REGISTRY"
   - echo "DOCKER_HOST=$DOCKER_HOST"
   - echo "CI_PROJECT_DIR=${CI_PROJECT_DIR}"
+  - echo "CI_REGISTRY_IMAGE=${CI_REGISTRY_IMAGE}"
   - echo "$IMAGE_TAG={$IMAGE_TAG}"
   - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
   - /kaniko/executor
