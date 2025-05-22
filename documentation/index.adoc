@@ -94,7 +94,11 @@ include::06_runtime_view.adoc[]
 
 <<<
 // 12. Tutorial
-include::12_tutorial.adoc[]
+include::12-development-guidelines.adoc[]
+
+<<<
+// 13. Tutorial
+include::13_tutorial.adoc[]
 
 <<<
 // Glossary

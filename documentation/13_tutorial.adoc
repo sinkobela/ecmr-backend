@@ -33,12 +33,17 @@ and Microsoft SQL Server
 * A User Management System that supports OAuth. The ecmr Instance is tested
 with keycloak
 
-=== Running the Docker-Compose Setup
+=== Running the docker-compose setup
+
+*Note*: This docker-compose setup is intended exclusively for development
+and testing purposes. It is _NOT_ suitable for production environments. For
+production deployments, consider using orchestrators like Kubernetes, or manually
+crafted Dockerfiles with infrastructure-as-code tools such
+as Terraform or Ansible, ensuring secure, scalable, and robust operation.
 
 With the ecmr-backend component is a Docker-Compose Setup (see the
 docker-compose.yml file for more information), that comes with all required
-systems and a setup for local/developer setup. This is _NOT_ meant to be used
-as a productive setup.
+systems and a setup for local/developer setup.
 
 Ensure Docker and Docker-Compose are installed on your testing environment.
 

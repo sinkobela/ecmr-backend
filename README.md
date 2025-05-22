@@ -1,96 +1,73 @@
-# eCMR backend
+# eCMR Backend
 
-This is the backend application of the eCMR service. The Backend is designed to create, manage, archive sign and send an
+This is the backend application of the eCMR service. The backend is designed to create, manage, archive sign and send an
 eCMR ( digital convention relative au contrat de transport international de marchandises par route) with your partners
 in road transports, including cross-border cases.
-Core technology of the frontend is Java and the Sprint Boot Framework.
 
-## Versions
+The core technology of the backend is Java and the Spring Boot Framework.
 
-The versions of the runtime environment and the most relevant frameworks used are listed below:
+## Project Context
 
-* Java: 21
-* Spring Boot: 3.4.5
+This project is part of a broader ecosystem initiated by the [Open Logistics Foundation](https://openlogisticsfoundation.org/), which brings together logistics stakeholders to develop standardized, manufacturer-independent, and open-source software components for digital logistics infrastructure.
+
+Specifically, this repository is maintained by members of the **[Working Group “Electronic Transport Documents”](https://openlogisticsfoundation.org/en/working-groups/electronic-transport-documents/)**,
+whose goal is to define and implement digital document standards (like eCMR, delivery notes, transport orders, etc.).
+
+## Getting Started
+
+> **If you are new to the eCMR project, please start by exploring this
+> repository**. After reading this Readme.md, please visit the
+> [documentation section](https://gitlab.com/openlogistics/ecmr-backend/-/tree/main/docs) to understand the API structure and system architecture.
 
 
-## Run with docker compose
+## Related Projects
+- [eCMR Data Model](https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/ecmr-model)
+- [eCMR Frontend](https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/ecmr-frontend)
+- [eSEAL Open Source Implementation](https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/eseal)
 
-### Preparation
-The docker compose setup starts all necessary components: the front-and backend, a postgres database and a keycloak instance.
-To start the project with docker compose, the ecmr-frontend and the ecmr-backend have to be in the same directory.
-All config files can be found in the config folder.
 
-Note to the docker compose setup: When creating a token through the frontend (and therefore through the browser), the keycloak host is set as the issuer in the token.
-When the backend validates the token the issuer must match the host in the
-SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI, which tells the backend how to reach keycloak.
-Since the backend runs in a container and the browser runs on the local machine the url to keycloak is different (
-localhost vs container name), which then leads to an error in the backend because the issuer is different.
-As a solution a localhost service is used, which ensures that the host name is identical.
+## Features
 
-### Configuration
-To start the applications these changes must be made first:
+- [RESTful API](openapi.yaml) for creating, updating, and retrieving eCMRs
+- eSEAL (see for [eSEAL Repository](https://git.openlogisticsfoundation.org/wg-electronictransportdocuments/ecmr/eseal) more details) for signing eCMRs and verifying of signed eCMRs
+- Role-based access and data model based on the official eCMR specification
+- Integration hooks for ERP, TMS, and other relevant systems
 
-1. Edit the files config/postgres-params.env and config/backend-params.env to add usernames, passwords and
-the parameters of your smtp server (if you want to be able to share eCMRs with external instances).
-2. Change the user password in the realm configuration files.
-3. To add other users you must add them to realm config file and to the backend project (resources/db/init-data.xml). Please verify that the email addresses are identical.
+## Project Structure
 
-### Build & Run
-Build the application with: ```docker compose build```
+    ecmr-backend/
+    ├── ecmr-backend/ # Java source code
+    ├── documentation/ # eCMR project documentation
+    ├── README.md # Project description
+    ├── openapi.yaml # API description
+    ├── LICENSE # Licensing information
+    ├── docker-compose.yml # Docker compose setup for development purpose
+    └── CONTRIBUTING.md # Contribution guidelines
 
-Run the application with: ```docker compose up```
+## Technologies used
 
-The backend is available at http://localhost:8081.
-
-The frontend is available at http://localhost:8082.
-
-Note: this docker compose is for developing purposes only!
-
-## Run Tests
-Docker must be available to run the integration tests (src/test/e2e) as it is used to start the keycloak testcontainer.
+- Java 21
+- Spring Boot 3.4.5
+- OpenAPI Specification
+- Docker
 
 ## Documentation
 
-For more details, please refer to the `documentation` directory.
+For more details, please refer to the `documentation/` directory.
+
+## Contributing
+
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines and setup instructions.
 
 ## License
 Licensed under the Open Logistics Foundation License 1.3.
 For details on the licensing terms, see the LICENSE file.
 
-## Licenses of third-party dependencies
+## Maintainers & Contact
+This repository is maintained by contributors from the **Open Logistics Foundation Working Group "Electronic Transport Documents"**.
 
-The licenses used by this project's third-party dependencies are documented in the `third-party-licenses` directory.
-This is done to encourage developers to check the licenses used by the third-party dependencies to ensure they do not conflict with the license of
-this project itself.
-The directory contains the following files:
+Maintainers:
+- Jens Leveling (jens.leveling@iml.fraunhofer.de)
+- Artur Blek (artur.blek@rhenus.com)
 
-* `third-party-licenses.txt` - Contains the licenses used by this project's third-party dependencies.
-  The content of this file is/can be generated.
-* `third-party-licenses-complementary.txt` - Contains entries for third-party dependencies for which the licenses cannot be determined automatically.
-  The content of this file is maintained manually.
-
-## Generating third-party license reports
-
-This project uses the [license-maven-plugin](https://github.com/mojohaus/license-maven-plugin) to generate a file containing the licenses used by the
-third-party dependencies.
-The content of the `mvn license:add-third-party` Maven goal's output (`target/generated-sources/license/THIRD-PARTY.txt`) can be copied
-into `third-party-licenses/third-party-licenses.txt`.
-
-Third-party dependencies for which the licenses cannot be determined automatically by the license-maven-plugin have to be documented manually
-in `third-party-licenses/third-party-licenses-complementary.txt`.
-In the `third-party-licenses/third-party-licenses.txt` file these third-party dependencies have an "Unknown license" license.
-
-## Generate License Header
-
-Add license header to all files:
-
-    mvn license:format
-
-Check all files, if a license header is given
-
-    mvn license:check
-
-## Contact information
-  * Working Group Information
-  * Development Team
-  * etc.
+For general questions or collaboration inquiries, please contact info@openlogisticsfoundation.org or visit the [official website](https://openlogisticsfoundation.org/en/contact/).

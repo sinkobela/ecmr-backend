@@ -1,0 +1,142 @@
+
+= Development Guidelines
+:toc:
+:toclevels: 2
+
+== Docker Compose Setup (Development Only)
+
+We use `docker-compose.yaml` for local development and testing. This setup includes application containers and essential services like databases or message queues.
+
+[WARNING]
+====
+This setup is *not intended for production* use. It does not address security, scalability, or fault tolerance.
+====
+
+*Preparation*
+The docker compose setup starts all necessary components: the front-and backend, a postgres database and a keycloak instance.
+To start the project with docker compose, the ecmr-frontend and the ecmr-backend have to be in the same directory.
+All config files can be found in the config folder.
+Note to the docker compose setup: When creating a token through the frontend (and therefore through the browser), the keycloak host is set as the issuer in the token.
+When the backend validates the token the issuer must match the host in the
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI, which tells the backend how to reach keycloak.
+Since the backend runs in a container and the browser runs on the local machine the url to keycloak is different (
+localhost vs container name), which then leads to an error in the backend because the issuer is different.
+As a solution a localhost service is used, which ensures that the host name is identical.
+
+**Configuration**
+To start the applications these changes must be made first:
+
+Edit the files config/postgres-params.env and config/backend-params.env to add usernames, passwords and
+the parameters of your smtp server (if you want to be able to share eCMRs with external instances).
+Change the user password in the realm configuration files.
+To add other users you must add them to realm config file and to the backend project (resources/db/init-data.xml). Please verify that the email addresses are identical.
+
+=== Usage
+
+[source, bash]
+----
+# Start all services
+docker-compose up
+
+# Start in detached mode
+docker-compose up -d
+
+# Shut down
+docker-compose down
+
+# Rebuild services after a code change
+docker-compose up --build
+----
+
+The backend is available at `http://localhost:8081`.
+The frontend is available at `http://localhost:8082`.
+
+=== Common pitfalls
+
+- Ensure Docker Desktop or Docker Engine is running.
+- Use `.env` files for local configuration, but do *not* commit secrets.
+
+== Import commands for development
+
+The following commands are useful for typical development workflows:
+This section is split into the ecmr components:
+
+* ecmr-backend
+* ecmr-frontend
+
+=== ecmr-backend
+
+==== Run tests
+
+Docker must be available to run the integration tests (src/test/e2e) as it is used to start the keycloak testcontainer.
+
+  mvn test
+
+==== Licenses of third-party dependencies
+The licenses used by this project's third-party dependencies are documented in the third-party-licenses directory.
+This is done to encourage developers to check the licenses used by the third-party dependencies to ensure they do not conflict with the license of
+this project itself.
+The directory contains the following files:
+
+  third-party-licenses.txt
+
+This file contains the licenses used by this project's third-party dependencies.
+The content of this file is/can be generated.
+
+  third-party-licenses-complementary.txt
+
+This file contains entries for third-party dependencies for which the licenses
+cannot be determined automatically.
+The content of this file is maintained manually.
+
+
+*Generating third-party license reports*
+This project uses the license-maven-plugin to generate a file containing the licenses used by the
+third-party dependencies.
+The content of the `mvn license:add-third-party` Maven goal's output (target/generated-sources/license/THIRD-PARTY.txt) can be copied
+into third-party-licenses/third-party-licenses.txt.
+Third-party dependencies for which the licenses cannot be determined automatically by the license-maven-plugin have to be documented manually
+in third-party-licenses/third-party-licenses-complementary.txt.
+In the third-party-licenses/third-party-licenses.txt file these third-party dependencies have an "Unknown license" license.
+
+*Generate License Header*
+Add license header to all files:
+
+  mvn license:format
+
+Check all files, if a license header is given
+
+  mvn  license:check
+
+=== ecmr-frontend
+
+==== Build
+
+Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+
+==== Adding texts to the privacy disclaimer and imprint components
+
+Add texts as html files to the assets/texts folders in the following scheme:
+
+  - privacy disclaimer: privacy.\[language].html
+  - example: privacy.de.html
+  - imprint and legal matter: imprint.\[language].html
+  - example: imprint.de.html
+
+==== Run Tests
+
+Run ``ng test`` to execute the unit tests via Karma. Use the --code-coverage flag to analyze code coverage.
+Run ``ng test --watch false --progress false --code-coverage --browsers=ChromeHeadless`` for testing in any
+environment without an X Server.
+
+
+==== Third Party License Overview
+
+*Generate Third Party License File*
+
+  npx license-checker --unknown --csv --out ./third-party-licenses/third-party-licenses.csv
+
+*Generate Third Party License Summary File*
+
+  npx license-checker --unknown --summary > ./third-party-licenses/third-party-licenses-summary.txt
+
