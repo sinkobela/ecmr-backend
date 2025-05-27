@@ -31,5 +31,7 @@ public interface EcmrAssignmentRepository extends JpaRepository<EcmrAssignmentEn
 
     List<EcmrAssignmentEntity> findByEcmr_EcmrIdAndGroup_idInAndRole(UUID ecmrId, List<Long> groupIds, EcmrRole role);
 
+    List<EcmrAssignmentEntity> findByEcmr_EcmrId(UUID ecmrId);
+
     int countByEcmr_EcmrIdAndExternalUser_CreationTimestampGreaterThan(UUID ecmrId, Instant creationTimestamp);
 }

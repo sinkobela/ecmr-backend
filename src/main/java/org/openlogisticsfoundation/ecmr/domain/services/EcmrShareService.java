@@ -20,18 +20,46 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
-import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
+import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrAlreadyExistsException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.RateLimitException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SealedEcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrAssignmentMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.mappers.GroupPersistenceMapper;
-import org.openlogisticsfoundation.ecmr.domain.models.*;
+import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrAssignment;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrExportResult;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.Group;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.MessageProviderException;
 import org.openlogisticsfoundation.ecmr.domain.services.tan.PhoneMessageProvider;
-import org.openlogisticsfoundation.ecmr.persistence.entities.*;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.*;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.ExternalUserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedEcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SignatureEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.UserEntity;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.ExternalUserRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.GroupRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.SealedDocumentRepository;
+import org.openlogisticsfoundation.ecmr.persistence.repositories.UserRepository;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -47,7 +75,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EcmrShareService {
     private final EcmrService ecmrService;
-    private final EcmrCreationService ecmrCreationService;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final ExternalUserRepository externalUserRepository;
@@ -69,7 +96,7 @@ public class EcmrShareService {
 
     @Value("${app.origin.url}")
     private String originUrl;
-
+    private final EcmrAssignmentMapper ecmrAssignmentMapper;
 
     public CarrierInformation getEcmrCarrierInformation(UUID ecmrId, String ecmrToken) throws EcmrNotFoundException, ValidationException {
         EcmrEntity ecmrEntity = ecmrService.getEcmrEntity(ecmrId);
@@ -397,5 +424,12 @@ public class EcmrShareService {
         String text = String.format("To import the ecmr use the following properties: %n-ecmrId: %s %n-url: %s %n-share token: %s", ecmrId, originUrl, shareToken);
         mailService.sendMail(receiverEmail, "Import eCMR", text);
         return new EcmrShareResponse(ShareEcmrResult.SharedExternal, null);
+    }
+
+    public List<EcmrAssignment> getAssignmentsOfEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws NoPermissionException {
+        if (authorisationService.hasNoRole(internalOrExternalUser, ecmrId)) {
+            throw new NoPermissionException("No permission to load ecmr assignments");
+        }
+        return this.ecmrAssignmentRepository.findByEcmr_EcmrId(ecmrId).stream().map(ecmrAssignmentMapper::map).toList();
     }
 }

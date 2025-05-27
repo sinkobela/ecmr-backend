@@ -13,16 +13,18 @@ import static org.openlogisticsfoundation.ecmr.web.controllers.PdfHelper.createP
 import java.util.List;
 import java.util.UUID;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrAssignment;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
@@ -39,16 +41,36 @@ import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
-import org.openlogisticsfoundation.ecmr.web.models.*;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
+import org.openlogisticsfoundation.ecmr.web.models.EcmrShareWithGroupModel;
+import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
+import org.openlogisticsfoundation.ecmr.web.models.SealModel;
+import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -667,6 +689,40 @@ public class EcmrController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        }
+    }
+
+    /**
+     * Retrieves the current assignements for an eCMR
+     *
+     * @param ecmrId The ID of the eCMR
+     * @return The list of current roles
+     */
+    @GetMapping("/{ecmrId}/assignments")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            tags = "ECMR",
+            summary = "Get current eCMR assignments",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "List of current assignments",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrAssignment.class))),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden", responseCode = "403"),
+
+            })
+    public ResponseEntity<List<EcmrAssignment>> getCurrentEcmrAssignments(@PathVariable(name = "ecmrId") UUID ecmrId) {
+        try {
+            AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
+            return ResponseEntity.ok(this.ecmrShareService.getAssignmentsOfEcmr(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser())));
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
+        } catch (NoPermissionException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
     }
 }
