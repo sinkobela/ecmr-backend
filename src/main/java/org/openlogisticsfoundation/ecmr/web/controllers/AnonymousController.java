@@ -424,7 +424,7 @@ public class AnonymousController {
             @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan) {
         try {
             ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
-            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser));
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(ecmrId, new InternalOrExternalUser(externalUser), true);
             return createPdfResponse(ecmrReport);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
@@ -462,7 +462,7 @@ public class AnonymousController {
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFileShare(@PathVariable("ecmrId") UUID id,
             @RequestParam @Valid @NotNull String shareToken) {
         try {
-            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, shareToken);
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, shareToken, true);
             return createPdfResponse(ecmrReport);
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());

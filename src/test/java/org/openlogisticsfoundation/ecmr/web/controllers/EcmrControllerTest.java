@@ -281,14 +281,14 @@ public class EcmrControllerTest {
         PdfFile pdfFile = new PdfFile(filename, data);
 
         when(authenticationService.getAuthenticatedUser(true)).thenReturn(authenticatedUser);
-        when(ecmrService.createJasperReportForEcmr(eq(ecmrId), any(InternalOrExternalUser.class))).thenReturn(pdfFile);
+        when(ecmrService.createJasperReportForEcmr(eq(ecmrId), any(InternalOrExternalUser.class), eq(true))).thenReturn(pdfFile);
 
         // Act & Assert
         mockMvc.perform(get("/ecmr/{ecmrId}/pdf", ecmrId))
             .andExpect(status().isOk());
 
         verify(authenticationService, times(1)).getAuthenticatedUser(true);
-        verify(ecmrService, times(1)).createJasperReportForEcmr(eq(ecmrId), any(InternalOrExternalUser.class));
+        verify(ecmrService, times(1)).createJasperReportForEcmr(eq(ecmrId), any(InternalOrExternalUser.class), eq(true));
     }
 
     @Test

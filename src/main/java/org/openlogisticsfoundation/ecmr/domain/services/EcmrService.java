@@ -137,19 +137,19 @@ public class EcmrService {
         return authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
     }
 
-    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser)
+    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser, boolean isCopy)
             throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
         EcmrModel ecmrModel = this.getEcmr(id, internalOrExternalUser);
-        return this.ecmrPdfService.createJasperReportForEcmr(ecmrModel);
+        return this.ecmrPdfService.createJasperReportForEcmr(ecmrModel, isCopy);
     }
 
-    public PdfFile createJasperReportForEcmr(UUID id, String shareToken)
+    public PdfFile createJasperReportForEcmr(UUID id, String shareToken, boolean isCopy)
             throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
         EcmrEntity ecmrEntity = this.getEcmrEntity(id);
         if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
             throw new NoPermissionException("Share Token mandatory");
         }
-        return this.ecmrPdfService.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity));
+        return this.ecmrPdfService.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity), isCopy);
     }
 
     public EcmrEntity clearPhoneNumbers(EcmrEntity ecmrEntity) {

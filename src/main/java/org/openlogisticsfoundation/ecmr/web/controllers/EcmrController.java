@@ -456,7 +456,7 @@ public class EcmrController {
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
-            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()));
+            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()), true);
             return createPdfResponse(ecmrReport);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());

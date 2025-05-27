@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
+<!-- Created with Jaspersoft Studio version 6.21.2.final using JasperReports Library version 6.21.2-8434a0bd7c3bbc37cbf916f2968d35e4b165821a  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_1" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5644cb2a-585a-48bf-b6de-e267ac2a4811">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -95,9 +95,9 @@
 	<parameter name="senderSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="carrierSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
-  <parameter name="senderSignatureText" class="java.lang.String"/>
-  <parameter name="carrierSignatureText" class="java.lang.String"/>
-  <parameter name="consigneeSignatureText" class="java.lang.String"/>
+	<parameter name="senderSignatureText" class="java.lang.String"/>
+	<parameter name="carrierSignatureText" class="java.lang.String"/>
+	<parameter name="consigneeSignatureText" class="java.lang.String"/>
 	<parameter name="senderSignatureESeal" class="java.lang.String"/>
 	<parameter name="carrierSignatureESeal" class="java.lang.String"/>
 	<parameter name="consigneeSignatureESeal" class="java.lang.String"/>
@@ -110,9 +110,24 @@
 	<parameter name="EN_InternationalNationalTransport" class="java.lang.String"/>
 	<parameter name="DE_InternationalNationalTransport" class="java.lang.String"/>
 	<parameter name="multiConsigneeShipmentNotice" class="java.lang.String"/>
+	<parameter name="watermark" class="net.sf.jasperreports.renderers.Renderable"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
+	<background>
+		<band height="766">
+			<frame>
+				<reportElement x="0" y="0" width="555" height="766" uuid="7f919e3d-9608-4984-952d-d14cbfb26bd4"/>
+				<image hAlign="Center" vAlign="Middle">
+					<reportElement x="0" y="0" width="555" height="766" uuid="6b870020-5940-4ae8-80d7-6eb976fada15">
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<imageExpression><![CDATA[$P{watermark}]]></imageExpression>
+				</image>
+			</frame>
+		</band>
+	</background>
 	<detail>
 		<band height="766" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -352,19 +367,19 @@
 					</textElement>
 					<text><![CDATA[Country:]]></text>
 				</staticText>
-        <textField isBlankWhenNull="true">
-          <reportElement x="0" y="15" width="278" height="30">
-            <property name="com.jaspersoft.studio.unit.height" value="px"/>
-          </reportElement>
-          <box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="0">
-            <pen lineWidth="0.0"/>
-            <bottomPen lineWidth="0.0"/>
-          </box>
-          <textElement verticalAlignment="Middle">
-            <font size="8"/>
-          </textElement>
-          <textFieldExpression><![CDATA[$P{multiConsigneeShipmentNotice}]]></textFieldExpression>
-        </textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="0" y="15" width="278" height="30" uuid="9c524c83-775b-4185-8eb8-fa93ab2589c8">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="5" bottomPadding="0" rightPadding="0">
+						<pen lineWidth="0.0"/>
+						<bottomPen lineWidth="0.0"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{multiConsigneeShipmentNotice}]]></textFieldExpression>
+				</textField>
 			</frame>
 			<frame>
 				<reportElement x="0" y="170" width="278" height="60" uuid="47c2075a-c941-4725-9872-36f87d9299a2">
@@ -1773,24 +1788,24 @@
 					<reportElement x="1" y="1" width="138" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
 					<imageExpression><![CDATA[$P{senderSignatureImage}]]></imageExpression>
 				</image>
-        <textField isBlankWhenNull="true">
-          <reportElement x="1" y="1" width="138" height="73">
-            <property name="com.jaspersoft.studio.unit.height" value="px"/>
-            <property name="com.jaspersoft.studio.unit.width" value="px"/>
-          </reportElement>
-          <box leftPadding="5"/>
-          <textElement verticalAlignment="Bottom" textAlignment="Center">
-            <font size="6" isBold="true"/>
-          </textElement>
-          <textFieldExpression><![CDATA[$P{senderSignatureText}]]></textFieldExpression>
-        </textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="1" width="138" height="73" uuid="e63a0e31-4cdf-41f7-bf1f-80eef5b13c6d">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{senderSignatureText}]]></textFieldExpression>
+				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="1" width="138" height="74" uuid="aeec8b09-30f6-424f-a9ce-12cbe3b4aabb">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$P{senderSignatureESeal}]]></textFieldExpression>
 				</textField>
 			</frame>
@@ -1829,24 +1844,24 @@
 					<reportElement x="1" y="1" width="138" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
 					<imageExpression><![CDATA[$P{carrierSignatureImage}]]></imageExpression>
 				</image>
-        <textField isBlankWhenNull="true">
-          <reportElement x="1" y="1" width="138" height="73">
-            <property name="com.jaspersoft.studio.unit.height" value="px"/>
-            <property name="com.jaspersoft.studio.unit.width" value="px"/>
-          </reportElement>
-          <box leftPadding="5"/>
-          <textElement verticalAlignment="Bottom" textAlignment="Center">
-            <font size="6" isBold="true"/>
-          </textElement>
-          <textFieldExpression><![CDATA[$P{carrierSignatureText}]]></textFieldExpression>
-        </textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="1" width="138" height="73" uuid="abce97fc-de74-47df-bf87-bef3b5fb2b32">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{carrierSignatureText}]]></textFieldExpression>
+				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="1" width="138" height="74" uuid="6f1e50a5-fac4-4121-b93c-915a61b491de">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$P{carrierSignatureESeal}]]></textFieldExpression>
 				</textField>
 			</frame>
@@ -1933,24 +1948,24 @@
 					<reportElement x="1" y="36" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
 					<imageExpression><![CDATA[$P{consigneeSignatureImage}]]></imageExpression>
 				</image>
-        <textField isBlankWhenNull="true">
-          <reportElement x="1" y="36" width="138" height="73">
-            <property name="com.jaspersoft.studio.unit.height" value="px"/>
-            <property name="com.jaspersoft.studio.unit.width" value="px"/>
-          </reportElement>
-          <box leftPadding="5"/>
-          <textElement verticalAlignment="Bottom" textAlignment="Center">
-            <font size="6" isBold="true"/>
-          </textElement>
-          <textFieldExpression><![CDATA[$P{consigneeSignatureText}]]></textFieldExpression>
-        </textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="1" y="36" width="138" height="73" uuid="a029ee67-1f14-440d-91ff-c7eb5cba2f05">
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<box leftPadding="5"/>
+					<textElement textAlignment="Center" verticalAlignment="Bottom">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{consigneeSignatureText}]]></textFieldExpression>
+				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="36" width="138" height="73" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement verticalAlignment="Middle" textAlignment="Center"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$P{consigneeSignatureESeal}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
@@ -1970,7 +1985,7 @@
 					<textFieldExpression><![CDATA[$P{consigneeSigningLocation}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
-					<reportElement x="138" y="30" width="138" height="80" >
+					<reportElement x="138" y="30" width="138" height="80" uuid="a19d401f-9c5e-4e22-9550-5d8559848aa7">
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					</reportElement>

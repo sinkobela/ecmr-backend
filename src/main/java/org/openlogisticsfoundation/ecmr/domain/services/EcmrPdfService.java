@@ -52,14 +52,14 @@ public class EcmrPdfService {
 
     private final ResourceLoader resourceLoader;
 
-    public PdfFile createJasperReportForEcmr(EcmrModel ecmrModel) throws PdfCreationException {
+    public PdfFile createJasperReportForEcmr(EcmrModel ecmrModel, boolean isCopy) throws PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);
 
             List<ItemBean> itemBeans = convertToItemBeans(ecmrModel.getEcmrConsignment().getItemList());
             JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(itemBeans);
-            HashMap<String, Object> parameters = setEcmrParameters(ecmrModel);
+            HashMap<String, Object> parameters = setEcmrParameters(ecmrModel, isCopy);
             parameters.put("items", itemDataSource);
 
             return new PdfFile("eCMR-" + ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue() + ".pdf",
@@ -72,7 +72,7 @@ public class EcmrPdfService {
         }
     }
 
-    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel) throws IOException {
+    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel, boolean isCopy) throws IOException {
         HashMap<String, Object> parameters = new HashMap<>();
 
         //sender data
@@ -242,6 +242,14 @@ public class EcmrPdfService {
             byte[] waterMarkBytes = imageStream.readAllBytes();
             Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
             parameters.put("ecmrLogo", renderableWaterMark);
+        }
+
+        //Copy Watermark
+        if(isCopy) {
+            InputStream imageStream = resourceLoader.getResource("classpath:/images/Copy-Wasserzeichen-DIN4.png").getInputStream();
+            byte[] waterMarkBytes = imageStream.readAllBytes();
+            Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
+            parameters.put("watermark", renderableWaterMark);
         }
 
         return parameters;
