@@ -8,7 +8,6 @@
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,13 +15,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "CARRIER_INFORMATION", indexes = {
-        @Index(columnList = "signature_id"),
-})
+@Table(name = "CARRIER_INFORMATION")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CarrierInformationEntity extends EcmrMemberEntity {
+    private String driverPhone;
     private String carrierLicensePlate;
 }

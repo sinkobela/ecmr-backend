@@ -5,6 +5,7 @@
  * For details on the licensing terms, see the LICENSE file.
  * SPDX-License-Identifier: OLFL-1.3
  */
+
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.Entity;
@@ -14,10 +15,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "SUCCESSIVE_CARRIER_INFORMATION")
+@Table(name = "LOGISTICS_SHIPPING_MARKS_CUSTOM_BARCODE")
 @Getter
 @Setter
 @NoArgsConstructor
-public class SuccessiveCarrierInformationEntity extends EcmrMemberEntity {
-    private String driverPhone;
+public class LogisticsShippingMarksCustomBarcodeEntity extends BaseEntity {
+    private String barcode;
+
+    @Override
+    public String toString() {
+        return barcode;
+    }
 }

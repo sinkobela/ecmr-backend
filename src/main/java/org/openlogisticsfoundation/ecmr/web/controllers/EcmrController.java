@@ -15,12 +15,11 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
-import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.GroupNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.SignatureAlreadyPresentException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SealAlreadyPresentException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.UserNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
@@ -30,15 +29,16 @@ import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
-import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrDeleteService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
-import org.openlogisticsfoundation.ecmr.domain.services.EcmrSignService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
+import org.openlogisticsfoundation.ecmr.domain.services.SealedDocumentService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
@@ -46,7 +46,6 @@ import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareWithGroupModel;
 import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
 import org.openlogisticsfoundation.ecmr.web.models.SealModel;
-import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -86,7 +85,9 @@ public class EcmrController {
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
     private final EcmrShareService ecmrShareService;
-    private final EcmrSignService ecmrSignService;
+    private final SealedDocumentService sealedDocumentService;
+    private final EcmrDeleteService ecmrDeleteService;
+    private final EcmrPdfService ecmrPdfService;
 
     /**
      * Retrieves a paginated list of eCMRs for the authenticated user
@@ -102,23 +103,23 @@ public class EcmrController {
     @PostMapping("/my-ecmrs")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Retrieve My eCMRs",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = FilterRequestModel.class))),
-        responses = {
-            @ApiResponse(description = "Paginated list of eCMRs",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Retrieve My eCMRs",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrPageModel.class)))
-        })
+                    schema = @Schema(implementation = FilterRequestModel.class))),
+            responses = {
+                    @ApiResponse(description = "Paginated list of eCMRs",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrPageModel.class)))
+            })
     public ResponseEntity<EcmrPageModel> getMyEcmrs(@RequestParam(required = false, defaultValue = "ECMR") EcmrType type,
-                                                    @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-                                                    @RequestParam(name = "size", defaultValue = "10", required = false) int size,
-                                                    @RequestParam(name = "sortBy", defaultValue = "creationDate", required = false) SortingField sortBy,
-                                                    @RequestParam(name = "sortingOrder", defaultValue = "ASC", required = false) SortingOrder sortingOrder,
-                                                    @RequestBody FilterRequestModel filterRequestModel
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "sortBy", defaultValue = "creationDate", required = false) SortingField sortBy,
+            @RequestParam(name = "sortingOrder", defaultValue = "ASC", required = false) SortingOrder sortingOrder,
+            @RequestBody FilterRequestModel filterRequestModel
     )
             throws AuthenticationException {
         AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
@@ -133,23 +134,23 @@ public class EcmrController {
      * @param ecmrId The ID of the eCMR
      * @return The requested eCMR
      */
-    @GetMapping(path = {"{ecmrId}"})
+    @GetMapping(path = { "{ecmrId}" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Retrieve eCMR by ID",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "The requested eCMR",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            tags = "ECMR",
+            summary = "Retrieve eCMR by ID",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "The requested eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public ResponseEntity<EcmrModel> getEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
@@ -174,20 +175,20 @@ public class EcmrController {
     @PostMapping()
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Create a new eCMR",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = EcmrModel.class))),
-        responses = {
-            @ApiResponse(description = "The created eCMR",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Create a new eCMR",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403"),
-            @ApiResponse(description = "Bad request", responseCode = "400")
-        })
+            responses = {
+                    @ApiResponse(description = "The created eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
+                    @ApiResponse(description = "Bad request", responseCode = "400")
+            })
     public ResponseEntity<EcmrModel> createEcmr(@RequestBody @Valid EcmrModel ecmrModel, @RequestParam(name = "groupId") List<Long> groupIds) {
         EcmrCommand ecmrCommand = ecmrWebMapper.toCommand(ecmrModel);
         EcmrModel createdEcmr;
@@ -211,21 +212,21 @@ public class EcmrController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Delete an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to delete", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "eCMR deleted successfully", responseCode = "204"),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            tags = "ECMR",
+            summary = "Delete an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to delete", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "eCMR deleted successfully", responseCode = "204"),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public void deleteEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) throws EcmrNotFoundException {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
-            ecmrService.deleteEcmr(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser()));
+            ecmrDeleteService.deleteEcmr(ecmrId, new InternalOrExternalUser(authenticatedUser.getUser()));
         } catch (ValidationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (AuthenticationException e) {
@@ -241,23 +242,23 @@ public class EcmrController {
      * @param ecmrId The ID of the eCMR to archive
      * @return The archived eCMR
      */
-    @PatchMapping(path = {"{ecmrId}/archive"})
+    @PatchMapping(path = { "{ecmrId}/archive" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Archive an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to archive", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "The archived eCMR",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            tags = "ECMR",
+            summary = "Archive an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to archive", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "The archived eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public ResponseEntity<EcmrModel> archiveEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
@@ -280,23 +281,23 @@ public class EcmrController {
      * @param ecmrId The ID of the eCMR to reactivate
      * @return The reactivated eCMR
      */
-    @PatchMapping(path = {"{ecmrId}/reactivate"})
+    @PatchMapping(path = { "{ecmrId}/reactivate" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Reactivate an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to reactivate", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "The reactivated eCMR",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            tags = "ECMR",
+            summary = "Reactivate an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to reactivate", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "The reactivated eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public ResponseEntity<EcmrModel> reactivateEcmr(@PathVariable(value = "ecmrId") UUID ecmrId) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
@@ -320,34 +321,34 @@ public class EcmrController {
      * @param ecmrShareModel The sharing details
      * @return The response of the sharing operation
      */
-    @PatchMapping(path = {"{ecmrId}/share"})
+    @PatchMapping(path = { "{ecmrId}/share" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Share an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to share", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = EcmrShareModel.class))),
-        responses = {
-            @ApiResponse(description = "Successfully shared eCMR",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Share an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to share", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrShareResponse.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403"),
-            @ApiResponse(description = "Bad request", responseCode = "400")
-        })
+                    schema = @Schema(implementation = EcmrShareModel.class))),
+            responses = {
+                    @ApiResponse(description = "Successfully shared eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrShareResponse.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
+                    @ApiResponse(description = "Bad request", responseCode = "400")
+            })
     public ResponseEntity<EcmrShareResponse> shareEcmr(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestBody @Valid EcmrShareModel ecmrShareModel) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             return ResponseEntity.ok(
-                this.ecmrShareService.shareEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId, ecmrShareModel.getEmail(),
-                    ecmrShareModel.getRole()));
+                    this.ecmrShareService.shareEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId, ecmrShareModel.getEmail(),
+                            ecmrShareModel.getRole()));
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (NotImplementedException e) {
@@ -368,34 +369,35 @@ public class EcmrController {
      * @param ecmrShareWithGroupModel The sharing details
      * @return The response of the sharing operation
      */
-    @PatchMapping(path = {"{ecmrId}/shareWithGroup"})
+    @PatchMapping(path = { "{ecmrId}/shareWithGroup" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Share an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to share", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = EcmrShareWithGroupModel.class))),
-        responses = {
-            @ApiResponse(description = "Successfully shared eCMR",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Share an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to share", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrShareResponse.class))),
-            @ApiResponse(description = "eCMR or group not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403"),
-            @ApiResponse(description = "Bad request", responseCode = "400")
-        })
+                    schema = @Schema(implementation = EcmrShareWithGroupModel.class))),
+            responses = {
+                    @ApiResponse(description = "Successfully shared eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrShareResponse.class))),
+                    @ApiResponse(description = "eCMR or group not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
+                    @ApiResponse(description = "Bad request", responseCode = "400")
+            })
     public ResponseEntity<EcmrShareResponse> shareEcmrWithGroup(@PathVariable(value = "ecmrId") UUID ecmrId,
-                                                       @RequestBody @Valid EcmrShareWithGroupModel ecmrShareWithGroupModel) {
+            @RequestBody @Valid EcmrShareWithGroupModel ecmrShareWithGroupModel) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
             return ResponseEntity.ok(
-                this.ecmrShareService.shareEcmrWithGroup(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId, ecmrShareWithGroupModel.getGroupId(),
-                    ecmrShareWithGroupModel.getRole()));
+                    this.ecmrShareService.shareEcmrWithGroup(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
+                            ecmrShareWithGroupModel.getGroupId(),
+                            ecmrShareWithGroupModel.getRole()));
         } catch (EcmrNotFoundException | GroupNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } catch (NotImplementedException e) {
@@ -409,7 +411,6 @@ public class EcmrController {
         }
     }
 
-
     /**
      * Imports an eCMR using a share token
      *
@@ -417,26 +418,26 @@ public class EcmrController {
      * @param shareToken The token used for sharing
      * @return The imported eCMR
      */
-    @GetMapping(path = {"{ecmrId}/import"})
+    @GetMapping(path = { "{ecmrId}/import" })
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Import an eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to import", required = true, schema = @Schema(type = "string", format = "uuid")),
-            @Parameter(name = "shareToken", description = "Share token for importing the eCMR", required = true, schema = @Schema(type = "string"))
-        },
-        responses = {
-            @ApiResponse(description = "The imported eCMR",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "User not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403"),
-            @ApiResponse(description = "Not implemented", responseCode = "501")
-        })
+            tags = "ECMR",
+            summary = "Import an eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to import", required = true, schema = @Schema(type = "string", format = "uuid")),
+                    @Parameter(name = "shareToken", description = "Share token for importing the eCMR", required = true, schema = @Schema(type = "string"))
+            },
+            responses = {
+                    @ApiResponse(description = "The imported eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "User not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
+                    @ApiResponse(description = "Not implemented", responseCode = "501")
+            })
     public ResponseEntity<EcmrModel> importEcmr(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestParam @Valid @NotNull String shareToken) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();
@@ -461,24 +462,24 @@ public class EcmrController {
     @GetMapping("/{ecmrId}/pdf")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Download eCMR PDF",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to download", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "PDF file of the eCMR",
-                content = @Content(
-                    mediaType = "application/pdf")),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403"),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Error creating PDF", responseCode = "500")
-        })
+            tags = "ECMR",
+            summary = "Download eCMR PDF",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to download", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "PDF file of the eCMR",
+                            content = @Content(
+                                    mediaType = "application/pdf")),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Error creating PDF", responseCode = "500")
+            })
     public ResponseEntity<StreamingResponseBody> downloadEcmrPdfFile(@PathVariable("ecmrId") UUID id) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser(true);
-            PdfFile ecmrReport = this.ecmrService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()), true);
+            PdfFile ecmrReport = this.ecmrPdfService.createJasperReportForEcmr(id, new InternalOrExternalUser(authenticatedUser.getUser()), true);
             return createPdfResponse(ecmrReport);
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
@@ -500,20 +501,20 @@ public class EcmrController {
     @PutMapping()
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Update an existing eCMR",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = EcmrModel.class))),
-        responses = {
-            @ApiResponse(description = "The updated eCMR",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Update an existing eCMR",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = EcmrModel.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            responses = {
+                    @ApiResponse(description = "The updated eCMR",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrModel.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public ResponseEntity<EcmrModel> updateEcmr(@RequestBody @Valid EcmrModel ecmrModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
@@ -531,89 +532,40 @@ public class EcmrController {
     }
 
     /**
-     * Signs the eCMR on glass
-     *
-     * @param ecmrId    The ID of the eCMR
-     * @param signModel The signature model
-     * @return The created signature
-     */
-    @PostMapping("/{ecmrId}/sign-on-glass")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(
-        tags = "ECMR",
-        summary = "Sign eCMR on glass",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to sign", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = SignModel.class))),
-        responses = {
-            @ApiResponse(description = "The created signature",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Signature.class))),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Validation error or signature already present", responseCode = "400"),
-            @ApiResponse(description = "Forbidden access", responseCode =
-                "403")
-        })
-    public ResponseEntity<Signature> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SignModel signModel) {
-        try {
-            AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            return ResponseEntity.ok(this.ecmrSignService.signEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
-                    ecmrWebMapper.map(signModel), SignatureType.SignOnGlass));
-        } catch (AuthenticationException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
-        } catch (EcmrNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (ValidationException | SignatureAlreadyPresentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (NoPermissionException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        }
-    }
-
-    /**
-     * Signs the eCMR on glass
+     * Seals the eCMR
      *
      * @param ecmrId    The ID of the eCMR
      * @param sealModel The seal model
-     * @return The created signature
      */
     @PostMapping("/{ecmrId}/seal")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Seal eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR to seal", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
-            mediaType = MediaType.APPLICATION_JSON_VALUE,
-            schema = @Schema(implementation = SealModel.class))),
-        responses = {
-            @ApiResponse(description = "The created signature",
-                content = @Content(
+            tags = "ECMR",
+            summary = "Seal eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR to seal", required = true, schema = @Schema(type = "string", format =
+                            "uuid"))
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Signature.class))),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Validation error or signature already present", responseCode = "400"),
-            @ApiResponse(description = "Forbidden access", responseCode =
-                "403")
-        })
-    public ResponseEntity<Signature> seal(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SealModel sealModel) {
+                    schema = @Schema(implementation = SealModel.class))),
+            responses = {
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Validation error or signature already present", responseCode = "400"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
+    public ResponseEntity<Void> seal(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SealModel sealModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            return ResponseEntity.ok(this.ecmrSignService.sealEcmr(new InternalOrExternalUser(authenticatedUser.getUser()), ecmrId,
-                ecmrWebMapper.map(sealModel), SignatureType.ESeal));
+            this.sealedDocumentService.sealEcmr(ecmrId, ecmrWebMapper.map(sealModel),
+                    new InternalOrExternalUser(authenticatedUser.getUser()));
+            return ResponseEntity.ok().build();
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (ValidationException | SignatureAlreadyPresentException e) {
+        } catch (ValidationException | SealAlreadyPresentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
@@ -630,21 +582,21 @@ public class EcmrController {
     @GetMapping("{ecmrId}/share-token")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Get share token for eCMR",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid")),
-            @Parameter(name = "ecmrRole", description = "Role for sharing the eCMR", required = true, schema = @Schema(type = "string"))
-        },
-        responses = {
-            @ApiResponse(description = "The share token",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(type = "string"))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401"),
-            @ApiResponse(description = "Forbidden access", responseCode = "403")
-        })
+            tags = "ECMR",
+            summary = "Get share token for eCMR",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+                    @Parameter(name = "ecmrRole", description = "Role for sharing the eCMR", required = true, schema = @Schema(type = "string"))
+            },
+            responses = {
+                    @ApiResponse(description = "The share token",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "string"))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403")
+            })
     public ResponseEntity<String> getShareToken(@PathVariable(value = "ecmrId") UUID id,
             @RequestParam(name = "ecmrRole") @Valid @NotNull EcmrRole ecmrRole) {
         try {
@@ -668,19 +620,19 @@ public class EcmrController {
     @GetMapping("/{ecmrId}/role")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        tags = "ECMR",
-        summary = "Get current eCMR roles",
-        parameters = {
-            @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
-        },
-        responses = {
-            @ApiResponse(description = "List of current roles",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = EcmrRole.class))),
-            @ApiResponse(description = "eCMR not found", responseCode = "404"),
-            @ApiResponse(description = "Unauthorized access", responseCode = "401")
-        })
+            tags = "ECMR",
+            summary = "Get current eCMR roles",
+            parameters = {
+                    @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
+            },
+            responses = {
+                    @ApiResponse(description = "List of current roles",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = EcmrRole.class))),
+                    @ApiResponse(description = "eCMR not found", responseCode = "404"),
+                    @ApiResponse(description = "Unauthorized access", responseCode = "401")
+            })
     public ResponseEntity<List<EcmrRole>> getCurrentEcmrRoles(@PathVariable(name = "ecmrId") UUID ecmrId) {
         try {
             AuthenticatedUser authenticatedUser = authenticationService.getAuthenticatedUser();

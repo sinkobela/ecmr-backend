@@ -17,7 +17,6 @@ import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundEx
 import org.openlogisticsfoundation.ecmr.domain.mappers.ExternalUserPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.ExternalUser;
 import org.openlogisticsfoundation.ecmr.persistence.entities.ExternalUserEntity;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.ExternalUserRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class ExternalUserService {
-    private final EcmrRepository ecmrRepository;
+    private final EcmrService ecmrService;
     private final AuthorisationService authorisationService;
     private final ExternalUserPersistenceMapper externalUserPersistenceMapper;
     private final ExternalUserRepository externalUserRepository;
@@ -49,7 +48,7 @@ public class ExternalUserService {
     }
 
     public boolean isTanValid(@Valid @NotNull UUID ecmrId, @Valid @NotNull String userToken, @Valid @NotNull String tan) throws EcmrNotFoundException {
-        if (!ecmrRepository.existsByEcmrId(ecmrId)) {
+        if (!this.ecmrService.existsByEcmrId(ecmrId)) {
             throw new EcmrNotFoundException(ecmrId);
         }
         return authorisationService.tanValid(ecmrId, userToken, tan);

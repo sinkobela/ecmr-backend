@@ -8,7 +8,11 @@
 
 package org.openlogisticsfoundation.ecmr.e2e.externalcontroller;
 
-import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
@@ -18,10 +22,7 @@ import org.openlogisticsfoundation.ecmr.e2e.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.restassured.response.Response;
 
 class ExportEcmrTest extends E2EBaseTest {
 
@@ -66,8 +67,7 @@ class ExportEcmrTest extends E2EBaseTest {
             .body(
                 """
                     {
-                        "signer":"Sender",
-                        "precedingSeal":null,
+                        "transportRole":"SENDER",
                         "city":"dortmund"
                     }
                     """
@@ -78,8 +78,7 @@ class ExportEcmrTest extends E2EBaseTest {
             .post("/api/ecmr/"+validEcmrId+"/seal")
 
             .then()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(MediaType.APPLICATION_JSON_VALUE);
+            .statusCode(HttpStatus.OK.value());
     }
 
     // get share token
@@ -121,7 +120,7 @@ class ExportEcmrTest extends E2EBaseTest {
             .extract().response();
 
         EcmrExportResult result = response.as(EcmrExportResult.class);
-        assertEquals(validEcmrId, result.getSealedDocument().getSealedEcmr().getEcmr().getEcmrId());
+        assertEquals(validEcmrId, result.getSealedDocument().getEcmr().getEcmrId());
     }
 
     @Test

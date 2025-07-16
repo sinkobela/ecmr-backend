@@ -22,6 +22,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrMemberCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.GoodsReceivedCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.LogisticsShippingMarksCustomBarcodeCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TakingOverTheGoodsCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ToBePaidByCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.CustomChargeEntity;
@@ -31,13 +32,14 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrMemberEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GoodsReceivedEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.ItemEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.LogisticsShippingMarksCustomBarcodeEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.TakingOverTheGoodsEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.ToBePaidByEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +85,6 @@ public class AuthorisationService {
         }
     }
 
-    @Transactional
     private List<EcmrRole> getRolesOfInternalUser(long userId, UUID ecmrId) {
         List<Group> usersGroups = groupService.getGroupsForUser(userId);
         List<Long> groupIds = groupService.flatMapGroupTrees(usersGroups).stream().map(Group::getId).toList();
@@ -91,14 +92,12 @@ public class AuthorisationService {
                 .map(EcmrAssignmentEntity::getRole).toList();
     }
 
-    @Transactional
     private List<EcmrRole> getRolesOfExternalUser(String userToken, String tan, UUID ecmrId) {
         return this.assignmentRepository.findByExternalUser(ecmrId, userToken, tan)
                 .stream()
                 .map(EcmrAssignmentEntity::getRole).toList();
     }
 
-    @Transactional
     private boolean validateUpdateCommand(EcmrCommand ecmrToChange, EcmrEntity ecmrEntity, List<EcmrRole> rolesOfUser) {
         if(ecmrEntity.getEcmrStatus() != EcmrStatus.NEW &&
                 !ecmrEntity.getReferenceIdentificationNumber().equals(ecmrToChange.getReferenceIdentificationNumber())) {
@@ -125,11 +124,8 @@ public class AuthorisationService {
                 || this.checkTakingOverGoodsChanged(ecmrToChange.getTakingOverTheGoods(), ecmrEntity.getTakingOverTheGoods())
                 || !Objects.equals(ecmrToChange.getTransportInstructionsDescription(), ecmrEntity.getTransportInstructionsDescription())
                 || this.checkEcmrMemberChanged(ecmrToChange.getCarrierInformation(), ecmrEntity.getCarrierInformation())
+                || !Objects.equals(ecmrToChange.getCarrierInformation().getDriverPhone(), ecmrEntity.getCarrierInformation().getDriverPhone())
                 || !Objects.equals(ecmrToChange.getCarrierInformation().getCarrierLicensePlate(), ecmrEntity.getCarrierInformation().getCarrierLicensePlate())
-                || this.checkEcmrMemberChanged(ecmrToChange.getSuccessiveCarrierInformation(), ecmrEntity.getSuccessiveCarrierInformation())
-                || this.checkEcmrMemberChanged(ecmrToChange.getConsigneeInformation(), ecmrEntity.getConsigneeInformation())
-                || !Objects.equals(ecmrToChange.getIsMultiConsigneeShipment(), ecmrEntity.getIsMultiConsigneeShipment())
-                || !Objects.equals(ecmrToChange.getDocumentsRemarks(), ecmrEntity.getDocumentsRemarks())
                 || this.checkDeliveryOfTheGoodsChanged(ecmrToChange.getDeliveryOfTheGoods(), ecmrEntity.getDeliveryOfTheGoods())
                 || this.checkItemsChanged(ecmrToChange.getItemList(), ecmrEntity.getItemList())
                 || !Objects.equals(ecmrToChange.getCustomSpecialAgreement(), ecmrEntity.getCustomSpecialAgreement())
@@ -142,8 +138,8 @@ public class AuthorisationService {
     }
 
     private boolean checkEcmrMemberChanged(EcmrMemberCommand command, EcmrMemberEntity entity) {
-        return !Objects.equals(command.getNameCompany(), entity.getNameCompany())
-                || !Objects.equals(command.getNamePerson(), entity.getNamePerson())
+        return !Objects.equals(command.getCompanyName(), entity.getCompanyName())
+                || !Objects.equals(command.getPersonName(), entity.getPersonName())
                 || !Objects.equals(command.getStreet(), entity.getStreet())
                 || !Objects.equals(command.getPostcode(), entity.getPostcode())
                 || !Objects.equals(command.getCity(), entity.getCity())
@@ -167,13 +163,34 @@ public class AuthorisationService {
         if (commands.size() != entities.size()) {
             return false;
         }
-        List<String> itemCommandsAsString = commands.stream().map(ItemCommand::toString).sorted().toList();
-        List<String> itemEntitiesAsString = entities.stream().map(ItemEntity::toString).sorted().toList();
 
-        for (int i = 0; i < itemCommandsAsString.size(); i++) {
-            if (!itemCommandsAsString.get(i).equals(itemEntitiesAsString.get(i))) {
+        for (int i = 0; i < commands.size(); i++) {
+            ItemCommand command = commands.get(i);
+            ItemEntity entity = entities.get(i);
+
+            List<String> commandBarcodesAsString = command.getLogisticsShippingMarksCustomBarcodeList().stream()
+                            .map(LogisticsShippingMarksCustomBarcodeCommand::getBarcode)
+                            .sorted().toList();
+            List<String> entityBarcodesAsString = entity.getLogisticsShippingMarksCustomBarcodeList().stream()
+                    .map(LogisticsShippingMarksCustomBarcodeEntity::getBarcode)
+                    .sorted().toList();
+
+            if(!Objects.equals(command.getLogisticsPackageType(), entity.getLogisticsPackageType())
+            || !Objects.equals(command.getLogisticsPackageItemQuantity(), entity.getLogisticsPackageItemQuantity())
+            || !Objects.equals(command.getSupplyChainConsignmentItemGrossWeight(),entity.getSupplyChainConsignmentItemGrossWeight())
+            || !Objects.equals(command.getSupplyChainConsignmentItemGrossVolume(), entity.getSupplyChainConsignmentItemGrossVolume())
+            || !Objects.equals(command.getLogisticsShippingMarksMarking(),  entity.getLogisticsShippingMarksMarking())
+            || !Objects.equals(command.getTransportCargoIdentification(), entity.getTransportCargoIdentification())
+            || !Objects.equals(commandBarcodesAsString.size(), entityBarcodesAsString.size())) {
                 return true;
             }
+
+            for (int j = 0; j < commandBarcodesAsString.size(); j++) {
+                if (!commandBarcodesAsString.get(i).equals(entityBarcodesAsString.get(i))) {
+                    return true;
+                }
+            }
+
         }
         return false;
     }

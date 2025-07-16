@@ -13,26 +13,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
-import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
 import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.Group;
 import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
-import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingField;
 import org.openlogisticsfoundation.ecmr.domain.models.SortingOrder;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestCommand;
-import org.openlogisticsfoundation.ecmr.domain.services.statuschange.EcmrStatusChangedService;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
-import org.openlogisticsfoundation.ecmr.persistence.repositories.HistoryLogRepository;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,13 +42,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EcmrService {
     private final EcmrRepository ecmrRepository;
-    private final EcmrAssignmentRepository ecmrAssignmentRepository;
     private final EcmrPersistenceMapper ecmrPersistenceMapper;
     private final GroupService groupService;
     private final AuthorisationService authorisationService;
-    private final HistoryLogRepository historyLogRepository;
-    private final EcmrStatusChangedService ecmrStatusChangedService;
-    private final EcmrPdfService ecmrPdfService;
 
     @Transactional
     public EcmrModel getEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, NoPermissionException {
@@ -69,6 +58,10 @@ public class EcmrService {
     @Transactional
     public EcmrEntity getEcmrEntity(UUID ecmrId) throws EcmrNotFoundException {
         return ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
+    }
+
+    public boolean existsByEcmrId(UUID ecmrId) {
+        return this.ecmrRepository.existsByEcmrId(ecmrId);
     }
 
     @Transactional
@@ -91,65 +84,12 @@ public class EcmrService {
     }
 
     @Transactional
-    public void deleteEcmr(UUID ecmrId, InternalOrExternalUser internalOrExternalUser) throws EcmrNotFoundException, ValidationException,
-            NoPermissionException {
-        EcmrEntity ecmrEntity = ecmrRepository.findByEcmrId(ecmrId).orElseThrow(() -> new EcmrNotFoundException(ecmrId));
-
-        if (authorisationService.doesNotHaveRole(internalOrExternalUser, ecmrId, EcmrRole.Sender)) {
-            throw new NoPermissionException("No permission for this task");
-        }
-
-        if (ecmrEntity == null || ecmrEntity.getCarrierInformation().getSignature() != null
-                || ecmrEntity.getSenderInformation().getSignature() != null
-                || ecmrEntity.getConsigneeInformation().getSignature() != null
-                || ecmrEntity.getSuccessiveCarrierInformation().getSignature() != null
-                || ecmrEntity.getEcmrStatus() != EcmrStatus.NEW) {
-            throw new ValidationException("Ecmr can not be deleted");
-        }
-        historyLogRepository.deleteAllByEcmr_EcmrId(ecmrId);
-        ecmrAssignmentRepository.deleteByEcmr_EcmrId(ecmrId);
-        ecmrRepository.delete(ecmrEntity);
-    }
-
-    public EcmrEntity setEcmrStatus(EcmrEntity ecmrEntity) {
-        EcmrStatus initialState = ecmrEntity.getEcmrStatus();
-        ecmrEntity.setEcmrStatus(EcmrStatus.NEW);
-        if (ecmrEntity.getSenderInformation().getSignature() != null) {
-            ecmrEntity.setEcmrStatus(EcmrStatus.LOADING);
-        }
-        if (ecmrEntity.getCarrierInformation().getSignature() != null) {
-            ecmrEntity.setEcmrStatus(EcmrStatus.IN_TRANSPORT);
-        }
-        if (ecmrEntity.getConsigneeInformation().getSignature() != null) {
-            ecmrEntity.setEcmrStatus(EcmrStatus.ARRIVED_AT_DESTINATION);
-        }
-        ecmrEntity = ecmrRepository.save(ecmrEntity);
-        ecmrStatusChangedService.ecmrStatusChanged(initialState, ecmrEntity);
-        return ecmrEntity;
-    }
-
-    @Transactional
     public List<EcmrRole> getCurrentEcmrRoles(@Valid @NotNull UUID ecmrId, @Valid @NotNull InternalOrExternalUser internalOrExternalUser)
             throws EcmrNotFoundException {
-        if (!ecmrRepository.existsByEcmrId(ecmrId)) {
+        if (!this.existsByEcmrId(ecmrId)) {
             throw new EcmrNotFoundException(ecmrId);
         }
         return authorisationService.getRolesOfUser(internalOrExternalUser, ecmrId);
-    }
-
-    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser, boolean isCopy)
-            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
-        EcmrModel ecmrModel = this.getEcmr(id, internalOrExternalUser);
-        return this.ecmrPdfService.createJasperReportForEcmr(ecmrModel, isCopy);
-    }
-
-    public PdfFile createJasperReportForEcmr(UUID id, String shareToken, boolean isCopy)
-            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
-        EcmrEntity ecmrEntity = this.getEcmrEntity(id);
-        if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
-            throw new NoPermissionException("Share Token mandatory");
-        }
-        return this.ecmrPdfService.createJasperReportForEcmr(ecmrPersistenceMapper.toModel(ecmrEntity), isCopy);
     }
 
     public EcmrEntity clearPhoneNumbers(EcmrEntity ecmrEntity) {

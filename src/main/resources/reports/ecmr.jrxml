@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.21.2.final using JasperReports Library version 6.21.2-8434a0bd7c3bbc37cbf916f2968d35e4b165821a  -->
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Blank_A4_1" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5644cb2a-585a-48bf-b6de-e267ac2a4811">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -35,17 +35,17 @@
 		<field name="logisticsPackageItemQuantity" class="java.lang.Integer"/>
 		<field name="logisticsPackageType" class="java.lang.String"/>
 		<field name="transportCargoIdentification" class="java.lang.String"/>
-		<field name="supplyChainConsignmentItemGrossWeight" class="java.lang.Integer"/>
-		<field name="supplyChainConsignmentItemGrossVolume" class="java.lang.Integer"/>
+		<field name="supplyChainConsignmentItemGrossWeight" class="java.lang.Float"/>
+		<field name="supplyChainConsignmentItemGrossVolume" class="java.lang.Float"/>
 	</subDataset>
-	<parameter name="senderNameCompany" class="java.lang.String"/>
-	<parameter name="senderNamePerson" class="java.lang.String"/>
+	<parameter name="senderCompanyName" class="java.lang.String"/>
+	<parameter name="senderPersonName" class="java.lang.String"/>
 	<parameter name="senderStreet" class="java.lang.String"/>
 	<parameter name="senderPostCode" class="java.lang.String"/>
 	<parameter name="senderCity" class="java.lang.String"/>
 	<parameter name="senderCountry" class="java.lang.String"/>
-	<parameter name="consigneeNameCompany" class="java.lang.String"/>
-	<parameter name="consigneeNamePerson" class="java.lang.String"/>
+	<parameter name="consigneeCompanyName" class="java.lang.String"/>
+	<parameter name="consigneePersonName" class="java.lang.String"/>
 	<parameter name="consigneeStreet" class="java.lang.String"/>
 	<parameter name="consigneePostcode" class="java.lang.String"/>
 	<parameter name="consigneeCity" class="java.lang.String"/>
@@ -56,8 +56,8 @@
 	<parameter name="deliveryOfTheGoodsPlace" class="java.lang.String"/>
 	<parameter name="deliveryOfTheGoodsOpeningHours" class="java.lang.String"/>
 	<parameter name="sendersInstructions" class="java.lang.String"/>
-	<parameter name="carrierNameCompany" class="java.lang.String"/>
-	<parameter name="carrierNamePerson" class="java.lang.String"/>
+	<parameter name="carrierCompanyName" class="java.lang.String"/>
+	<parameter name="carrierDriverName" class="java.lang.String"/>
 	<parameter name="carrierStreet" class="java.lang.String"/>
 	<parameter name="carrierPostcode" class="java.lang.String"/>
 	<parameter name="carrierCity" class="java.lang.String"/>
@@ -65,15 +65,15 @@
 	<parameter name="carrierLicensePlate" class="java.lang.String"/>
 	<parameter name="successiveCarrierCity" class="java.lang.String"/>
 	<parameter name="successiveCarrierCountryCode" class="java.lang.String"/>
-	<parameter name="successiveCarrierName" class="java.lang.String"/>
-	<parameter name="successiveCarrierPersonName" class="java.lang.String"/>
+	<parameter name="successiveCarrierCompanyName" class="java.lang.String"/>
+	<parameter name="successiveCarrierDriverName" class="java.lang.String"/>
 	<parameter name="successiveCarrierPostcode" class="java.lang.String"/>
 	<parameter name="successiveCarrierStreetName" class="java.lang.String"/>
 	<parameter name="carrierReservationsObservations" class="java.lang.String"/>
 	<parameter name="documentsRemarks" class="java.lang.String"/>
 	<parameter name="customSpecialAgreement" class="java.lang.String"/>
 	<parameter name="customParticulars" class="java.lang.String"/>
-	<parameter name="customCashOnDelivery" class="java.lang.Integer"/>
+	<parameter name="customCashOnDelivery" class="java.lang.Float"/>
 	<parameter name="customEstablishedDate" class="java.util.Date"/>
 	<parameter name="customEstablishedIn" class="java.lang.String"/>
 	<parameter name="customChargeCarriageValue" class="java.lang.Float"/>
@@ -95,9 +95,9 @@
 	<parameter name="senderSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="carrierSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
-	<parameter name="senderSignatureText" class="java.lang.String"/>
-	<parameter name="carrierSignatureText" class="java.lang.String"/>
-	<parameter name="consigneeSignatureText" class="java.lang.String"/>
+	<parameter name="senderSealText" class="java.lang.String"/>
+	<parameter name="carrierSealText" class="java.lang.String"/>
+	<parameter name="consigneeSealText" class="java.lang.String"/>
 	<parameter name="senderSignatureESeal" class="java.lang.String"/>
 	<parameter name="carrierSignatureESeal" class="java.lang.String"/>
 	<parameter name="consigneeSignatureESeal" class="java.lang.String"/>
@@ -167,7 +167,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{senderNameCompany}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{senderCompanyName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="30" width="278" height="15" uuid="69c8b762-42dc-4501-926e-bbd5643ce20b">
@@ -177,7 +177,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{senderNamePerson}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{senderPersonName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="45" width="278" height="15" uuid="34de5190-4456-40e9-abf7-1bd0b84c0f35">
@@ -280,7 +280,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{consigneeNameCompany}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{consigneeCompanyName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="30" width="278" height="15" uuid="18852b9b-8759-462c-991e-a2a3f21ab025">
@@ -290,7 +290,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{consigneeNamePerson}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{consigneePersonName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="45" width="278" height="15" uuid="c168bc70-ee77-4311-b091-d2ff5b33c773">
@@ -598,7 +598,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{carrierNameCompany}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{carrierCompanyName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="30" width="277" height="15" uuid="10e59f6d-d8fa-4c92-b4a9-962709bd577f">
@@ -608,7 +608,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{carrierNamePerson}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{carrierDriverName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="45" width="277" height="15" uuid="27a73123-e959-475a-888b-de49f21da647">
@@ -815,7 +815,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{successiveCarrierName}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{successiveCarrierCompanyName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="30" width="277" height="15" uuid="ae461f45-2a6c-448a-823d-1d3c927b57df">
@@ -825,7 +825,7 @@
 						<bottomPen lineWidth="0.0"/>
 					</box>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{successiveCarrierPersonName}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{successiveCarrierDriverName}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="0" y="45" width="277" height="15" uuid="f2cb4176-ba2d-4472-ac60-19e9f10ba4b9">
@@ -1018,7 +1018,7 @@
 									<textElement textAlignment="Left" verticalAlignment="Middle">
 										<font size="8" isBold="true"/>
 									</textElement>
-									<text><![CDATA[10. Barcode]]></text>
+									<text><![CDATA[10. Barcodes]]></text>
 								</staticText>
 							</jr:columnHeader>
 							<jr:detailCell style="Table_TD" height="25">
@@ -1784,29 +1784,16 @@
 					</textElement>
 					<text><![CDATA[22. Sender Signature]]></text>
 				</staticText>
-				<image>
-					<reportElement x="1" y="1" width="138" height="74" uuid="1548e455-e9d9-44b5-8c2f-66b959435bf9"/>
-					<imageExpression><![CDATA[$P{senderSignatureImage}]]></imageExpression>
-				</image>
-				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="1" width="138" height="73" uuid="e63a0e31-4cdf-41f7-bf1f-80eef5b13c6d">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					</reportElement>
-					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font size="6" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$P{senderSignatureText}]]></textFieldExpression>
-				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="1" y="1" width="138" height="74" uuid="aeec8b09-30f6-424f-a9ce-12cbe3b4aabb">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{senderSignatureESeal}]]></textFieldExpression>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{senderSealText}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
@@ -1840,29 +1827,16 @@
 					</textElement>
 					<text><![CDATA[23. Carrier Signature]]></text>
 				</staticText>
-				<image>
-					<reportElement x="1" y="1" width="138" height="74" uuid="4eb87961-e46b-4a1e-be2f-42b99b696bc4"/>
-					<imageExpression><![CDATA[$P{carrierSignatureImage}]]></imageExpression>
-				</image>
 				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="1" width="138" height="73" uuid="abce97fc-de74-47df-bf87-bef3b5fb2b32">
+					<reportElement x="1" y="1" width="138" height="73" uuid="6f1e50a5-fac4-4121-b93c-915a61b491de">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font size="6" isBold="true"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$P{carrierSignatureText}]]></textFieldExpression>
-				</textField>
-				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="1" width="138" height="74" uuid="6f1e50a5-fac4-4121-b93c-915a61b491de">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					</reportElement>
-					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{carrierSignatureESeal}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{carrierSealText}]]></textFieldExpression>
 				</textField>
 			</frame>
 			<frame>
@@ -1944,29 +1918,16 @@
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$P{consigneeSignatureDate}]]></textFieldExpression>
 				</textField>
-				<image>
-					<reportElement x="1" y="36" width="138" height="73" uuid="f09548ce-7844-48b4-9685-3d2951fd9cd9"/>
-					<imageExpression><![CDATA[$P{consigneeSignatureImage}]]></imageExpression>
-				</image>
 				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="36" width="138" height="73" uuid="a029ee67-1f14-440d-91ff-c7eb5cba2f05">
+					<reportElement x="2" y="30" width="138" height="80" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					</reportElement>
 					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Bottom">
-						<font size="6" isBold="true"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10"/>
 					</textElement>
-					<textFieldExpression><![CDATA[$P{consigneeSignatureText}]]></textFieldExpression>
-				</textField>
-				<textField isBlankWhenNull="true">
-					<reportElement x="1" y="36" width="138" height="73" uuid="9b8970f0-bab0-4b4d-bcaa-555b4062633c">
-						<property name="com.jaspersoft.studio.unit.height" value="px"/>
-						<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					</reportElement>
-					<box leftPadding="5"/>
-					<textElement textAlignment="Center" verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{consigneeSignatureESeal}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{consigneeSealText}]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
 					<reportElement x="30" y="0" width="246" height="15" uuid="35409fc2-d24d-4a22-a239-cf81b7abaf91">

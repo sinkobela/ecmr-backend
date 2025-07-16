@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd" objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1751530016992-45" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="carrier_information" constraintName="FK_CARRIER_INFORMATION_ON_SIGNATURE"/>
+    </changeSet>
+    <changeSet id="1751530016992-46" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="consignee_information" constraintName="FK_CONSIGNEE_INFORMATION_ON_SIGNATURE"/>
+    </changeSet>
+    <changeSet id="1751530016992-47" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="sender_information" constraintName="FK_SENDER_INFORMATION_ON_SIGNATURE"/>
+    </changeSet>
+    <changeSet id="1751530016992-48" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="successive_carrier_information" constraintName="FK_SUCCESSIVE_CARRIER_INFORMATION_ON_SIGNATURE"/>
+    </changeSet>
+    <changeSet id="1751530016992-49" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="sealed_ecmr" constraintName="fk_ecmr_id"/>
+    </changeSet>
+    <changeSet id="1751530016992-50" author="benedikt.hilbert">
+        <dropForeignKeyConstraint baseTableName="sealed_document" constraintName="fk_sealed_ecmr_id"/>
+    </changeSet>
+    <changeSet id="1751530016992-19" author="benedikt.hilbert">
+        <createTable tableName="ecmr_seal">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_ecmr_seal"/>
+            </column>
+            <column name="created" type="DATETIME"/>
+            <column name="last_updated" type="DATETIME"/>
+            <column name="version" type="INT"/>
+            <column name="seal" type="CLOB"/>
+            <column name="sealer" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transport_role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1751530016992-20" author="benedikt.hilbert">
+        <createTable tableName="logistics_shipping_marks_custom_barcode">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_logistics_shipping_marks_custom_barcode"/>
+            </column>
+            <column name="barcode" type="VARCHAR(255)"/>
+            <column name="item_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1751530016992-21" author="benedikt.hilbert">
+        <addColumn tableName="sealed_document">
+            <column name="sender_ecmr_seal_id" type="BIGINT"/>
+            <column name="carrier_ecmr_seal_id" type="BIGINT"/>
+            <column name="successive_carrier_ecmr_seal_id" type="BIGINT"/>
+            <column name="consignee_ecmr_seal_id" type="BIGINT"/>
+            <column name="ecmr_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1751530016992-22" author="benedikt.hilbert">
+        <renameColumn tableName="carrier_information" oldColumnName="name_company" newColumnName="company_name"/>
+        <renameColumn tableName="carrier_information" oldColumnName="name_person" newColumnName="person_name"/>
+        <addColumn tableName="carrier_information">
+            <column name="driver_phone" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1751530016992-23" author="benedikt.hilbert">
+        <renameColumn tableName="successive_carrier_information" oldColumnName="name_company" newColumnName="company_name"/>
+        <renameColumn tableName="successive_carrier_information" oldColumnName="name_person" newColumnName="person_name"/>
+        <addColumn tableName="successive_carrier_information">
+            <column name="driver_phone" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1751530016992-25" author="benedikt.hilbert">
+        <renameColumn tableName="consignee_information" oldColumnName="name_company" newColumnName="company_name"/>
+        <renameColumn tableName="consignee_information" oldColumnName="name_person" newColumnName="person_name"/>
+    </changeSet>
+    <changeSet id="1751530016992-26" author="benedikt.hilbert">
+        <renameColumn tableName="sender_information" oldColumnName="name_company" newColumnName="company_name"/>
+        <renameColumn tableName="sender_information" oldColumnName="name_person" newColumnName="person_name"/>
+    </changeSet>
+    <changeSet id="1751530016992-35" author="benedikt.hilbert">
+        <sql>TRUNCATE TABLE sealed_document;</sql>
+        <addNotNullConstraint columnDataType="BIGINT" columnName="sender_ecmr_seal_id" tableName="sealed_document"/>
+    </changeSet>
+    <changeSet id="1751530016992-36" author="benedikt.hilbert" dbms="!h2">
+        <sql>
+            CREATE UNIQUE INDEX uc_sealed_document_carrier_ecmr_seal ON sealed_document (carrier_ecmr_seal_id) WHERE carrier_ecmr_seal_id IS NOT NULL;
+        </sql>
+    </changeSet>
+    <changeSet id="1751530016992-36-2" author="benedikt.hilbert" dbms="!h2">
+        <sql>
+            CREATE UNIQUE INDEX uc_sealed_document_successive_carrier_ecmr_seal ON sealed_document (successive_carrier_ecmr_seal_id) WHERE
+            successive_carrier_ecmr_seal_id
+             IS NOT NULL;
+        </sql>
+    </changeSet>
+    <changeSet id="1751530016992-37" author="benedikt.hilbert" dbms="!h2">
+        <sql>
+            CREATE UNIQUE INDEX uc_sealed_document_consignee_ecmr_seal ON sealed_document (consignee_ecmr_seal_id) WHERE consignee_ecmr_seal_id IS
+            NOT NULL;
+        </sql>
+    </changeSet>
+    <changeSet id="1751530016992-38" author="benedikt.hilbert">
+        <addUniqueConstraint columnNames="ecmr_id" constraintName="uc_sealed_document_ecmr" tableName="sealed_document"/>
+    </changeSet>
+    <changeSet id="1751530016992-39" author="benedikt.hilbert">
+        <addUniqueConstraint columnNames="sender_ecmr_seal_id" constraintName="uc_sealed_document_sender_ecmr_seal" tableName="sealed_document"/>
+    </changeSet>
+    <changeSet id="1751530016992-40" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="item_id" baseTableName="logistics_shipping_marks_custom_barcode"
+                                 constraintName="FK_LOGISTICS_SHIPPING_MARKS_CUSTOM_BARCODE_ON_ITEM" referencedColumnNames="id"
+                                 referencedTableName="item"/>
+    </changeSet>
+    <changeSet id="1751530016992-41" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="carrier_ecmr_seal_id" baseTableName="sealed_document"
+                                 constraintName="FK_SEALED_DOCUMENT_ON_CARRIER_ECMR_SEAL" referencedColumnNames="id" referencedTableName="ecmr_seal"/>
+    </changeSet>
+    <changeSet id="1751530016992-41-2" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="successive_carrier_ecmr_seal_id" baseTableName="sealed_document"
+                                 constraintName="FK_SEALED_DOCUMENT_ON_SUCCESSIVE_CARRIER_ECMR_SEAL" referencedColumnNames="id"
+                                 referencedTableName="ecmr_seal"/>
+    </changeSet>
+    <changeSet id="1751530016992-42" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="consignee_ecmr_seal_id" baseTableName="sealed_document"
+                                 constraintName="FK_SEALED_DOCUMENT_ON_CONSIGNEE_ECMR_SEAL" referencedColumnNames="id"
+                                 referencedTableName="ecmr_seal"/>
+    </changeSet>
+    <changeSet id="1751530016992-43" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="ecmr_id" baseTableName="sealed_document" constraintName="FK_SEALED_DOCUMENT_ON_ECMR"
+                                 referencedColumnNames="id" referencedTableName="ecmr"/>
+    </changeSet>
+    <changeSet id="1751530016992-44" author="benedikt.hilbert">
+        <addForeignKeyConstraint baseColumnNames="sender_ecmr_seal_id" baseTableName="sealed_document"
+                                 constraintName="FK_SEALED_DOCUMENT_ON_SENDER_ECMR_SEAL" referencedColumnNames="id" referencedTableName="ecmr_seal"/>
+    </changeSet>
+    <changeSet id="1751530016992-51" author="benedikt.hilbert">
+        <dropTable cascadeConstraints="true" tableName="sealed_ecmr"/>
+    </changeSet>
+    <changeSet id="1751530016992-52" author="benedikt.hilbert">
+        <dropTable cascadeConstraints="true" tableName="signature"/>
+    </changeSet>
+    <changeSet id="1751530016992-57" author="benedikt.hilbert">
+        <dropColumn columnName="created" tableName="sealed_document"/>
+
+        <dropColumn columnName="last_updated" tableName="sealed_document"/>
+
+        <dropColumn columnName="seal" tableName="sealed_document"/>
+
+        <dropColumn columnName="sealed_ecmr_id" tableName="sealed_document"/>
+
+        <dropColumn columnName="version" tableName="sealed_document"/>
+    </changeSet>
+    <changeSet id="1751530016992-59" author="benedikt.hilbert">
+        <sql>
+            INSERT INTO logistics_shipping_marks_custom_barcode (item_id, barcode)
+            SELECT id, logistics_shipping_marks_custom_barcode
+            FROM item
+            WHERE logistics_shipping_marks_custom_barcode IS NOT NULL
+              AND logistics_shipping_marks_custom_barcode != '';
+
+        </sql>
+        <dropColumn columnName="logistics_shipping_marks_custom_barcode" tableName="item"/>
+    </changeSet>
+    <changeSet id="1751530016992-60" author="benedikt.hilbert">
+        <dropIndex tableName="carrier_information" indexName="idx_f23ad209a1826ad8fcc506770"/>
+        <dropColumn columnName="signature_id" tableName="carrier_information"/>
+    </changeSet>
+    <changeSet id="1751530016992-61" author="benedikt.hilbert">
+        <dropIndex tableName="consignee_information" indexName="idx_84b747fc397fe39206724eeaa"/>
+        <dropColumn columnName="signature_id" tableName="consignee_information"/>
+    </changeSet>
+    <changeSet id="1751530016992-62" author="benedikt.hilbert">
+        <dropIndex tableName="sender_information" indexName="idx_988303c88f35155f533de0e6b"/>
+        <dropColumn columnName="signature_id" tableName="sender_information"/>
+    </changeSet>
+    <changeSet id="1751530016992-63" author="benedikt.hilbert">
+        <dropIndex tableName="successive_carrier_information" indexName="idx_fa92704fd43e153fd80673846"/>
+        <dropColumn columnName="signature_id" tableName="successive_carrier_information"/>
+    </changeSet>
+    <changeSet id="1751530016992-1" author="benedikt.hilbert">
+        <modifyDataType tableName="ecmr" columnName="custom_cash_on_delivery" newDataType="FLOAT"/>
+    </changeSet>
+    <changeSet id="1751530016992-4" author="benedikt.hilbert">
+        <modifyDataType tableName="item" columnName="supply_chain_consignment_item_gross_weight" newDataType="FLOAT"/>
+    </changeSet>
+</databaseChangeLog>

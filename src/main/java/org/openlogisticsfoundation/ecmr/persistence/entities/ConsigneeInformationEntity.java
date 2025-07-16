@@ -8,16 +8,13 @@
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "CONSIGNEE_INFORMATION", indexes = {
-        @Index(columnList = "signature_id")
-})
+@Table(name = "CONSIGNEE_INFORMATION")
 @Getter
 @Setter
 @NoArgsConstructor

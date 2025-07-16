@@ -7,16 +7,22 @@
  */
 package org.openlogisticsfoundation.ecmr.web.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+
 import org.eclipse.jdt.core.compiler.InvalidInputException;
 import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
-import org.openlogisticsfoundation.ecmr.domain.exceptions.*;
-import org.openlogisticsfoundation.ecmr.domain.models.*;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrAlreadyExistsException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.SealedDocumentNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.ValidationException;
+import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrExportResult;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
@@ -32,11 +38,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/external")
@@ -98,7 +107,7 @@ public class ExternalController {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser(true);
             this.ecmrShareService.importEcmrFromExternal(url, ecmrId, shareToken, groupIds, authenticatedUser);
             return ResponseEntity.ok().build();
-        } catch (InvalidInputException e){
+        } catch (InvalidInputException | ValidationException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
@@ -139,7 +148,7 @@ public class ExternalController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
         } catch (NoPermissionException e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
-        } catch (SealedEcmrNotFoundException e) {
+        } catch (SealedDocumentNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

@@ -7,22 +7,26 @@
  */
 package org.openlogisticsfoundation.ecmr.e2e.ecmrcontroller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.response.Response;
-import org.junit.jupiter.api.*;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.e2e.E2EBaseTest;
 import org.openlogisticsfoundation.ecmr.e2e.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.util.List;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import io.restassured.response.Response;
 
 public class UpdateEcmrTest extends E2EBaseTest {
 
@@ -97,7 +101,7 @@ public class UpdateEcmrTest extends E2EBaseTest {
 
         EcmrModel result = response.getBody().as(EcmrModel.class);
 
-        assertEquals(result.getEcmrConsignment().getSenderInformation().getSenderNamePerson(), "sender");
+        assertEquals("sender", result.getEcmrConsignment().getSenderInformation().getSenderPersonName());
     }
 
     @Test

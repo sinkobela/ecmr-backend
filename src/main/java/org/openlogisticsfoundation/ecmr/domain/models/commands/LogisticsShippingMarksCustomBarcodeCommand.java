@@ -8,15 +8,18 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
-import org.openlogisticsfoundation.ecmr.domain.models.Signer;
-
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 
-@AllArgsConstructor
+@Builder
 @Getter
-public class SignCommand {
-    private Signer signer;
-    private String data;
-    private String city;
+public class LogisticsShippingMarksCustomBarcodeCommand {
+    @Size(min = 2, max = 35)
+    private String barcode;
+
+    @Override
+    public String toString() {
+        return barcode;
+    }
 }

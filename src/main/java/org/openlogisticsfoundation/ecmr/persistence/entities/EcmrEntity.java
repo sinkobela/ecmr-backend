@@ -52,10 +52,10 @@ import lombok.Setter;
                 @NamedAttributeNode("deliveryOfTheGoods"),
                 @NamedAttributeNode("takingOverTheGoods"),
                 @NamedAttributeNode("goodsReceived"),
-                @NamedAttributeNode(value = "senderInformation", subgraph = "senderInformation.all"),
-                @NamedAttributeNode(value = "carrierInformation", subgraph = "carrierInformation.all"),
-                @NamedAttributeNode(value = "consigneeInformation", subgraph = "consigneeInformation.all"),
-                @NamedAttributeNode(value = "successiveCarrierInformation", subgraph = "successiveCarrierInformation.all"),
+                @NamedAttributeNode(value = "senderInformation"),
+                @NamedAttributeNode(value = "carrierInformation"),
+                @NamedAttributeNode(value = "consigneeInformation"),
+                @NamedAttributeNode(value = "successiveCarrierInformation"),
                 @NamedAttributeNode("itemList"),
                 @NamedAttributeNode(value = "toBePaidBy", subgraph = "toBePaidBy.all"),
         }, subgraphs = {
@@ -65,18 +65,6 @@ import lombok.Setter;
                 @NamedAttributeNode("customChargeOther"),
                 @NamedAttributeNode("customChargeSupplementary"),
         }),
-        @NamedSubgraph(name = "senderInformation.all", attributeNodes = {
-                @NamedAttributeNode("signature")
-        }),
-        @NamedSubgraph(name = "consigneeInformation.all", attributeNodes = {
-                @NamedAttributeNode("signature")
-        }),
-        @NamedSubgraph(name = "successiveCarrierInformation.all", attributeNodes = {
-                @NamedAttributeNode("signature")
-        }),
-        @NamedSubgraph(name = "carrierInformation.all", attributeNodes = {
-                @NamedAttributeNode("signature")
-        })
 })
 public class EcmrEntity extends BaseEntity {
     @NotNull
@@ -126,7 +114,7 @@ public class EcmrEntity extends BaseEntity {
     //Other Useful Particulars
     private String customParticulars;
     //Cash on Delivery
-    private Integer customCashOnDelivery;
+    private Float customCashOnDelivery;
     private Instant customEstablishedDate;
     private String customEstablishedIn;
     //Non-Contractual Part reserved for the Carrier

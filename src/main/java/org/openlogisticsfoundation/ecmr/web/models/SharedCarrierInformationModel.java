@@ -8,18 +8,14 @@
 
 package org.openlogisticsfoundation.ecmr.web.models;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
 
 @AllArgsConstructor
 @Getter
 public class SharedCarrierInformationModel {
-
-    private String carrierNameCompany;
-    private String carrierNamePerson;
-
+    private String carrierCompanyName;
+    private String carrierDriverName;
 }
 
 

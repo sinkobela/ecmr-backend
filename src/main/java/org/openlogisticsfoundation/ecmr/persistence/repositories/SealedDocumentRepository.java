@@ -7,18 +7,24 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.repositories;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-import java.util.UUID;
-
 @Repository
 public interface SealedDocumentRepository extends JpaRepository<SealedDocumentEntity, Long> {
 
-    @Query("SELECT document FROM SealedDocumentEntity document WHERE document.sealedEcmr.ecmr.ecmrId = :ecmrId")
+    boolean existsByEcmr_EcmrId(UUID ecmrId);
+
+    @Query("SELECT document FROM SealedDocumentEntity document WHERE document.ecmr.ecmrId = :ecmrId")
     Optional<SealedDocumentEntity> findByEcmrId(UUID ecmrId);
+
+    @Query("SELECT document FROM SealedDocumentEntity document WHERE document.ecmr.ecmrId = :ecmrId")
+    Optional<SealedDocumentProjection> findProjectionByEcmrId(UUID ecmrId);
 
 }

@@ -8,16 +8,16 @@
 
 package org.openlogisticsfoundation.ecmr.web.models;
 
+import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 
 @AllArgsConstructor
 @Getter
 public class SealModel {
     @NotNull
-    private Signer signer;
-    private String precedingSeal;
+    private TransportRole transportRole;
     private String city;
 }

@@ -63,7 +63,7 @@ public class EcmrCommand {
 
     @Min(1)
     @Max(999_999)
-    private Integer customCashOnDelivery;
+    private Float customCashOnDelivery;
 
     private Instant customEstablishedDate;
 

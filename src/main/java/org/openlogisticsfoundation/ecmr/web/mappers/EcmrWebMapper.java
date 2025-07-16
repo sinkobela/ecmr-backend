@@ -17,11 +17,18 @@ import org.openlogisticsfoundation.ecmr.api.model.areas.twentyfour.GoodsReceived
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.ConsigneeInformation;
 import org.openlogisticsfoundation.ecmr.api.model.areas.two.MultiConsigneeShipment;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.*;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.CarrierInformationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.ConsigneeInformationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.FilterRequestCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.GoodsReceivedCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.ItemCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SenderInformationCommand;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SuccessiveCarrierInformationCommand;
 import org.openlogisticsfoundation.ecmr.web.models.FilterRequestModel;
 import org.openlogisticsfoundation.ecmr.web.models.SealModel;
 import org.openlogisticsfoundation.ecmr.web.models.SharedCarrierInformationModel;
-import org.openlogisticsfoundation.ecmr.web.models.SignModel;
 
 @Mapper(componentModel = "spring")
 public interface EcmrWebMapper {
@@ -53,8 +60,8 @@ public interface EcmrWebMapper {
     @Mapping(source = "senderContactInformation.email", target = "email")
     @Mapping(source = "senderContactInformation.phone", target = "phone")
     @Mapping(source = "senderCity", target = "city")
-    @Mapping(source = "senderNameCompany", target = "nameCompany")
-    @Mapping(source = "senderNamePerson", target = "namePerson")
+    @Mapping(source = "senderCompanyName", target = "companyName")
+    @Mapping(source = "senderPersonName", target = "personName")
     @Mapping(source = "senderPostcode", target = "postcode")
     @Mapping(source = "senderStreet", target = "street")
     SenderInformationCommand map(SenderInformation value);
@@ -63,18 +70,19 @@ public interface EcmrWebMapper {
     @Mapping(source = "consigneeContactInformation.email", target = "email")
     @Mapping(source = "consigneeContactInformation.phone", target = "phone")
     @Mapping(source = "consigneeCity", target = "city")
-    @Mapping(source = "consigneeNameCompany", target = "nameCompany")
-    @Mapping(source = "consigneeNamePerson", target = "namePerson")
+    @Mapping(source = "consigneeCompanyName", target = "companyName")
+    @Mapping(source = "consigneePersonName", target = "personName")
     @Mapping(source = "consigneePostcode", target = "postcode")
     @Mapping(source = "consigneeStreet", target = "street")
     ConsigneeInformationCommand map(ConsigneeInformation value);
 
     @Mapping(source = "carrierCountryCode.value", target = "countryCode")
     @Mapping(source = "carrierContactInformation.email", target = "email")
-    @Mapping(source = "carrierContactInformation.phone", target = "phone")
+    @Mapping(source = "carrierContactInformation.carrierPhone", target = "phone")
+    @Mapping(source = "carrierContactInformation.driverPhone", target = "driverPhone")
     @Mapping(source = "carrierCity", target = "city")
-    @Mapping(source = "carrierNameCompany", target = "nameCompany")
-    @Mapping(source = "carrierNamePerson", target = "namePerson")
+    @Mapping(source = "carrierCompanyName", target = "companyName")
+    @Mapping(source = "carrierDriverName", target = "personName")
     @Mapping(source = "carrierPostcode", target = "postcode")
     @Mapping(source = "carrierStreet", target = "street")
     @Mapping(source = "carrierLicensePlate", target = "carrierLicensePlate")
@@ -82,10 +90,11 @@ public interface EcmrWebMapper {
 
     @Mapping(source = "successiveCarrierCountryCode.value", target = "countryCode")
     @Mapping(source = "successiveCarrierContactInformation.email", target = "email")
-    @Mapping(source = "successiveCarrierContactInformation.phone", target = "phone")
+    @Mapping(source = "successiveCarrierContactInformation.carrierPhone", target = "phone")
+    @Mapping(source = "successiveCarrierContactInformation.driverPhone", target = "driverPhone")
     @Mapping(source = "successiveCarrierCity", target = "city")
-    @Mapping(source = "successiveCarrierNameCompany", target = "nameCompany")
-    @Mapping(source = "successiveCarrierNamePerson", target = "namePerson")
+    @Mapping(source = "successiveCarrierCompanyName", target = "companyName")
+    @Mapping(source = "successiveCarrierDriverName", target = "personName")
     @Mapping(source = "successiveCarrierPostcode", target = "postcode")
     @Mapping(source = "successiveCarrierStreet", target = "street")
     SuccessiveCarrierInformationCommand map(SuccessiveCarrierInformation value);
@@ -93,7 +102,7 @@ public interface EcmrWebMapper {
     GoodsReceivedCommand map(GoodsReceived value);
 
     @Mapping(source = "marksAndNos.logisticsShippingMarksMarking", target = "logisticsShippingMarksMarking")
-    @Mapping(source = "marksAndNos.logisticsShippingMarksCustomBarcode", target = "logisticsShippingMarksCustomBarcode")
+    @Mapping(source = "marksAndNos.logisticsShippingMarksCustomBarcodeList", target = "logisticsShippingMarksCustomBarcodeList")
     @Mapping(source = "numberOfPackages.logisticsPackageItemQuantity", target = "logisticsPackageItemQuantity")
     @Mapping(source = "methodOfPacking.logisticsPackageType", target = "logisticsPackageType")
     @Mapping(source = "natureOfTheGoods.transportCargoIdentification", target = "transportCargoIdentification")
@@ -101,14 +110,12 @@ public interface EcmrWebMapper {
     @Mapping(source = "volumeInM3.supplyChainConsignmentItemGrossVolume", target = "supplyChainConsignmentItemGrossVolume")
     ItemCommand map(Item value);
 
-    SignCommand map(SignModel model);
-
     SealCommand map(SealModel model);
 
     FilterRequestCommand map(FilterRequestModel model);
 
-    @Mapping(source = "carrierNameCompany", target = "carrierNameCompany")
-    @Mapping(source = "carrierNamePerson", target = "carrierNamePerson")
+    @Mapping(source = "carrierCompanyName", target = "carrierCompanyName")
+    @Mapping(source = "carrierDriverName", target = "carrierDriverName")
     SharedCarrierInformationModel toSharedCarrierInformation(CarrierInformation value);
 
     /**

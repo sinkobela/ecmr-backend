@@ -10,8 +10,8 @@ package org.openlogisticsfoundation.ecmr.domain.exceptions;
 
 import java.util.UUID;
 
-public class SignatureNotValidException extends Exception {
-    public SignatureNotValidException(UUID ecmrID, String message) {
-        super("The Signature for the Ecmr with id " + ecmrID + " was not valid: " + message);
+public class SealedDocumentNotFoundException extends Exception {
+    public SealedDocumentNotFoundException(UUID ecmrId) {
+        super("No sealed eCMR with id " + ecmrId + " found");
     }
 }

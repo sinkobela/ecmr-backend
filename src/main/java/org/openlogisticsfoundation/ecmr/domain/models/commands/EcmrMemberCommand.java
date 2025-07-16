@@ -16,9 +16,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Getter
 public abstract class EcmrMemberCommand {
-    private String nameCompany;
+    private String companyName;
     @Size(min = 2, max = 60)
-    private String namePerson;
+    private String personName;
     @Size(min = 2, max = 255)
     private String street;
     @Size(min = 2, max = 17)
@@ -29,7 +29,7 @@ public abstract class EcmrMemberCommand {
     private String countryCode;
     @Size(max = 255)
     private String email;
-    @Size(max = 15)
-    @Pattern(regexp = "\\+?[0-9]{1,15}")
+    @Size(max = 32)
+    @Pattern(regexp = "\\+?[0-9]{1,32}")
     private String phone;
 }

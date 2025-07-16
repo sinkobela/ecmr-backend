@@ -10,30 +10,45 @@ package org.openlogisticsfoundation.ecmr.web.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
+import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
-import org.openlogisticsfoundation.ecmr.domain.models.*;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
+import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
+import org.openlogisticsfoundation.ecmr.domain.models.ExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.Group;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
+import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
-import org.openlogisticsfoundation.ecmr.domain.models.commands.SignCommand;
-import org.openlogisticsfoundation.ecmr.domain.services.*;
+import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
+import org.openlogisticsfoundation.ecmr.domain.services.ExternalUserService;
+import org.openlogisticsfoundation.ecmr.domain.services.SealedDocumentService;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.mappers.ExternalUserWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
 import org.openlogisticsfoundation.ecmr.web.models.ExternalUserRegistrationModel;
-import org.openlogisticsfoundation.ecmr.web.models.SignModel;
+import org.openlogisticsfoundation.ecmr.web.models.SealModel;
 import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -43,8 +58,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /*
  * Test class for AnonymousController
@@ -73,7 +87,7 @@ public class AnonymousControllerTest {
     private EcmrUpdateService ecmrUpdateService;
 
     @MockBean
-    private EcmrSignService ecmrSignService;
+    private SealedDocumentService sealedDocumentService;
 
     @MockBean
     private EcmrWebMapper ecmrWebMapper;
@@ -185,25 +199,25 @@ public class AnonymousControllerTest {
     }
 
     @Test
-    public void testSignOnGlass_Success() throws Exception {
+    public void testSign_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
-        SignModel signModel = new SignModel(Signer.Consignee, "signatureData", "Sample City");
+        SealModel sealModel = new SealModel(TransportRole.CONSIGNEE , "Sample City");
 
         ExternalUser externalUser = new ExternalUser(1L, "John", "Doe", "Example Company", "john.doe@example.com", "123456789", validUserToken, validTan, Instant.now().plusSeconds(3600));
 
-        SignCommand signCommand = new SignCommand(Signer.Sender, "signatureData", "Sample City");
+        SealCommand sealCommand = new SealCommand(TransportRole.SENDER, "Sample City");
 
         Signature signature = new Signature();
 
         when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken) ,eq(validTan))).thenReturn(externalUser);
-        when(ecmrWebMapper.map(any(SignModel.class))).thenReturn(signCommand);
-        when(ecmrSignService.signEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(signCommand), eq(SignatureType.SignOnGlass))).thenReturn(signature);
+        when(ecmrWebMapper.map(any(SealModel.class))).thenReturn(sealCommand);
+        doNothing().when(sealedDocumentService).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
 
-        String jsonRequest = new ObjectMapper().writeValueAsString(signModel);
+        String jsonRequest = new ObjectMapper().writeValueAsString(sealModel);
 
         // Act
-        mockMvc.perform(post("/anonymous/ecmr/{ecmrId}/sign-on-glass", ecmrId)
+        mockMvc.perform(post("/anonymous/ecmr/{ecmrId}/seal", ecmrId)
                 .characterEncoding("UTF-8")
                 .param("userToken", validUserToken)
                 .param("tan", validTan)
@@ -213,8 +227,8 @@ public class AnonymousControllerTest {
 
         // Assert
         verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
-        verify(ecmrWebMapper, times(1)).map(any(SignModel.class));
-        verify(ecmrSignService, times(1)).signEcmr(any(InternalOrExternalUser.class), eq(ecmrId), eq(signCommand), eq(SignatureType.SignOnGlass));
+        verify(ecmrWebMapper, times(1)).map(any(SealModel.class));
+        verify(sealedDocumentService, times(1)).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
     }
 
     @Test

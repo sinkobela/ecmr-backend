@@ -20,7 +20,6 @@ import org.openlogisticsfoundation.ecmr.domain.mappers.TemplateUserPersistenceMa
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
 import org.openlogisticsfoundation.ecmr.domain.models.TemplateUser;
-import org.openlogisticsfoundation.ecmr.domain.models.User;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.TemplateUserCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
@@ -56,7 +55,7 @@ public class TemplateUserService {
     }
 
     public TemplateUser createTemplate(EcmrCommand ecmrCommand, String name, AuthenticatedUser authenticatedUser) throws UserNotFoundException {
-        EcmrEntity ecmr = removeFields(ecmrCreationService.createTemplate(ecmrCommand, authenticatedUser));
+        EcmrEntity ecmr = removeItems(ecmrCreationService.createTemplate(ecmrCommand, authenticatedUser));
         TemplateUserEntity templateUser = createNewTemplateForUser(ecmr, name, authenticatedUser);
         return templateUserPersistenceMapper.toTemplateUser(templateUser);
     }
@@ -89,15 +88,12 @@ public class TemplateUserService {
 
         for (Long userIdToShareWith : userIdsToShareWith) {
             AuthenticatedUser authUserToShareWith = new AuthenticatedUser(userService.getActiveUserById(userIdToShareWith));
-            EcmrEntity newEcmr = removeFields(ecmrCreationService.createTemplate(ecmrCommand, authUserToShareWith));
+            EcmrEntity newEcmr = this.removeItems(ecmrCreationService.createTemplate(ecmrCommand, authUserToShareWith));
             createNewTemplateForUser(newEcmr, templateUserEntity.getName(), authUserToShareWith);
         }
     }
 
-    private EcmrEntity removeFields(EcmrEntity ecmr) {
-        ecmr.getConsigneeInformation().setSignature(null);
-        ecmr.getCarrierInformation().setSignature(null);
-        ecmr.getConsigneeInformation().setSignature(null);
+    private EcmrEntity removeItems(EcmrEntity ecmr) {
         ecmr.getItemList().clear();
         return ecmr;
     }

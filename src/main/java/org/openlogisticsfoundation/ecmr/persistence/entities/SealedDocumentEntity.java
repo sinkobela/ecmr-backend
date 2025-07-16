@@ -7,15 +7,15 @@
  */
 package org.openlogisticsfoundation.ecmr.persistence.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
 @Table(name = "SEALED_DOCUMENT")
@@ -23,23 +23,25 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SealedDocumentEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @CreationTimestamp
-    private Instant created;
-    @UpdateTimestamp
-    private Instant last_updated;
-    @Version
-    private Integer version;
-    @Lob
-    private String seal;
+public class SealedDocumentEntity extends BaseEntity {
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "sealed_ecmr_id")
-    private SealedEcmrEntity sealedEcmr;
+    @JoinColumn(name = "ecmr_id")
+    private EcmrEntity ecmr;
+
+    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @JoinColumn(name = "sender_ecmr_seal_id")
+    private EcmrSealEntity senderSeal;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "carrier_ecmr_seal_id")
+    private EcmrSealEntity carrierSeal;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "successive_carrier_ecmr_seal_id")
+    private EcmrSealEntity successiveCarrierSeal;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "consignee_ecmr_seal_id")
+    private EcmrSealEntity consigneeSeal;
 }
-
-
-
-

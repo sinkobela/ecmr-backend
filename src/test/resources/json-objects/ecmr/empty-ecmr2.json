@@ -2,8 +2,8 @@
   "ecmrId": null,
   "ecmrConsignment": {
     "senderInformation": {
-      "senderNameCompany": null,
-      "senderNamePerson": null,
+      "senderCompanyName": null,
+      "senderPersonName": null,
       "senderStreet": null,
       "senderPostcode": null,
       "senderCity": null,
@@ -20,8 +20,8 @@
       "isMultiConsigneeShipment": false
     },
     "consigneeInformation": {
-      "consigneeNameCompany": null,
-      "consigneeNamePerson": null,
+      "consigneeCompanyName": null,
+      "consigneePersonName": null,
       "consigneePostcode": null,
       "consigneeCity": null,
       "consigneeCountryCode": {
@@ -47,8 +47,8 @@
       "transportInstructionsDescription": null
     },
     "carrierInformation": {
-      "carrierNameCompany": null,
-      "carrierNamePerson": null,
+      "carrierCompanyName": null,
+      "carrierDriverName": null,
       "carrierStreet": null,
       "carrierPostcode": null,
       "carrierCity": null,
@@ -59,7 +59,8 @@
       "carrierLicensePlate": null,
       "carrierContactInformation": {
         "email": null,
-        "phone": null
+        "carrierPhone": null,
+        "driverPhone": null
       }
     },
     "successiveCarrierInformation": {
@@ -68,15 +69,14 @@
         "region": null,
         "value": null
       },
-      "successiveCarrierNameCompany": null,
-      "successiveCarrierNamePerson": null,
+      "successiveCarrierCompanyName": null,
+      "successiveCarrierDriverName": null,
       "successiveCarrierPostcode": null,
-      "successiveCarrierSignature": null,
-      "successiveCarrierSignatureDate": null,
       "successiveCarrierStreet": null,
       "successiveCarrierContactInformation": {
         "email": null,
-        "phone": null
+        "carrierPhone": null,
+        "driverPhone": null
       }
     },
     "carriersReservationsAndObservationsOnTakingOverTheGoods": {
@@ -90,7 +90,7 @@
       {
         "marksAndNos": {
           "logisticsShippingMarksMarking": null,
-          "logisticsShippingMarksCustomBarcode": null
+          "logisticsShippingMarksCustomBarcodeList": []
         },
         "numberOfPackages": {
           "logisticsPackageItemQuantity": null
@@ -143,12 +143,6 @@
     "established": {
       "customEstablishedDate": null,
       "customEstablishedIn": null
-    },
-    "signatureOrStampOfTheSender": {
-      "senderSignature": null
-    },
-    "signatureOrStampOfTheCarrier": {
-      "carrierSignature": null
     },
     "goodsReceived": {
       "confirmedLogisticsLocationName": null,

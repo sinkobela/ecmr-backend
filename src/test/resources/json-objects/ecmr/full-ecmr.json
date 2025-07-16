@@ -2,8 +2,8 @@
   "ecmrId": null,
   "ecmrConsignment": {
     "senderInformation": {
-      "senderNameCompany": "xy",
-      "senderNamePerson": "xy",
+      "senderCompanyName": "xy",
+      "senderPersonName": "xy",
       "senderStreet": "xy",
       "senderPostcode": "123",
       "senderCity": "xy",
@@ -20,8 +20,8 @@
       "isMultiConsigneeShipment": false
     },
     "consigneeInformation": {
-      "consigneeNameCompany": "xy",
-      "consigneeNamePerson": "xy",
+      "consigneeCompanyName": "xy",
+      "consigneePersonName": "xy",
       "consigneeStreet": "xy",
       "consigneePostcode": "123",
       "consigneeCity": "xy",
@@ -47,8 +47,8 @@
       "transportInstructionsDescription": "xy"
     },
     "carrierInformation": {
-      "carrierNameCompany": "xy",
-      "carrierNamePerson": "xy",
+      "carrierCompanyName": "xy",
+      "carrierDriverName": "xy",
       "carrierStreet": "xy",
       "carrierPostcode": "123",
       "carrierCity": "xy",
@@ -59,7 +59,8 @@
       "carrierLicensePlate": "xy",
       "carrierContactInformation": {
         "email": "a@b.de",
-        "phone": "123"
+        "carrierPhone": "123",
+        "driverPhone": "123"
       }
     },
     "successiveCarrierInformation": {
@@ -68,14 +69,14 @@
         "value": "DE",
         "region": null
       },
-      "successiveCarrierNameCompany": "xy",
-      "successiveCarrierNamePerson": "xy",
+      "successiveCarrierCompanyName": "xy",
+      "successiveCarrierDriverName": "xy",
       "successiveCarrierPostcode": "123",
-      "successiveCarrierSignature": null,
       "successiveCarrierStreet": "xy",
       "successiveCarrierContactInformation": {
         "email": "a@b.de",
-        "phone": "123"
+        "carrierPhone": "123",
+        "driverPhone": "123"
       }
     },
     "carriersReservationsAndObservationsOnTakingOverTheGoods": {
@@ -89,7 +90,11 @@
       {
         "marksAndNos": {
           "logisticsShippingMarksMarking": "xy",
-          "logisticsShippingMarksCustomBarcode": "xy"
+          "logisticsShippingMarksCustomBarcodeList": [
+            {
+              "barcode": "xy"
+            }
+          ]
         },
         "numberOfPackages": {
           "logisticsPackageItemQuantity": 2
@@ -142,12 +147,6 @@
     "established": {
       "customEstablishedIn": "xy",
       "customEstablishedDate": "2024-10-17T22:00:00.000Z"
-    },
-    "signatureOrStampOfTheSender": {
-      "senderSignature": null
-    },
-    "signatureOrStampOfTheCarrier": {
-      "carrierSignature": null
     },
     "goodsReceived": {
       "consigneeSignatureDate": null,

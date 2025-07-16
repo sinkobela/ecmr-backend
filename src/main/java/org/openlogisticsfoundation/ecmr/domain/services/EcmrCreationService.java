@@ -25,6 +25,7 @@ import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.GroupEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrAssignmentRepository;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,10 @@ public class EcmrCreationService {
     private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
     private final HistoryLogService historyLogService;
+    private final EcmrStatusService ecmrStatusService;
+
+    @Value("${app.origin.url}")
+    private String originUrl;
 
     public EcmrModel createEcmr(EcmrCommand ecmrCommand, AuthenticatedUser authenticatedUser, List<Long> groupIds)
             throws NoPermissionException {
@@ -57,7 +62,7 @@ public class EcmrCreationService {
             ecmrAssignmentEntity.setRole(EcmrRole.Sender);
             ecmrAssignmentRepository.save(ecmrAssignmentEntity);
         }
-        EcmrEntity entity = this.ecmrService.setEcmrStatus(ecmrEntity);
+        EcmrEntity entity = this.ecmrStatusService.setEcmrStatus(ecmrEntity);
         return persistenceMapper.toModel(entity);
     }
 
@@ -75,6 +80,7 @@ public class EcmrCreationService {
         String fullName = String.format("%s %s", authenticatedUser.getUser().getFirstName(), authenticatedUser.getUser().getLastName());
         ecmrEntity.setCreatedBy(fullName);
         ecmrEntity.setCreatedAt(Instant.now());
+        ecmrEntity.setOriginUrl(originUrl);
 
         ecmrEntity = ecmrService.clearPhoneNumbers(ecmrEntity);
 

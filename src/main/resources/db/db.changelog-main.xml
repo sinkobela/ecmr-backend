@@ -3,12 +3,14 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <include file="/db/init.xml"/>
-    <include file="/db/init-data.xml"/>
-    <include file="/db/init-sealed-documents.xml"/>
-    <include file="/db/update-custom-charge-value.xml"/>
-    <include file="/db/add-sealing-metadata.xml"/>
-    <include file="/db/add-origin-url.xml"/>
-    <include file="/db/security-fixes.xml"/>
-    <include file="/db/add-multi-consignee-shipment.xml"/>
+    <include file="/db/changelog/01-init.xml"/>
+    <include file="/db/changelog/02-init-data.xml"/>
+    <include file="/db/changelog/03-init-sealed-documents.xml"/>
+    <include file="/db/changelog/04-update-custom-charge-value.xml"/>
+    <include file="/db/changelog/05-add-sealing-metadata.xml"/>
+    <include file="/db/changelog/06-add-origin-url.xml"/>
+    <include file="/db/changelog/07-security-fixes.xml"/>
+    <include file="/db/changelog/08-add-multi-consignee-shipment.xml"/>
+    <include file="/db/changelog/09-refactoring-sealing.xml"/>
+    <include file="/db/changelog/10-adapt-to-data-model-1_0_2.xml"/>
 </databaseChangeLog>

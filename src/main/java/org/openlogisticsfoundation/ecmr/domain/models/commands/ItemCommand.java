@@ -7,6 +7,8 @@
  */
 package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
+import java.util.List;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
@@ -18,8 +20,7 @@ import lombok.Getter;
 public class ItemCommand {
     @Size(min = 2, max = 512)
     private String logisticsShippingMarksMarking;
-    @Size(min = 2, max = 35)
-    private String logisticsShippingMarksCustomBarcode;
+    private List<LogisticsShippingMarksCustomBarcodeCommand> logisticsShippingMarksCustomBarcodeList;
     @Min(0)
     @Max(9999)
     private Integer logisticsPackageItemQuantity;
@@ -29,14 +30,14 @@ public class ItemCommand {
     private String transportCargoIdentification;
     @Min(1)
     @Max(99_999)
-    private Integer supplyChainConsignmentItemGrossWeight;
+    private Float supplyChainConsignmentItemGrossWeight;
     @Min(1)
     @Max(9_999)
-    private Integer supplyChainConsignmentItemGrossVolume;
+    private Float supplyChainConsignmentItemGrossVolume;
 
     @Override
     public String toString() {
-        return logisticsShippingMarksMarking + logisticsShippingMarksCustomBarcode + logisticsPackageItemQuantity + logisticsPackageType
+        return logisticsShippingMarksMarking + logisticsShippingMarksCustomBarcodeList.toString() + logisticsPackageItemQuantity + logisticsPackageType
                 + transportCargoIdentification + supplyChainConsignmentItemGrossWeight + supplyChainConsignmentItemGrossVolume;
     }
 }

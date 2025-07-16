@@ -26,10 +26,10 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.openlogisticsfoundation.ecmr.persistence.repositories.EcmrRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -40,6 +40,7 @@ public class EcmrUpdateService {
     private final AuthorisationService authorisationService;
     private final EcmrService ecmrService;
     private final HistoryLogService historyLogService;
+    private final EcmrStatusService ecmrStatusService;
 
     public EcmrModel archiveEcmr(UUID ecmrUuid, AuthenticatedUser authenticatedUser)
             throws EcmrNotFoundException, ValidationException, NoPermissionException {
@@ -68,12 +69,12 @@ public class EcmrUpdateService {
     }
 
     public void archiveEcmrs() {
-        List<EcmrEntity> entities = ecmrRepository.findAllByEcmrStatusAndType(EcmrStatus.ARRIVED_AT_DESTINATION, EcmrType.ECMR);
+        List<EcmrEntity> entities = ecmrRepository.findAllByEcmrStatusAndType(EcmrStatus.DELIVERED, EcmrType.ECMR);
         log.info("Archiving {} ECMRs", entities.size());
         for (EcmrEntity entity : entities) {
             entity.setType(EcmrType.ARCHIVED);
-            this.ecmrRepository.save(entity);
         }
+        this.ecmrRepository.saveAll(entities);
     }
 
     @Transactional
@@ -94,7 +95,7 @@ public class EcmrUpdateService {
         ecmrEntity = ecmrService.clearPhoneNumbers(ecmrEntity);
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
-        ecmrEntity = this.ecmrService.setEcmrStatus(ecmrEntity);
+        ecmrEntity = this.ecmrStatusService.setEcmrStatus(ecmrEntity);
 
         historyLogService.writeHistoryLog(ecmrEntity, internalOrExternalUser.getFullName(), ActionType.Edit);
 

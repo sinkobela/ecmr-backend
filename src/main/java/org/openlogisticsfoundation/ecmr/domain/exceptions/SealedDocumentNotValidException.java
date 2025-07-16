@@ -8,10 +8,8 @@
 
 package org.openlogisticsfoundation.ecmr.domain.exceptions;
 
-import java.util.UUID;
-
-public class SealedEcmrNotFoundException extends RuntimeException {
-    public SealedEcmrNotFoundException(UUID ecmrId) {
-        super("No sealed eCMR with id " + ecmrId + " found");
+public class SealedDocumentNotValidException extends RuntimeException {
+    public SealedDocumentNotValidException(String message) {
+        super("Sealed Document not valid: " + message);
     }
 }

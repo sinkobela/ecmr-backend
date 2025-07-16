@@ -8,14 +8,14 @@
 
 package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
+import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.openlogisticsfoundation.ecmr.domain.models.Signer;
 
 @AllArgsConstructor
 @Getter
 public class SealCommand {
-    private Signer signer;
-    private String precedingSeal;
+    private TransportRole transportRole;
     private String city;
 }

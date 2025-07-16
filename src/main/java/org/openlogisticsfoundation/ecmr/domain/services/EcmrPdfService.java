@@ -12,23 +12,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
+import org.openlogisticsfoundation.ecmr.api.model.SealMetadata;
+import org.openlogisticsfoundation.ecmr.api.model.SealedDocument;
+import org.openlogisticsfoundation.ecmr.api.model.areas.ten.LogisticsShippingMarksCustomBarcode;
 import org.openlogisticsfoundation.ecmr.api.model.compositions.Item;
 import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.beans.ItemBean;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
+import org.openlogisticsfoundation.ecmr.domain.exceptions.NoPermissionException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.PdfCreationException;
+import org.openlogisticsfoundation.ecmr.domain.mappers.EcmrPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.mappers.SealedDocumentPersistenceMapper;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.PdfFile;
-import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
+import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
+import org.openlogisticsfoundation.ecmr.persistence.entities.SealedDocumentEntity;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -41,7 +50,6 @@ import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JasperRunManager;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import net.sf.jasperreports.engine.export.JRPdfExporterParameter;
 import net.sf.jasperreports.renderers.Renderable;
 import net.sf.jasperreports.renderers.SimpleDataRenderer;
 
@@ -51,15 +59,57 @@ import net.sf.jasperreports.renderers.SimpleDataRenderer;
 public class EcmrPdfService {
 
     private final ResourceLoader resourceLoader;
+    private final EcmrService ecmrService;
+    private final EcmrPersistenceMapper ecmrPersistenceMapper;
+    private final SealedDocumentPersistenceMapper sealedDocumentPersistenceMapper;
+    private final SealedDocumentService sealedDocumentService;
 
-    public PdfFile createJasperReportForEcmr(EcmrModel ecmrModel, boolean isCopy) throws PdfCreationException {
+    public PdfFile createJasperReportForEcmr(UUID id, InternalOrExternalUser internalOrExternalUser, boolean isCopy)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+
+        Optional<SealedDocument> sealedDocumentOpt = this.sealedDocumentService.getSealedDocument(id, internalOrExternalUser);
+        SealedDocument sealedDocument = null;
+        EcmrModel ecmrModel;
+        if (sealedDocumentOpt.isPresent()) {
+            sealedDocument = sealedDocumentOpt.get();
+            ecmrModel = sealedDocument.getEcmr();
+        } else {
+            ecmrModel = this.ecmrService.getEcmr(id, internalOrExternalUser);
+        }
+
+        return this.createJasperReportForEcmr(ecmrModel, sealedDocument, isCopy);
+    }
+
+    public PdfFile createJasperReportForEcmr(UUID id, String shareToken, boolean isCopy)
+            throws NoPermissionException, EcmrNotFoundException, PdfCreationException {
+
+        Optional<SealedDocumentEntity> sealedDocumentOpt = this.sealedDocumentService.getSealedDocumentEntity(id);
+        SealedDocumentEntity sealedDocumentEntity = null;
+        EcmrEntity ecmrEntity;
+        if (sealedDocumentOpt.isPresent()) {
+            sealedDocumentEntity = sealedDocumentOpt.get();
+            ecmrEntity = sealedDocumentEntity.getEcmr();
+        } else {
+            ecmrEntity = this.ecmrService.getEcmrEntity(id);
+        }
+
+        if (!ecmrEntity.getShareWithReaderToken().equals(shareToken)) {
+            throw new NoPermissionException("Share Token mandatory");
+        }
+        SealedDocument sealedDocument = sealedDocumentPersistenceMapper.toDomain(sealedDocumentEntity);
+
+        return this.createJasperReportForEcmr(sealedDocument == null ? ecmrPersistenceMapper.toModel(ecmrEntity) : sealedDocument.getEcmr(),
+                sealedDocument, isCopy);
+    }
+
+    private PdfFile createJasperReportForEcmr(EcmrModel ecmrModel, SealedDocument sealedDocument, boolean isCopy) throws PdfCreationException {
         try {
             InputStream ecmrReportStream = getClass().getResourceAsStream("/reports/ecmr.jrxml");
             JasperReport jasperReport = JasperCompileManager.compileReport(ecmrReportStream);
 
             List<ItemBean> itemBeans = convertToItemBeans(ecmrModel.getEcmrConsignment().getItemList());
             JRBeanCollectionDataSource itemDataSource = new JRBeanCollectionDataSource(itemBeans);
-            HashMap<String, Object> parameters = setEcmrParameters(ecmrModel, isCopy);
+            HashMap<String, Object> parameters = setEcmrParameters(ecmrModel, sealedDocument, isCopy);
             parameters.put("items", itemDataSource);
 
             return new PdfFile("eCMR-" + ecmrModel.getEcmrConsignment().getReferenceIdentificationNumber().getValue() + ".pdf",
@@ -72,26 +122,26 @@ public class EcmrPdfService {
         }
     }
 
-    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel, boolean isCopy) throws IOException {
+    private HashMap<String, Object> setEcmrParameters(EcmrModel ecmrModel, SealedDocument sealedDocument, boolean isCopy) throws IOException {
         HashMap<String, Object> parameters = new HashMap<>();
 
         //sender data
-        parameters.put("senderNameCompany", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderNameCompany());
-        parameters.put("senderNamePerson", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderNamePerson());
+        parameters.put("senderCompanyName", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCompanyName());
+        parameters.put("senderPersonName", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderPersonName());
         parameters.put("senderStreet", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderStreet());
         parameters.put("senderPostCode", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderPostcode());
         parameters.put("senderCity", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCity());
         parameters.put("senderCountry", ecmrModel.getEcmrConsignment().getSenderInformation().getSenderCountryCode().getValue());
 
         //consignee Data
-        if(!ecmrModel.getEcmrConsignment().getMultiConsigneeShipment().getIsMultiConsigneeShipment()) {
-            parameters.put("consigneeNameCompany", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNameCompany());
-            parameters.put("consigneeNamePerson", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeNamePerson());
+        if (!ecmrModel.getEcmrConsignment().getMultiConsigneeShipment().getIsMultiConsigneeShipment()) {
+            parameters.put("consigneeCompanyName", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCompanyName());
+            parameters.put("consigneePersonName", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneePersonName());
             parameters.put("consigneeStreet", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeStreet());
             parameters.put("consigneePostcode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneePostcode());
             parameters.put("consigneeCity", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCity());
             parameters.put("consigneeCountryCode", ecmrModel.getEcmrConsignment().getConsigneeInformation().getConsigneeCountryCode().getValue());
-        }else{
+        } else {
             parameters.put("multiConsigneeShipmentNotice", getMultiConsigneeShipmentText());
         }
 
@@ -105,8 +155,8 @@ public class EcmrPdfService {
                     Date.from(ecmrModel.getEcmrConsignment().getTakingOverTheGoods().getLogisticsTimeOfDepartureDateTime()));
 
         //carrier Data
-        parameters.put("carrierNameCompany", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierNameCompany());
-        parameters.put("carrierNamePerson", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierNamePerson());
+        parameters.put("carrierCompanyName", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierCompanyName());
+        parameters.put("carrierDriverName", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierDriverName());
         parameters.put("carrierPostcode", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierPostcode());
         parameters.put("carrierStreet", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierStreet());
         parameters.put("carrierCity", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierCity());
@@ -114,9 +164,10 @@ public class EcmrPdfService {
         parameters.put("carrierLicensePlate", ecmrModel.getEcmrConsignment().getCarrierInformation().getCarrierLicensePlate());
 
         //successive carrier Data
-        parameters.put("successiveCarrierName", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierNameCompany());
-        parameters.put("successiveCarrierPersonName",
-                ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierNamePerson());
+        parameters.put("successiveCarrierCompanyName",
+                ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierCompanyName());
+        parameters.put("successiveCarrierDriverName",
+                ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierDriverName());
         parameters.put("successiveCarrierStreetName", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierStreet());
         parameters.put("successiveCarrierPostcode", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierPostcode());
         parameters.put("successiveCarrierCity", ecmrModel.getEcmrConsignment().getSuccessiveCarrierInformation().getSuccessiveCarrierCity());
@@ -174,54 +225,37 @@ public class EcmrPdfService {
             parameters.put("customEstablishedDate", Date.from(ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedDate()));
         parameters.put("customEstablishedIn", ecmrModel.getEcmrConsignment().getEstablished().getCustomEstablishedIn());
 
-        //Sender Signature
-        if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature() != null) {
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getType(), SignatureType.SignOnGlass.toString())) {
-                Renderable renderableSignature =
-                        this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getData());
-                parameters.put("senderSignatureImage", renderableSignature);
-                parameters.put("senderSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature()));
-            }
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature().getType(), SignatureType.ESeal.toString())) {
-                parameters.put("senderSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheSender().getSenderSignature()));
-            }
-        }
+        if (sealedDocument != null) {
+            //Sender Seal
+            parameters.put("senderSealText", getSealText(sealedDocument.getSenderSeal().getSealMetadata()));
 
-        //Carrier Signature
-        if (ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature() != null) {
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getType(), SignatureType.SignOnGlass.toString())) {
-                Renderable renderableSignature =
-                        this.decodeImage(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getData());
-                parameters.put("carrierSignatureImage", renderableSignature);
-                parameters.put("carrierSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature()));
-            }
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature().getType(), SignatureType.ESeal.toString())) {
-                parameters.put("carrierSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getSignatureOrStampOfTheCarrier().getCarrierSignature()));
+            //Carrier Seal
+            if (sealedDocument.getCarrierSeal() != null) {
+                parameters.put("carrierSealText", getSealText(sealedDocument.getCarrierSeal().getSealMetadata()));
+
+                //Fields filled by the Consignee
+                parameters.put("consigneeSigningLocation",
+                        ecmrModel.getEcmrConsignment().getGoodsReceived().getConfirmedLogisticsLocationName());
+                if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate() != null) {
+                    parameters.put("consigneeSignatureDate",
+                            Date.from(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate()));
+                }
+                parameters.put("consigneeReservationsObservations",
+                        ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeReservationsObservations());
             }
 
-            //Fields filled by the Consignee
-            parameters.put("consigneeSigningLocation",
-                ecmrModel.getEcmrConsignment().getGoodsReceived().getConfirmedLogisticsLocationName());
-            if(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate() != null){
-                parameters.put("consigneeSignatureDate",
-                    Date.from(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignatureDate()));
-            }
-            parameters.put("consigneeReservationsObservations",
-                ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeReservationsObservations());
-        }
-
-        //Consignee Signature
-        if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getType(), SignatureType.SignOnGlass.toString())) {
+            //Consignee Signature
+            if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
                 Renderable renderableSignature =
                         this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
                 parameters.put("consigneeSignatureImage", renderableSignature);
-                parameters.put("consigneeSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
+                parameters.put("consigneeSignatureText", getSealText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
+            } else if (sealedDocument.getConsigneeSeal() != null) {
+                parameters.put("consigneeSignatureText", getSealText(sealedDocument.getConsigneeSeal().getSealMetadata()));
             }
-            if(Objects.equals(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getType(), SignatureType.ESeal.toString())) {
-                parameters.put("consigneeSignatureESeal", getESealText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
-            }
+
         }
+
 
         //National International Information Text
         EcmrTransportType ecmrTransportType = getEcmrTransportType(ecmrModel);
@@ -245,7 +279,7 @@ public class EcmrPdfService {
         }
 
         //Copy Watermark
-        if(isCopy) {
+        if (isCopy) {
             InputStream imageStream = resourceLoader.getResource("classpath:/images/Copy-Wasserzeichen-DIN4.png").getInputStream();
             byte[] waterMarkBytes = imageStream.readAllBytes();
             Renderable renderableWaterMark = SimpleDataRenderer.getInstance(waterMarkBytes);
@@ -301,30 +335,31 @@ public class EcmrPdfService {
         }
     }
 
-    private String getESealText(Signature signature) {
-        Date date = Date.from(signature.getTimestamp());
+    private String getSealText(SealMetadata sealMetadata) {
+        return this.getSealText(sealMetadata.getSealer(), sealMetadata.getTimestamp());
+    }
+
+    private String getSealText(Signature signature) {
+        return this.getSealText(signature.getUserName(), signature.getTimestamp());
+    }
+
+    private String getSealText(String sealer, Instant timestamp) {
+        String sealerText = sealer != null ? sealer : "";
+        Date date = Date.from(timestamp);
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
         String formattedDate = formatter.format(date);
-        return "Signed with eSeal on:\r\n" + formattedDate + "\r\n\r\nBy:\r\n" + signature.getUserName();
+        return "Signed with eSeal on:\r\n" + formattedDate + "\r\nBy:\r\n" + sealerText;
     }
-
-    private String getSignatureText(Signature signature) {
-        String upperCaseUserName = signature.getUserName() != null ? signature.getUserName().toUpperCase() : "";
-        String userCompany = signature.getUserCompany();
-
-        return userCompany != null && !userCompany.isBlank()
-            ? upperCaseUserName + "\r\n" + userCompany
-            : upperCaseUserName;
-    }
-
 
     private List<ItemBean> convertToItemBeans(List<Item> items) {
         List<ItemBean> itemBeans = new ArrayList<>();
 
         for (Item item : items) {
             ItemBean itemBean = new ItemBean();
+
             itemBean.setLogisticsShippingMarksMarking(item.getMarksAndNos().getLogisticsShippingMarksMarking());
-            itemBean.setLogisticsShippingMarksCustomBarcode(item.getMarksAndNos().getLogisticsShippingMarksCustomBarcode());
+            itemBean.setLogisticsShippingMarksCustomBarcode(item.getMarksAndNos().getLogisticsShippingMarksCustomBarcodeList().stream()
+                    .map(LogisticsShippingMarksCustomBarcode::getBarcode).collect(Collectors.joining(", ")));
             itemBean.setLogisticsPackageItemQuantity(item.getNumberOfPackages().getLogisticsPackageItemQuantity());
             itemBean.setLogisticsPackageType(item.getMethodOfPacking().getLogisticsPackageType());
             itemBean.setTransportCargoIdentification(item.getNatureOfTheGoods().getTransportCargoIdentification());

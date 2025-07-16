@@ -9,7 +9,9 @@ package org.openlogisticsfoundation.ecmr.persistence.entities;
 
 import java.time.Instant;
 
-import org.openlogisticsfoundation.ecmr.domain.models.SignatureType;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,30 +19,44 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "SIGNATURE")
+@Table(name = "ECMR_SEAL")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignatureEntity extends BaseEntity {
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private SignatureType signatureType;
-    private String userName;
-    private String userCompany;
-    private String userStreet;
-    private String userPostCode;
-    private String userCity;
-    private String userCountry;
-    private Instant timestamp;
-    // Base64 Encoded image (Sign on Glass) or digital signature (E-Seal)
+public class EcmrSealEntity extends BaseEntity {
+    @CreationTimestamp
+    private Instant created;
+
+    @UpdateTimestamp
+    private Instant last_updated;
+
+    @Version
+    private Integer version;
+
     @Lob
-    private String data;
+    private String seal;
+
+    @Column(nullable = false)
+    private String sealer;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TransportRole transportRole;
+
+    @Column(nullable = false)
+    private Instant timestamp;
+
+
 }
+
+
+
+

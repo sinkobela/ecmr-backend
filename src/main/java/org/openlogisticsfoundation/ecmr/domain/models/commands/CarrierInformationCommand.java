@@ -7,6 +7,8 @@
  */
 package org.openlogisticsfoundation.ecmr.domain.models.commands;
 
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -14,4 +16,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 public class CarrierInformationCommand extends EcmrMemberCommand {
     private String carrierLicensePlate;
+    @Size(max = 32)
+    @Pattern(regexp = "\\+?[0-9]{1,32}")
+    private String driverPhone;
 }

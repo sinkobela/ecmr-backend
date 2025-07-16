@@ -10,8 +10,10 @@ package org.openlogisticsfoundation.ecmr.domain.exceptions;
 
 import java.util.UUID;
 
-public class SignatureAlreadyPresentException extends Exception {
-    public SignatureAlreadyPresentException(UUID ecmrID, String type) {
-        super("Ecmr with id " + ecmrID + " already has the signature of type " + type);
+import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
+
+public class SealAlreadyPresentException extends Exception {
+    public SealAlreadyPresentException(UUID ecmrID, TransportRole role) {
+        super("Ecmr with id " + ecmrID + " already has the seal of role " + role);
     }
 }

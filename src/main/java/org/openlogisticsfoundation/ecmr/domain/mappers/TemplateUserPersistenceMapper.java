@@ -25,10 +25,11 @@ public interface TemplateUserPersistenceMapper {
     EcmrPersistenceMapper ecmrPersistenceMapper = Mappers.getMapper(EcmrPersistenceMapper.class);
 
     @Mapping(target = "templateUserNumber", ignore = true)
+    @Mapping(target = "user", ignore = true)
     TemplateUserEntity toEntity(TemplateUserCommand templateUserCommand, EcmrType type, EcmrStatus ecmrStatus);
 
     default EcmrEntity map(EcmrCommand value) {
-        return this.ecmrPersistenceMapper.toEntity(value, EcmrType.TEMPLATE, EcmrStatus.NEW);
+        return ecmrPersistenceMapper.toEntity(value, EcmrType.TEMPLATE, EcmrStatus.NEW);
     }
 
     TemplateUser toTemplateUser(TemplateUserEntity templateUserEntity);
