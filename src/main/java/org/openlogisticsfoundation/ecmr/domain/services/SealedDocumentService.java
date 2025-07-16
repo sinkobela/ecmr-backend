@@ -81,7 +81,7 @@ public class SealedDocumentService {
         this.validateEcmrForSealing(sealCommand.getTransportRole(), sealedDocument, internalOrExternalUser, ecmrId);
         SealedDocumentEntity sealedDocumentEntity = this.createSeal(sealedDocument, sealCommand, internalOrExternalUser.getFullName());
 
-        this.ecmrStatusService.setEcmrStatus(sealedDocumentEntity);
+        this.ecmrStatusService.setEcmrStatus(sealedDocumentEntity, internalOrExternalUser);
     }
 
     public SealVerifyResult verify(List<ESeal> seals) {

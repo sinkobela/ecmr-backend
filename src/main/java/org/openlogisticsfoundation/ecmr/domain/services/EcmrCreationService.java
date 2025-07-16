@@ -19,6 +19,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.ActionType;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrType;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrAssignmentEntity;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
@@ -62,7 +63,7 @@ public class EcmrCreationService {
             ecmrAssignmentEntity.setRole(EcmrRole.Sender);
             ecmrAssignmentRepository.save(ecmrAssignmentEntity);
         }
-        EcmrEntity entity = this.ecmrStatusService.setEcmrStatus(ecmrEntity);
+        EcmrEntity entity = this.ecmrStatusService.setEcmrStatus(ecmrEntity, new InternalOrExternalUser(authenticatedUser.getUser()));
         return persistenceMapper.toModel(entity);
     }
 

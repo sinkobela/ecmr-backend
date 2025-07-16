@@ -95,7 +95,7 @@ public class EcmrUpdateService {
         ecmrEntity = ecmrService.clearPhoneNumbers(ecmrEntity);
 
         ecmrEntity = ecmrRepository.save(ecmrEntity);
-        ecmrEntity = this.ecmrStatusService.setEcmrStatus(ecmrEntity);
+        ecmrEntity = this.ecmrStatusService.setEcmrStatus(ecmrEntity, internalOrExternalUser);
 
         historyLogService.writeHistoryLog(ecmrEntity, internalOrExternalUser.getFullName(), ActionType.Edit);
 

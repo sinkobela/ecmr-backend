@@ -11,6 +11,7 @@ package org.openlogisticsfoundation.ecmr.domain.services.statuschange;
 import java.util.List;
 
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
+import org.openlogisticsfoundation.ecmr.domain.models.InternalOrExternalUser;
 import org.openlogisticsfoundation.ecmr.persistence.entities.EcmrEntity;
 import org.springframework.stereotype.Service;
 
@@ -24,14 +25,14 @@ public class EcmrStatusChangedService {
 
     private List<EcmrStatusChanged> ecmrStatusChangedList;
 
-    public void ecmrStatusChanged(EcmrStatus previousStatus, EcmrEntity ecmrEntity) {
+    public void ecmrStatusChanged(EcmrStatus previousStatus, EcmrEntity ecmrEntity, InternalOrExternalUser user) {
         if (ecmrStatusChangedList.isEmpty() || ecmrEntity.getEcmrStatus().equals(previousStatus)) {
             return;
         }
 
         for (EcmrStatusChanged ecmrStatusChanged : ecmrStatusChangedList) {
             try {
-                ecmrStatusChanged.onEcmrStatusChange(previousStatus, ecmrEntity);
+                ecmrStatusChanged.onEcmrStatusChange(previousStatus, ecmrEntity, user);
             } catch (EcmrStatusChangedException e) {
                 log.error("Error while doing Status change: {}", e.getMessage());
                 log.debug(e);
