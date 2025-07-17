@@ -52,7 +52,7 @@ public class SealedDocumentController {
     @GetMapping("/{ecmrId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-            tags = "SEALED DOCUMENT",
+            tags = "Sealed Document",
             summary = "Retrieve Sealed Document without eCMR Model by eCMR ID",
             parameters = {
                     @Parameter(name = "ecmrId", description = "UUID of the eCMR", required = true, schema = @Schema(type = "string", format = "uuid"))
