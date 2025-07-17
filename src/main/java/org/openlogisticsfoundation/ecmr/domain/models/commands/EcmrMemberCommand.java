@@ -30,6 +30,6 @@ public abstract class EcmrMemberCommand {
     @Size(max = 255)
     private String email;
     @Size(max = 32)
-    @Pattern(regexp = "\\+?[0-9]{1,32}")
+    @Pattern(regexp = "^(\\+|\\d)[0-9\\s\\-().]{0,31}$")
     private String phone;
 }
