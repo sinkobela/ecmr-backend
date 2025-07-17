@@ -35,10 +35,10 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrDeleteService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrSealService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
-import org.openlogisticsfoundation.ecmr.domain.services.SealedDocumentService;
 import org.openlogisticsfoundation.ecmr.web.exceptions.AuthenticationException;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
@@ -85,7 +85,7 @@ public class EcmrController {
     private final EcmrWebMapper ecmrWebMapper;
     private final AuthenticationService authenticationService;
     private final EcmrShareService ecmrShareService;
-    private final SealedDocumentService sealedDocumentService;
+    private final EcmrSealService ecmrSealService;
     private final EcmrDeleteService ecmrDeleteService;
     private final EcmrPdfService ecmrPdfService;
 
@@ -558,7 +558,7 @@ public class EcmrController {
     public ResponseEntity<Void> seal(@PathVariable(value = "ecmrId") UUID ecmrId, @RequestBody @Valid @NotNull SealModel sealModel) {
         try {
             AuthenticatedUser authenticatedUser = this.authenticationService.getAuthenticatedUser();
-            this.sealedDocumentService.sealEcmr(ecmrId, ecmrWebMapper.map(sealModel),
+            this.ecmrSealService.sealEcmr(ecmrId, ecmrWebMapper.map(sealModel),
                     new InternalOrExternalUser(authenticatedUser.getUser()));
             return ResponseEntity.ok().build();
         } catch (AuthenticationException e) {

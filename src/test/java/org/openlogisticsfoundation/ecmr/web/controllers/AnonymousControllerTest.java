@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
-import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrShareResponse;
 import org.openlogisticsfoundation.ecmr.domain.models.ExternalUser;
@@ -39,6 +38,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.ShareEcmrResult;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrSealService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
@@ -88,6 +88,9 @@ public class AnonymousControllerTest {
 
     @MockBean
     private SealedDocumentService sealedDocumentService;
+
+    @MockBean
+    private EcmrSealService ecmrSealService;
 
     @MockBean
     private EcmrWebMapper ecmrWebMapper;
@@ -199,7 +202,7 @@ public class AnonymousControllerTest {
     }
 
     @Test
-    public void testSign_Success() throws Exception {
+    public void testSeal_Success() throws Exception {
         // Arrange
         UUID ecmrId = UUID.randomUUID();
         SealModel sealModel = new SealModel(TransportRole.CONSIGNEE , "Sample City");
@@ -208,11 +211,9 @@ public class AnonymousControllerTest {
 
         SealCommand sealCommand = new SealCommand(TransportRole.SENDER, "Sample City");
 
-        Signature signature = new Signature();
-
         when(authenticationService.getExternalUser(eq(ecmrId), eq(validUserToken) ,eq(validTan))).thenReturn(externalUser);
         when(ecmrWebMapper.map(any(SealModel.class))).thenReturn(sealCommand);
-        doNothing().when(sealedDocumentService).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
+        doNothing().when(ecmrSealService).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
 
         String jsonRequest = new ObjectMapper().writeValueAsString(sealModel);
 
@@ -228,7 +229,7 @@ public class AnonymousControllerTest {
         // Assert
         verify(authenticationService, times(1)).getExternalUser(eq(ecmrId), eq(validUserToken), eq(validTan));
         verify(ecmrWebMapper, times(1)).map(any(SealModel.class));
-        verify(sealedDocumentService, times(1)).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
+        verify(ecmrSealService, times(1)).sealEcmr(eq(ecmrId), eq(sealCommand), any(InternalOrExternalUser.class));
     }
 
     @Test

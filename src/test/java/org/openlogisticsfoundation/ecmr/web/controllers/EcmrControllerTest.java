@@ -32,7 +32,6 @@ import org.openlogisticsfoundation.ecmr.api.model.EcmrConsignment;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrStatus;
 import org.openlogisticsfoundation.ecmr.api.model.TransportRole;
-import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.models.AuthenticatedUser;
 import org.openlogisticsfoundation.ecmr.domain.models.CountryCode;
 import org.openlogisticsfoundation.ecmr.domain.models.EcmrRole;
@@ -49,10 +48,10 @@ import org.openlogisticsfoundation.ecmr.domain.models.commands.SealCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrCreationService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrDeleteService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrSealService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
-import org.openlogisticsfoundation.ecmr.domain.services.SealedDocumentService;
 import org.openlogisticsfoundation.ecmr.web.mappers.EcmrWebMapper;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrPageModel;
 import org.openlogisticsfoundation.ecmr.web.models.EcmrShareModel;
@@ -104,7 +103,7 @@ public class EcmrControllerTest {
     private EcmrDeleteService ecmrDeleteService;
 
     @MockBean
-    private SealedDocumentService sealedDocumentService;
+    private EcmrSealService ecmrSealService;
 
     private AuthenticatedUser authenticatedUser;
     private UUID ecmrId;
@@ -347,11 +346,10 @@ public class EcmrControllerTest {
     @WithMockUser
     public void testSeal_Success() throws Exception {
         // Arrange
-        Signature signature = new Signature();
         SealCommand sealCommand = new SealCommand(TransportRole.SENDER, "Sample City");
 
         when(ecmrWebMapper.map(any(SealModel.class))).thenReturn(sealCommand);
-        doNothing().when(sealedDocumentService).sealEcmr(eq(ecmrId), eq(sealCommand), any());
+        doNothing().when(ecmrSealService).sealEcmr(eq(ecmrId), eq(sealCommand), any());
 
         String signJsonRequest = new ObjectMapper().writeValueAsString(sealModel);
 
@@ -362,7 +360,7 @@ public class EcmrControllerTest {
         // Assert
         verify(authenticationService, times(1)).getAuthenticatedUser();
         verify(ecmrWebMapper, times(1)).map(any(SealModel.class));
-        verify(sealedDocumentService, times(1)).sealEcmr(eq(ecmrId), eq(sealCommand), any());
+        verify(ecmrSealService, times(1)).sealEcmr(eq(ecmrId), eq(sealCommand), any());
     }
 
     @Test

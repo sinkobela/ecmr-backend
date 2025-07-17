@@ -36,6 +36,7 @@ import org.openlogisticsfoundation.ecmr.domain.models.SealedDocumentWithoutEcmr;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.EcmrCommand;
 import org.openlogisticsfoundation.ecmr.domain.models.commands.ExternalUserRegistrationCommand;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrPdfService;
+import org.openlogisticsfoundation.ecmr.domain.services.EcmrSealService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrShareService;
 import org.openlogisticsfoundation.ecmr.domain.services.EcmrUpdateService;
@@ -87,6 +88,7 @@ public class AnonymousController {
     private final EcmrWebMapper ecmrWebMapper;
     private final EcmrUpdateService ecmrUpdateService;
     private final SealedDocumentService sealedDocumentService;
+    private final EcmrSealService ecmrSealService;
     private final EcmrPdfService ecmrPdfService;
 
     /**
@@ -309,7 +311,7 @@ public class AnonymousController {
             @RequestBody @Valid @NotNull SealModel sealModel) {
         try {
             ExternalUser externalUser = this.authenticationService.getExternalUser(ecmrId, userToken, tan);
-            this.sealedDocumentService.sealEcmr(ecmrId, ecmrWebMapper.map(sealModel), new InternalOrExternalUser(externalUser));
+            this.ecmrSealService.sealEcmr(ecmrId, ecmrWebMapper.map(sealModel), new InternalOrExternalUser(externalUser));
             return ResponseEntity.ok().build();
         } catch (EcmrNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
