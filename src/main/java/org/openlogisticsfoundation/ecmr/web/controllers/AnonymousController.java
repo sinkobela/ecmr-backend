@@ -17,7 +17,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.NotImplementedException;
 import org.openlogisticsfoundation.ecmr.api.model.EcmrModel;
 import org.openlogisticsfoundation.ecmr.api.model.areas.six.CarrierInformation;
-import org.openlogisticsfoundation.ecmr.api.model.signature.Signature;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.EcmrNotFoundException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserInvalidTanException;
 import org.openlogisticsfoundation.ecmr.domain.exceptions.ExternalUserNotFoundException;
@@ -54,7 +53,6 @@ import org.openlogisticsfoundation.ecmr.web.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -277,20 +275,20 @@ public class AnonymousController {
     }
 
     /**
-     * Signs and seals an ECMR.
+     * Seals an ECMR.
      *
      * @param ecmrId The UUID of the ECMR.
      * @param userToken Unique token of the external user
      * @param tan The TAN for validation.
-     * @param sealModel The sign model containing signature data.
-     * @return The signature result.
+     * @param sealModel The seal model containing seal data.
      */
     @PostMapping("/ecmr/{ecmrId}/seal")
     @Operation(
             tags = "Anonymous",
-            summary = "Sign and seal ECMR",
+            summary = "Seal ECMR",
             parameters = {
-                    @Parameter(name = "ecmrId", description = "UUID of the ECMR", required = true, schema = @Schema(type = "string", format = "uuid")),
+                    @Parameter(name = "ecmrId", description = "UUID of the ECMRto seal", required = true, schema = @Schema(type = "string", format =
+                            "uuid")),
                     @Parameter(name = "userToken", description = "Unique token of the external user", required = true, schema = @Schema(type = "string")),
                     @Parameter(name = "tan", description = "TAN for validation", required = true, schema = @Schema(type = "string"))
             },
@@ -298,15 +296,12 @@ public class AnonymousController {
                     mediaType = "application/json",
                     schema = @Schema(implementation = SealModel.class))),
             responses = {
-                    @ApiResponse(description = "Signature result",
-                            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Signature.class))),
                     @ApiResponse(description = "ECMR not found", responseCode = "404"),
-                    @ApiResponse(description = "Validation error", responseCode = "400"),
-                    @ApiResponse(description = "No permission", responseCode = "403"),
+                    @ApiResponse(description = "Forbidden access", responseCode = "403"),
                     @ApiResponse(description = "External user not found", responseCode = "401"),
-                    @ApiResponse(description = "Signature already present", responseCode = "400")
+                    @ApiResponse(description = "Validation error or seal already present", responseCode = "400")
             })
-    public ResponseEntity<Void> signOnGlass(@PathVariable(value = "ecmrId") UUID ecmrId,
+    public ResponseEntity<Void> seal(@PathVariable(value = "ecmrId") UUID ecmrId,
             @RequestParam(name = "userToken") @Valid @NotNull String userToken, @RequestParam(name = "tan") @Valid @NotNull String tan,
             @RequestBody @Valid @NotNull SealModel sealModel) {
         try {
@@ -535,7 +530,6 @@ public class AnonymousController {
      * @return The requested eCMR
      */
     @GetMapping(path = { "/sealed-document/{ecmrId}" })
-    @PreAuthorize("isAuthenticated()")
     @Operation(
             tags = "Anonymous",
             summary = "Retrieve Sealed Document without eCMR Model by eCMR ID",

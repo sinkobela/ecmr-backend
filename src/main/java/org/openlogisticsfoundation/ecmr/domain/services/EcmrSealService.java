@@ -194,8 +194,6 @@ public class EcmrSealService {
             throw new ValidationException("Item is missing");
         }
         if ( StringUtils.isBlank(item.getLogisticsShippingMarksMarking())
-                || item.getLogisticsShippingMarksCustomBarcodeList().isEmpty()
-                || StringUtils.isBlank(item.getLogisticsShippingMarksCustomBarcodeList().getFirst().getBarcode())
                 || item.getLogisticsPackageItemQuantity() == null
                 || StringUtils.isBlank(item.getLogisticsPackageType())
                 || StringUtils.isBlank(item.getTransportCargoIdentification())

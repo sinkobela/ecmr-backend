@@ -92,15 +92,10 @@
 	<parameter name="consigneeTimeOfDeparture" class="java.util.Date"/>
 	<parameter name="ecmrLogo" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="items" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
-	<parameter name="senderSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
-	<parameter name="carrierSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="consigneeSignatureImage" class="net.sf.jasperreports.renderers.Renderable"/>
 	<parameter name="senderSealText" class="java.lang.String"/>
 	<parameter name="carrierSealText" class="java.lang.String"/>
 	<parameter name="consigneeSealText" class="java.lang.String"/>
-	<parameter name="senderSignatureESeal" class="java.lang.String"/>
-	<parameter name="carrierSignatureESeal" class="java.lang.String"/>
-	<parameter name="consigneeSignatureESeal" class="java.lang.String"/>
 	<parameter name="consigneeSigningLocation" class="java.lang.String"/>
 	<parameter name="consigneeSignatureDate" class="java.util.Date"/>
 	<parameter name="consigneeReservationsObservations" class="java.lang.String"/>

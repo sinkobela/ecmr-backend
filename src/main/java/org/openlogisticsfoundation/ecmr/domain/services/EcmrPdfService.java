@@ -245,15 +245,14 @@ public class EcmrPdfService {
             }
 
             //Consignee Signature
-            if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
+            if (sealedDocument.getConsigneeSeal() != null) {
+                parameters.put("consigneeSealText", getSealText(sealedDocument.getConsigneeSeal().getSealMetadata()));
+            } else if (ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature() != null) {
                 Renderable renderableSignature =
                         this.decodeImage(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature().getData());
                 parameters.put("consigneeSignatureImage", renderableSignature);
-                parameters.put("consigneeSignatureText", getSealText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
-            } else if (sealedDocument.getConsigneeSeal() != null) {
-                parameters.put("consigneeSignatureText", getSealText(sealedDocument.getConsigneeSeal().getSealMetadata()));
+                parameters.put("consigneeSignatureText", getSignatureText(ecmrModel.getEcmrConsignment().getGoodsReceived().getConsigneeSignature()));
             }
-
         }
 
 
@@ -336,19 +335,22 @@ public class EcmrPdfService {
     }
 
     private String getSealText(SealMetadata sealMetadata) {
-        return this.getSealText(sealMetadata.getSealer(), sealMetadata.getTimestamp());
+        String sealerText = sealMetadata.getSealer() != null ? sealMetadata.getSealer() : "";
+        String formattedDate = this.getFormattedDate(sealMetadata.getTimestamp());
+        return "Signed with eSeal on:\r\n" + formattedDate + "\r\nBy:\r\n" + sealerText;
     }
 
-    private String getSealText(Signature signature) {
-        return this.getSealText(signature.getUserName(), signature.getTimestamp());
+    private String getSignatureText(Signature signature) {
+        return signature.getUserName() + " - " + this.getFormattedDate(signature.getTimestamp());
     }
 
-    private String getSealText(String sealer, Instant timestamp) {
-        String sealerText = sealer != null ? sealer : "";
+    private String getFormattedDate(Instant timestamp) {
+        if (timestamp == null) {
+            return "-";
+        }
         Date date = Date.from(timestamp);
         SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
-        String formattedDate = formatter.format(date);
-        return "Signed with eSeal on:\r\n" + formattedDate + "\r\nBy:\r\n" + sealerText;
+        return formatter.format(date);
     }
 
     private List<ItemBean> convertToItemBeans(List<Item> items) {
