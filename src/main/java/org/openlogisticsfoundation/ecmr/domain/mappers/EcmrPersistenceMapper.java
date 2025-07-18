@@ -102,8 +102,8 @@ public interface EcmrPersistenceMapper {
     @Mapping(target = "consigneeReservationsObservations", source = "consigneeReservationsObservations")
     @Mapping(target = "consigneeTimeOfArrival", source = "consigneeTimeOfArrival")
     @Mapping(target = "consigneeTimeOfDeparture", source = "consigneeTimeOfDeparture")
+    @Mapping(target = "consigneeSignatureDate", source = "consigneeSignatureDate")
     @Mapping(target = "consigneeSignature", ignore = true)
-    @Mapping(target = "consigneeSignatureDate", ignore = true)
     GoodsReceived toGoodsReceived(GoodsReceivedEntity goodsReceivedEntity);
 
     @Mapping(source = "street", target = "senderStreet")

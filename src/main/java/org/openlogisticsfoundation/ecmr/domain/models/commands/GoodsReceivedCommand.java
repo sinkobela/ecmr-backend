@@ -20,6 +20,7 @@ public class GoodsReceivedCommand {
     private String confirmedLogisticsLocationName;
     @Size(min = 2, max = 512)
     private String consigneeReservationsObservations;
+    private Instant consigneeSignatureDate;
     private Instant consigneeTimeOfArrival;
     private Instant consigneeTimeOfDeparture;
 }

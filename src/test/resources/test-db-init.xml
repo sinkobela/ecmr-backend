@@ -13,4 +13,5 @@
     <include file="/db/changelog/08-add-multi-consignee-shipment.xml"/>
     <include file="/db/changelog/09-refactoring-sealing.xml"/>
     <include file="/db/changelog/10-adapt-to-data-model-1_0_2.xml"/>
+    <include file="/db/changelog/11-add-missing-field.xml"/>
 </databaseChangeLog>

@@ -25,6 +25,7 @@ import lombok.Setter;
 public class GoodsReceivedEntity extends BaseEntity {
     private String confirmedLogisticsLocationName;
     private String consigneeReservationsObservations;
+    private Instant consigneeSignatureDate;
     private Instant consigneeTimeOfArrival;
     private Instant consigneeTimeOfDeparture;
 }
