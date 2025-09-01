@@ -5,19 +5,20 @@
   "roles": {
     "realm": [
       {
-        "name": "user",
-        "description": "Standard user role"
+        "name": "default-roles-ecmr",
+        "description": "role_default-roles"
       }
     ]
   },
   "clients": [
     {
-      "clientId": "testClient",
+      "clientId": "ecmr-swagger",
       "enabled": true,
       "publicClient": true,
       "directAccessGrantsEnabled": true,
       "redirectUris": [
-        "http://localhost:8082/*"
+        "http://localhost:8081/swagger-ui/oauth2-redirect.html",
+        "http://localhost:8081/*"
       ],
       "webOrigins": [
         "http://localhost:8081",
@@ -27,15 +28,15 @@
   ],
   "users": [
     {
-      "username": "test-user",
+      "username": "bela@test.com",
       "enabled": true,
-      "firstName": "Test",
-      "lastName": "User",
-      "email": "test@iml.de",
+      "firstName": "Bela",
+      "lastName": "Test",
+      "email": "bela@test.com",
       "credentials": [
         {
           "type": "password",
-          "value": "youruserpassword",
+          "value": "admin",
           "temporary": false
         }
       ]

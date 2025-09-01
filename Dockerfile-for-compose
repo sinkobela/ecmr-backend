@@ -11,7 +11,7 @@ RUN mvn clean package \
 FROM eclipse-temurin:21
 RUN mkdir /app && chmod ugo+rwx /app
 COPY --from=build /app/target/ecmr-backend-*.jar /app/ecmr-backend.jar
-EXPOSE 8080
+EXPOSE 8081
 WORKDIR /app
 # Using the cgroup memory limit for heap size is essential in running java applications in container environments
 # This sets -XX:MaxRAM to whatever is configured for the container and sets -XX:MaxHeapSize to 1/4 of that
