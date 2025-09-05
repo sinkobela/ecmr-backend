@@ -20,7 +20,7 @@
   },
   "clients": [
     {
-      "clientId": "ecmr-admin",
+      "clientId": "ecmr-swagger",
       "enabled": true,
       "publicClient": true,
       "directAccessGrantsEnabled": true,
