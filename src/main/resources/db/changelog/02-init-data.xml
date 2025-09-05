@@ -23,7 +23,8 @@
                    ('Thomas', 'Dukvin', 'DE', 'thomas.dukvin@rhenus.com', '12345', 'Admin', 1),
                    ('Baris', 'Baskale', 'DE', 'baris.baskale@rhenus.com', '12345', 'Admin', 1),
                    ('Jan', 'Eissing', 'DE', 'jan.eissing@rhenus.com', '12345', 'Admin', 1),
-                   ('Test', 'User', 'DE', 'test@iml.de', '12345', 'Admin', 1);
+                   ('Test', 'User', 'DE', 'test@iml.de', '12345', 'Admin', 1),
+                   ('Ecmr', 'Admin', 'DE', 'ecmradmin@cargortrack.ro', '12345', 'Admin', 1);
 
             INSERT INTO user_to_group (user_id, group_id)
             SELECT u.id as user_id, 1 as group_id
