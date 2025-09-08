@@ -41,7 +41,7 @@
       "enabled": true,
       "firstName": "Ecmr",
       "lastName": "Admin",
-      "email": "ecmradmin@cargortrack.ro",
+      "email": "ecmradmin@cargotrack.ro",
       "credentials": [
         {
           "type": "password",
